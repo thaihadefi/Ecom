@@ -1,0 +1,37 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner({ name: pageTitle }, "/about")
+
+  section.mt_80.mb_100
+    .container
+      .row.justify-content-center
+        .col-lg-8
+          h2(style="color:#0057B7;font-weight:700;margin-bottom:16px;") Who We Are
+          p(style="color:#374151;font-size:15px;line-height:1.8;")
+            | Ukraine is a fashion brand dedicated to bringing authentic Ukrainian culture to the world through clothing. Every piece in our collection tells a story - woven from the rich traditions, vibrant colors, and timeless craftsmanship of Ukraine.
+          p(style="color:#374151;font-size:15px;line-height:1.8;margin-top:16px;")
+            | We believe fashion is more than fabric. It is identity, heritage, and pride. Our mission is to share the beauty of Ukrainian artistry - from embroidered vyshyvankas to modern streetwear inspired by folk motifs - with customers around the globe.
+
+          div(style="background:#eff6ff;border-left:4px solid #0057B7;border-radius:4px;padding:20px 24px;margin:32px 0;")
+            h4(style="color:#0057B7;font-weight:600;margin-bottom:8px;") Our Mission
+            p(style="color:#374151;font-size:15px;line-height:1.8;margin:0;")
+              | To celebrate and preserve Ukrainian cultural heritage through contemporary fashion, making it accessible and meaningful for people everywhere.
+
+          .row.mt_40
+            .col-md-4.text-center.mb-4
+              div(style="background:#f9fafb;border-radius:12px;padding:28px 16px;")
+                i.fas.fa-tshirt(aria-hidden="true" style="font-size:36px;color:#FFD700;margin-bottom:12px;")
+                h5(style="font-weight:600;") Authentic Designs
+                p(style="color:#6b7280;font-size:14px;margin:0;") Inspired by traditional Ukrainian embroidery and folk art
+            .col-md-4.text-center.mb-4
+              div(style="background:#f9fafb;border-radius:12px;padding:28px 16px;")
+                i.fas.fa-leaf(aria-hidden="true" style="font-size:36px;color:#FFD700;margin-bottom:12px;")
+                h5(style="font-weight:600;") Quality Materials
+                p(style="color:#6b7280;font-size:14px;margin:0;") Premium fabrics crafted for comfort and durability
+            .col-md-4.text-center.mb-4
+              div(style="background:#f9fafb;border-radius:12px;padding:28px 16px;")
+                i.fas.fa-globe(aria-hidden="true" style="font-size:36px;color:#FFD700;margin-bottom:12px;")
+                h5(style="font-weight:600;") Ships Worldwide
+                p(style="color:#6b7280;font-size:14px;margin:0;") Bringing Ukrainian culture to every corner of the world

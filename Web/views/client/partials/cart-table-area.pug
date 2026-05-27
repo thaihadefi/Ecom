@@ -1,0 +1,22 @@
+div(class="cart_table_area")
+  .table-responsive
+    table.table
+      thead
+        tr
+          th(class="cart_page_checkbox")
+            .form-check
+              input.form-check-input(
+                value="" 
+                type="checkbox"
+                input-cart-check-all
+                )
+          th(class="cart_page_img") Image
+          th(class="cart_page_details") Details
+          th(class="cart_page_price") Unit Price
+          th(class="cart_page_quantity") Quantity
+          th(class="cart_page_total") Subtotal
+          th(class="cart_page_action") Action
+  .table-responsive
+    table.table
+      tbody(cart-table)
+       

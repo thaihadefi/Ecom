@@ -1,0 +1,27 @@
+if blockData
+  section(
+    style=`background: url(${getFullUrl(blockData.background) || '/client/assets/images/subscribe_2_bg.jpg'});`
+    class="subscription_2 mt_50 xs_mt_60"
+    )
+    .container
+      .row.justify-content-center
+        .col-xxl-6.col-lg-8.wow.fadeInUp
+          div(class="subscription_2_text")
+            h2
+              | #{blockData.title}
+              if blockData.highlight
+                span #{blockData.highlight}
+            if blockData.subtitle
+              p #{blockData.subtitle}
+            form(action="#" class="subscription_form")
+              label.visually-hidden(for="subscribeEmail") Email address
+              input(
+                id="subscribeEmail"
+                placeholder=blockData.placeholder || "Your email"
+                type="email"
+                name="email"
+                autocomplete="email"
+                aria-label="Email address for newsletter"
+                )
+              button(class="common_btn" type="submit")
+                | #{blockData.buttonText || "Subscribe"}

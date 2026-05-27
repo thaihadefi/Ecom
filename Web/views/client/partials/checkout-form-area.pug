@@ -1,0 +1,80 @@
+form(class="checkout_form_area" id="checkoutAddressForm")
+  #accordionExample.accordion
+    .accordion-item.border-0
+      .accordion-header
+        .accordion-button.collapsed.p-0(
+          aria-controls="collapseThree" 
+          aria-expanded="false" 
+          data-bs-target="#collapseThree" 
+          role="tabpanel" 
+          data-bs-toggle="collapse"
+          )
+          .form-check
+            input#flexCheckDefault.form-check-input(
+              value="" 
+              type="radio"
+              name="userAddress"
+              )
+            label.form-check-label(for="flexCheckDefault") Enter new address
+      #collapseThree.accordion-collapse.collapse(data-bs-parent="#accordionExample")
+        .accordion-body.p-0
+          .row
+            .col-md-6
+              div(class="single_input")
+                label(for="checkoutFullName") Full Name *
+                input(
+                  placeholder="e.g. John Doe"
+                  type="text"
+                  name="fullName"
+                  id="checkoutFullName"
+                  autocomplete="name"
+                  )
+            .col-md-6
+              div(class="single_input")
+                label(for="checkoutPhone") Phone Number *
+                input(
+                  placeholder="e.g. 0987654321"
+                  type="tel"
+                  name="phone"
+                  id="checkoutPhone"
+                  autocomplete="tel"
+                  )
+            .col-md-12.mt-4
+              label Select address on map *
+              div(class="input-group")
+                input(
+                  class="form-control" 
+                  placeholder="Enter address to search..." 
+                  type="text"
+                  id="mapSearchInput"
+                  )
+                span(
+                  class="btn btn-outline-secondary"
+                  id="mapSearchBtn"
+                  ) Search
+              div(id="boxMap" style="height: 350px; margin-bottom: 25px;")
+            .col-md-6
+              div(class="single_input")
+                label(for="longitude") Longitude *
+                input(type="text" name="longitude" id="longitude")
+            .col-md-6
+              div(class="single_input")
+                label(for="latitude") Latitude *
+                input(type="text" name="latitude" id="latitude")
+            .col-md-12
+              div(class="single_input")
+                label(for="checkoutAddress") Address *
+                input(
+                  placeholder="e.g. 123 ABC Street,..."
+                  type="text"
+                  name="address"
+                  id="checkoutAddress"
+                  autocomplete="street-address"
+                  )
+  .col-xl-12
+    div(class="single_input")
+      label Note
+      textarea(
+        rows="2"
+        name="note"
+        )

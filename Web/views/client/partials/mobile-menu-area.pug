@@ -1,0 +1,153 @@
+div(class="mobile_menu_area")
+  #offcanvasWithBothOptions.offcanvas.offcanvas-start(
+    tabindex="-1"
+    data-bs-scroll="true"
+    )
+    button.btn-close(
+      aria-label="Close"
+      data-bs-dismiss="offcanvas"
+      type="button"
+      )
+      i.fal.fa-times(aria-hidden="true")
+    .offcanvas-body
+      .d-flex.align-items-center.gap-2.mb-3
+        .gtranslate_wrapper
+        select(class="select_js notranslate" translate="no" data-currency-switcher)
+            option(value="VND") VND
+            option(value="USD") USD
+            option(value="EUR") EUR
+            option(value="JPY") JPY
+            option(value="GBP") GBP
+            option(value="CNY") CNY
+      ul.d-flex.flex-wrap(class="mobile_menu_header")
+        li
+          a(href="/compare" aria-label="Compare list")
+            b
+              i.far.fa-exchange-alt(aria-hidden="true")
+            span(mini-compare-quantity) 0
+        li
+          a(href="/wishlist" aria-label="Wishlist")
+            b
+              i.far.fa-heart(aria-hidden="true")
+            span(mini-wishlist-quantity) 0
+        li
+          a(href="/cart" aria-label="Shopping cart")
+            b
+              i.far.fa-shopping-cart(aria-hidden="true")
+            span(mini-cart-quantity) 0
+        if (!accountUser)
+          li
+            a(href="/auth/login" aria-label="Login")
+              b
+                i.far.fa-user(aria-hidden="true")
+        else
+          li
+            a(href="/dashboard" aria-label="My account")
+              b
+                i.far.fa-user(aria-hidden="true")
+      form(class="mobile_menu_search")
+        input(
+          placeholder="Search"
+          type="text"
+          aria-label="Search products"
+          )
+        button(type="submit" aria-label="Search")
+          i.far.fa-search(aria-hidden="true")
+      div(class="mobile_menu_item_area")
+        ul#pills-tab.nav.nav-pills(role="tablist")
+          li.nav-item(role="presentation")
+            button#pills-home-tab.nav-link.active(
+              aria-selected="true"
+              aria-controls="pills-home"
+              role="tab"
+              type="button"
+              data-bs-target="#pills-home"
+              data-bs-toggle="pill"
+              ) Categories
+          li.nav-item(role="presentation")
+            button#pills-profile-tab.nav-link(
+              aria-selected="false"
+              aria-controls="pills-profile"
+              role="tab"
+              type="button"
+              data-bs-target="#pills-profile"
+              data-bs-toggle="pill"
+              ) Menu
+        #pills-tabContent.tab-content
+          #pills-home.tab-pane.fade.show.active(
+            tabindex="0"
+            aria-labelledby="pills-home-tab"
+            role="tabpanel"
+            )
+            ul(class="main_mobile_menu")
+              if categoryProductList && categoryProductList.length
+                each item in categoryProductList
+                  if (item.status == "active")
+                    if (item.children && item.children.length)
+                      li(class="mobile_dropdown")
+                        a(href="javascript:;" aria-expanded="false")
+                          | #{item.name}
+                          i.fal.fa-chevron-right.accordion-chevron(aria-hidden="true")
+                        ul(class="inner_menu")
+                          each child in item.children
+                            if (child.status == "active")
+                              li
+                                a(href=`/product/category/${child.slug}`) #{child.name}
+                    else
+                      li
+                        a(href=`/product/category/${item.slug}`) #{item.name}
+              else
+                li
+                  a(href="/product") View All Products
+          #pills-profile.tab-pane.fade(
+            tabindex="0"
+            aria-labelledby="pills-profile-tab"
+            role="tabpanel"
+            )
+            ul(class="main_mobile_menu")
+              li
+                a(href="/") Home
+              if categoryProductList && categoryProductList.length
+                li(class="mobile_dropdown")
+                  a(href="javascript:;" aria-expanded="false")
+                    | Products
+                    i.fal.fa-chevron-right.accordion-chevron(aria-hidden="true")
+                  ul(class="inner_menu")
+                    each item in categoryProductList
+                      if (item.status == "active")
+                        li
+                          a(href=`/product/category/${item.slug}`) #{item.name}
+              if categoryArticleList && categoryArticleList.length
+                li(class="mobile_dropdown")
+                  a(href="javascript:;" aria-expanded="false")
+                    | Articles
+                    i.fal.fa-chevron-right.accordion-chevron(aria-hidden="true")
+                  ul(class="inner_menu")
+                    each item in categoryArticleList
+                      if (item.status == "active")
+                        li
+                          a(href=`/article/category/${item.slug}`) #{item.name}
+              li
+                a(href="/cart") Cart
+              li
+                a(href="/wishlist") Wishlist
+              li
+                a(href="/faq") FAQ
+              li
+                a(href="/contact") Contact
+              li
+                a(href="/privacy-policy") Privacy Policy
+              li
+                a(href="/terms-and-conditions") Terms & Conditions
+              if (!accountUser)
+                li
+                  a(href="/auth/login") Login
+                li
+                  a(href="/auth/register") Register
+              else
+                li
+                  a(href="/dashboard") My Account
+                li
+                  a(href="/dashboard/order/list") My Orders
+                li
+                  a(href="/auth/logout") Logout

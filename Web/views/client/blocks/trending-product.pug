@@ -1,0 +1,30 @@
+include ../mixins/index.pug
+
+//
+  ============================
+    TRENDING PRODUCT 2 START
+    ==============================
+section(class="trending_product_2 mt_90 mb_60")
+  .container
+    .row
+      .col-xl-6
+        div(class="section_heading_2 section_heading mb_15")
+          h3
+            span #{blockData.title.highlight}
+            |  #{blockData.title.normal}
+    .row.wow.fadeInUp
+      .col-12
+        div(class="product_tabs")
+          each tab in blockTabList
+            div(
+              data-pws-tab-name=tab.label
+              data-pws-tab=tab.key
+              )
+              .row
+                each item in tab.productList
+                  .col-6.col-md-4.col-lg-3.col-xl-1-5
+                    +product-item(item)
+//
+  ============================
+    TRENDING PRODUCT 2 END
+    ==============================

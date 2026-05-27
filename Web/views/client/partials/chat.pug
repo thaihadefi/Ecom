@@ -1,0 +1,78 @@
+if (accountUser)
+  //- Floating action button
+  #chat-button(title="Chat with us" aria-label="Open chat")
+    i.fas.fa-comment-dots(aria-hidden="true")
+    span#chat-count.chat-count(class=`${chatMessageTotal > 0 ? '' : 'd-none'}` aria-live="polite") #{chatMessageTotal || 0}
+
+  //- Chat popup
+  #chat-popup.hidden(role="dialog" aria-modal="true" aria-label="Chat support")
+    //- Header
+    .chat-popup-header
+      .chat-popup-header-info
+        .chat-avatar-wrap(style="width: 38px; height: 38px;")
+          img#chat-header-avatar.chat-avatar(
+            src=`${settingGeneral && settingGeneral.logo ? domainCDN + settingGeneral.logo : '/images/logo.png'}`
+            alt="Support"
+            style="width: 38px !important; height: 38px !important; border-radius: 50% !important; object-fit: cover !important;"
+          )
+          span#chat-online-dot.chat-online-dot
+        .chat-header-text
+          span.chat-header-name Support
+          span#chat-header-status.chat-header-status Offline
+      .chat-popup-header-actions
+        button#button-rate.chat-icon-btn(title="Rate this conversation" aria-label="Rate")
+          i.fas.fa-star(aria-hidden="true")
+        button#chat-close.chat-icon-btn(aria-label="Close chat")
+          i.fas.fa-times(aria-hidden="true")
+
+    //- Chat body
+    #chat-body.chat-popup-body
+
+    //- Rating panel
+    #chat-rate.chat-rate-panel.d-none
+      .chat-rate-header
+        span Rate this conversation
+        button#button-rate-close.chat-icon-btn(aria-label="Close rating")
+          i.fas.fa-times(aria-hidden="true")
+      .chat-rate-stars#rate-stars
+        span.star(data-value="1") &#9733;
+        span.star(data-value="2") &#9733;
+        span.star(data-value="3") &#9733;
+        span.star(data-value="4") &#9733;
+        span.star(data-value="5") &#9733;
+      textarea#rate-content(placeholder="Share your feedback (optional)...")
+      button#rate-submit.chat-rate-submit Submit
+
+    //- Typing indicator
+    #chat-typing.chat-typing-indicator
+      span
+      span
+      span
+
+    //- File preview
+    #chat-preview.chat-preview-strip.d-none
+
+    //- Footer
+    .chat-popup-footer
+      input#chat-file(type="file" multiple hidden)
+      button#chat-attach.chat-footer-icon(aria-label="Attach file")
+        i.fas.fa-paperclip(aria-hidden="true")
+      input#chat-input(
+        type="text"
+        placeholder="Type a message..."
+        autocomplete="off"
+        aria-label="Message"
+      )
+      button#chat-send.chat-send-btn(aria-label="Send message")
+        i.fas.fa-paper-plane(aria-hidden="true")
+
+  //- Custom confirm modal (reused by JS)
+  #chat-confirm-modal.chat-confirm-overlay.d-none(role="alertdialog" aria-modal="true")
+    .chat-confirm-box
+      .chat-confirm-icon
+        i.fas.fa-exclamation-triangle(aria-hidden="true")
+      p.chat-confirm-title Delete message?
+      p.chat-confirm-msg This action cannot be undone.
+      .chat-confirm-actions
+        button#chat-confirm-cancel.chat-confirm-btn-cancel Cancel
+        button#chat-confirm-ok.chat-confirm-btn-ok Delete

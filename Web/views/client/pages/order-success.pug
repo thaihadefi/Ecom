@@ -1,0 +1,30 @@
+extends ../layouts/default.pug
+
+block main
+  //
+    ============================
+    PAYMENT SUCCESS START
+    =============================
+  section(class="payment_success mt_100 mb_100")
+    .container
+      .row.justify-content-center
+        .col-xl-6.col-md-10.col-lg-8.col-xxl-5.wow.fadeInUp
+          div(class="payment_success_text")
+            h3 Order Placed Successfully!
+            p
+              | Thank you for your purchase! Your Order ID is <b>#{orderCode}</b>
+            .d-flex.flex-wrap.align-items-center.justify-content-center.gap-3
+              a(
+                class="common_btn go_btn"
+                href="/"
+                ) Back to Home
+              a(
+                class="common_btn"
+                href="/dashboard/order/list"
+                )
+                | Track Order
+                i.fas.fa-long-arrow-right(aria-hidden="true")
+  //
+    ============================
+    PAYMENT SUCCESS END
+    =============================

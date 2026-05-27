@@ -1,0 +1,96 @@
+footer(class="footer_2 pt_100")
+  .container
+    .row.justify-content-between
+      .col-xl-3.col-md-6.col-lg-3
+        div(class="footer_2_logo_area")
+          a(
+            href="/"
+            class="footer_logo"
+            )
+            img.img-fluid.w-100(
+              alt="Logo"
+              src=`${settingGeneral && settingGeneral.logo ? domainCDN + settingGeneral.logo : '/images/logo.png'}`
+              )
+          p
+            | Your one-stop destination for quality products delivered fast. Shop with confidence every day.
+          ul
+            li
+              span Follow :
+            li
+              a(href="https://www.facebook.com/UIT.Fanpage" aria-label="Facebook")
+                i.fab.fa-facebook-f(aria-hidden="true")
+            li
+              a(href="https://www.youtube.com/@uitchannel" aria-label="YouTube")
+                i.fab.fa-youtube(aria-hidden="true")
+            li
+              a(href="https://www.instagram.com/uituniversity" aria-label="Instagram")
+                i.fab.fa-instagram(aria-hidden="true")
+            li
+              a(href="https://www.linkedin.com/school/university-of-information-technology" aria-label="LinkedIn")
+                i.fab.fa-linkedin-in(aria-hidden="true")
+      .col-xl-2.col-sm-6.col-md-4.col-lg-2
+        div(class="footer_link")
+          h3 Company
+          ul
+            li
+              a(href="/about") About Us
+            li
+              a(href="/contact") Contact Us
+      .col-xl-2.col-sm-6.col-md-4.col-lg-2
+        div(class="footer_link")
+          h3 Category
+          ul
+            if categoryProductList && categoryProductList.length > 0
+              each category in categoryProductList.slice(0, 5)
+                li
+                  a(href=`/product/category/${category.slug}`) #{category.name}
+            else
+              li
+                a(href="javascript:void(0)") No categories yet
+      .col-xl-2.col-sm-6.col-md-4.col-lg-2
+        div(class="footer_link")
+          h3 Quick Links
+          ul
+            li
+              a(href="/privacy-policy") Privacy Policy
+            li
+              a(href="/terms-and-conditions") Terms & Conditions
+            li
+              a(href="/return-policy") Return Policy
+            li
+              a(href="/faq") FAQ’s
+      .col-xl-3.col-sm-6.col-md-4.col-lg-3
+        div(class="footer_link footer_logo_area")
+          h3 Get In Touch
+          p
+            | Have questions? We're here to help you every step of the way.
+          span
+            b
+              i.fas.fa-map-marker-alt.text-white.me-2(aria-hidden="true")
+            | Quarter 34, Linh Xuan Ward, Ho Chi Minh City, Vietnam
+          span
+            b
+              i.fas.fa-phone-alt.text-white.me-2(aria-hidden="true")
+            a(href="tel:02837252002") (028) 372 52002
+          span
+            b
+              i.fas.fa-envelope.text-white.me-2(aria-hidden="true")
+            a(href="mailto:support@mail.com") info@uit.edu.vn
+    .row
+      .col-12
+        div(class="footer_copyright mt_75")
+          p
+            | Copyright @ 
+            b.notranslate(translate="no") Ukraine
+            |   #{new Date().getFullYear()}. All right reserved.
+          ul.payment
+            li Payment by:
+            li(title="Cash on Delivery")
+              i.far.fa-money-bill-alt(aria-hidden="true")
+              span  Cash
+            li(title="ZaloPay")
+              i.far.fa-wallet(aria-hidden="true")
+              span  ZaloPay
+            li(title="VNPay")
+              i.far.fa-wallet(aria-hidden="true")
+              span  VNPay

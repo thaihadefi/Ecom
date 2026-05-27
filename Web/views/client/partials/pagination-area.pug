@@ -1,0 +1,86 @@
+if pagination && pagination.totalPage > 1
+  div(class="pagination_area")
+    nav(aria-label="...")
+      ul.pagination.justify-content-center.mt_50
+        //- Prev Button
+        li.page-item(class=pagination.currentPage <= 1 ? 'disabled' : '')
+          a.page-link(
+            href="javascript:;"
+            page=pagination.currentPage - 1
+          )
+            i.far.fa-arrow-left(aria-hidden="true")
+
+        - var maxVisible = 5;
+        if pagination.totalPage <= maxVisible
+          - for (var i = 1; i <= pagination.totalPage; i++)
+            li.page-item
+              a.page-link(
+                href="javascript:;"
+                page=i
+                class=pagination.currentPage == i ? "active" : ""
+              ) #{i}
+        else
+          //- We have more than maxVisible pages
+          if pagination.currentPage <= 3
+            //- Near the start
+            - for (var i = 1; i <= 4; i++)
+              li.page-item
+                a.page-link(
+                  href="javascript:;"
+                  page=i
+                  class=pagination.currentPage == i ? "active" : ""
+                ) #{i}
+            li.page-item.disabled
+              span.page-link ...
+            li.page-item
+              a.page-link(
+                href="javascript:;"
+                page=pagination.totalPage
+              ) #{pagination.totalPage}
+          else if pagination.currentPage >= pagination.totalPage - 2
+            //- Near the end
+            li.page-item
+              a.page-link(
+                href="javascript:;"
+                page=1
+              ) 1
+            li.page-item.disabled
+              span.page-link ...
+            - for (var i = pagination.totalPage - 3; i <= pagination.totalPage; i++)
+              li.page-item
+                a.page-link(
+                  href="javascript:;"
+                  page=i
+                  class=pagination.currentPage == i ? "active" : ""
+                ) #{i}
+          else
+            //- In the middle
+            li.page-item
+              a.page-link(
+                href="javascript:;"
+                page=1
+              ) 1
+            li.page-item.disabled
+              span.page-link ...
+            - for (var i = pagination.currentPage - 1; i <= pagination.currentPage + 1; i++)
+              li.page-item
+                a.page-link(
+                  href="javascript:;"
+                  page=i
+                  class=pagination.currentPage == i ? "active" : ""
+                ) #{i}
+            li.page-item.disabled
+              span.page-link ...
+            li.page-item
+              a.page-link(
+                href="javascript:;"
+                page=pagination.totalPage
+              ) #{pagination.totalPage}
+
+        //- Next Button
+        li.page-item(class=pagination.currentPage >= pagination.totalPage ? 'disabled' : '')
+          a.page-link(
+            href="javascript:;"
+            page=pagination.currentPage + 1
+          )
+            i.far.fa-arrow-right(aria-hidden="true")

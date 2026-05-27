@@ -1,0 +1,91 @@
+extends ../layouts/default.pug
+
+block main
+  //
+    =========================
+    SIGN UP PAGE START
+    ==========================
+  section(class="sign_up mt_100 mb_100")
+    .container
+      .row.justify-content-center
+        .col-xxl-6.col-lg-7.col-md-9.col-sm-11.wow.fadeInUp
+          div(class="sign_in_form")
+            h3 #{pageTitle}
+            form(id="registerForm")
+              .row
+                .col-lg-12
+                  div(class="single_input")
+                    label(for="fullName") Full Name
+                    input(
+                      placeholder="e.g. John Doe"
+                      type="text"
+                      name="fullName"
+                      id="fullName"
+                      autocomplete="name"
+                      )
+                .col-lg-12
+                  div(class="single_input")
+                    label(for="email") Email
+                    input(
+                      placeholder="e.g. johndoe@gmail.com"
+                      type="email"
+                      name="email"
+                      id="email"
+                      autocomplete="email"
+                      )
+                .col-lg-12
+                  div(class="single_input")
+                    label(for="phone") Phone Number
+                    input(
+                      placeholder="e.g. 0987654321"
+                      type="tel"
+                      name="phone"
+                      id="phone"
+                      autocomplete="tel"
+                      )
+                .col-lg-6
+                  div(class="single_input password-input-wrapper")
+                    label(for="password") Password
+                    input(
+                      placeholder="••••••••"
+                      type="password"
+                      name="password"
+                      id="password"
+                      autocomplete="new-password"
+                      )
+                    button(
+                      type="button"
+                      class="password-toggle"
+                      aria-label="Show or hide password"
+                      )
+                      i.far.fa-eye(aria-hidden="true")
+                .col-lg-6
+                  div(class="single_input password-input-wrapper")
+                    label(for="confirmPassword") Confirm Password
+                    input(
+                      placeholder="••••••••"
+                      type="password"
+                      name="confirmPassword"
+                      id="confirmPassword"
+                      autocomplete="new-password"
+                      )
+                    button(
+                      type="button"
+                      class="password-toggle"
+                      aria-label="Show or hide password"
+                      )
+                      i.far.fa-eye(aria-hidden="true")
+                .col-lg-12
+                  button(
+                    class="common_btn" 
+                    type="submit"
+                    )
+                    | Register
+                    i.fas.fa-long-arrow-right(aria-hidden="true")
+            p(class="dont_account")
+              | Already have an account?
+              a(href="/auth/login") Login
+  //
+    =========================
+    SIGN UP PAGE END
+    ==========================

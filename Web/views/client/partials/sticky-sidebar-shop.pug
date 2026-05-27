@@ -1,0 +1,66 @@
+include ../mixins/index.pug
+
+div(id="sticky_sidebar")
+  .d-lg-none(class="shop_filter_btn") Filters
+  div(class="shop_filter_area")
+    div(class="sidebar_range")
+      h3 Price Range
+      div(class="range_slider")
+    div(class="sidebar_status")
+      h3 Product Status
+      .form-check
+        input#filterOnSale.form-check-input(
+          filter-product-status
+          value="onSale" 
+          type="checkbox"
+          )
+        label.form-check-label(for="filterOnSale") On Sale
+      .form-check
+        input#filterInStock.form-check-input(
+          filter-product-status
+          value="inStock" 
+          type="checkbox"
+          )
+        label.form-check-label(for="filterInStock") In Stock
+    div(class="sidebar_category")
+      h3 Category
+      ul
+        each item in categoryProductList
+          li
+            a(href="javascript:;" button-slug=item.slug)
+              | #{item.name}
+    each attribute in attributeProductList
+      div(class=`${attribute.type == "color" ? "sidebar_color" : "sidebar_status"}`)
+        h3 #{attribute.name}
+        ul(filter-attribute=attribute.id)
+          each option in attribute.options
+            li
+              .form-check
+                input.form-check-input(
+                  style=`${attribute.type == "color" ? `background-color: ${option.value}` : ""}`
+                  id=`${attribute.type}-${attribute.id}-${option.value}`
+                  value=option.value
+                  type="checkbox"
+                  )
+                label.form-check-label(
+                  for=`${attribute.type}-${attribute.id}-${option.value}`
+                ) #{option.label}
+    div(class="sidebar_rating")
+      h3 Reviews
+      each star in [5,4,3,2,1]
+        .form-check
+          input.form-check-input(
+            id=`filterRating${star}`
+            name="rating"
+            value=star
+            type="checkbox"
+          )
+          label.form-check-label(for=`filterRating${star}`)
+            i.fas.fa-star.me-1(aria-hidden="true")
+            | #{star} stars
+    div(class="sidebar_related_product")
+      h3 Top Rated Products
+      .related_product_list.mt-3
+        each item in topRatedProducts
+          .related_product_item.mb-4
+            +product-item(item)

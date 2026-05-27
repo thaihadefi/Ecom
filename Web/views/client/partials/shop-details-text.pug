@@ -1,0 +1,127 @@
+include ../mixins/index.pug
+
+div(class="shop_details_text")
+  script.
+    const productVariants = !{JSON.stringify(productDetail.variants)};
+  //- p.category Computers & Tablets
+  h2(class="details_title") #{productDetail.name}
+  .d-flex.flex-wrap.align-items-center
+    if (productDetail.stock > 0)
+      p.stock In Stock (#{productDetail.stock})
+    else
+      p(class="out_stock stock") Out of Stock
+    p.rating
+      +stars(productDetail)
+      span (#{productDetail.ratingCount} Reviews)
+    p.views.ms-3(style="color: var(--paraColor); font-size: 14px;")
+      i.fal.fa-eye.me-1(aria-hidden="true" style="color: var(--themeColorTwo);")
+      span #{productDetail.view || 0} Views
+  h3.price
+    div.price-new #{(productDetail.priceNew || 0).toLocaleString("vi-VN")} VND
+    del.price-old #{(productDetail.priceOld || 0).toLocaleString("vi-VN")} VND
+  div(class="short_description") !{productDetail.description}
+  each attribute in attributeList
+    div(class="details_single_variant")
+      p(class="variant_title") #{attribute.name}:
+      if (attribute.type == "color")
+        ul(class="details_variant_color")
+          each variant in attribute.variants
+            li(
+              style=`background: ${variant};`
+              attribute-id=attribute.id
+              variant=variant
+              )
+      else if (attribute.type == "text")
+        ul(class="details_variant_size")
+          each variantLabel, index in attribute.variantsLabel
+            li(
+              attribute-id=attribute.id
+              variant=attribute.variants[index]
+            ) #{variantLabel}
+  .d-flex.flex-wrap.align-items-center
+    div(class="details_qty_input")
+      button.minus(type="button" aria-label="Decrease quantity")
+        i.fal.fa-minus(aria-hidden="true")
+      input(
+        value=(productDetail.stock > 0 ? 1 : 0)
+        type="number"
+        class="input-quantity"
+        min="1"
+        max=productDetail.stock
+        inputmode="numeric"
+        aria-label="Quantity"
+        readonly
+        )
+      button.plus(type="button" aria-label="Increase quantity")
+        i.fal.fa-plus(aria-hidden="true")
+    div(class="details_btn_area")
+
+      button(
+        class="common_btn"
+        button-add-cart
+        product-id=productDetail.id
+        )
+        | Add to Cart
+        i.fas.fa-long-arrow-right(aria-hidden="true")
+  ul(class="details_list_btn")
+    li
+      a(
+        href="javascript:;"
+        button-add-wishlist
+        product-id=productDetail.id
+        aria-label="Add to Wishlist"
+      )
+        i.fal.fa-heart(aria-hidden="true")
+        | Wishlist
+    li
+      a(
+        href="javascript:;"
+        button-add-compare
+        product-id=productDetail.id
+        aria-label="Add to Compare"
+        )
+        i.fal.fa-exchange(aria-hidden="true")
+        | Compare
+
+  ul(class="details_tags_sku")
+    li
+      span SKU:
+      | #{productDetail.sku}
+    li
+      span Category:
+      each category in productDetail.categoryList
+        a(href=`/product/category/${category.slug}` class="badge text-bg-info me-1") #{category.name}
+    li
+      span Label:
+      - const tags = (productDetail.tags || []).flatMap(t => typeof t === 'string' ? t.split(',').map(s => s.trim()) : t).filter(Boolean)
+      each tag in tags
+        span(class="badge text-bg-warning me-1") #{tag}
+  ul(class="shop_details_shate")
+    li Share:
+    li
+      a(
+        button-share
+        href=`https://www.facebook.com/sharer/sharer.php?u=`
+        target="_blank"
+        rel="noopener noreferrer"
+      )
+        svg(viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="vertical-align: middle;")
+          path(d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z")
+    li
+      a(
+        button-share
+        href=`https://www.linkedin.com/shareArticle?url=`
+        target="_blank"
+        rel="noopener noreferrer"
+      )
+        svg(viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="vertical-align: middle;")
+          path(d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z")
+    li
+      a(
+        button-share
+        href=`https://pinterest.com/pin/create/button/?url=`
+        target="_blank"
+        rel="noopener noreferrer"
+      )
+        svg(viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="vertical-align: middle;")
+          path(d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.41 7.61 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.966 1.406-5.966s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.218-.172.263-.398.157-1.484-.691-2.409-2.865-2.409-4.6 0-3.753 2.728-7.199 7.85-7.199 4.128 0 7.33 2.943 7.33 6.874 0 4.108-2.59 7.412-6.183 7.412-1.207 0-2.346-.628-2.733-1.368l-.746 2.844c-.269 1.026-.998 2.31-1.488 3.111 1.12.346 2.304.536 3.532.536 6.62 0 11.988-5.367 11.988-11.987C24.004 5.367 18.636 0 12.017 0z")

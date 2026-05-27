@@ -1,0 +1,82 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner({ name: pageTitle }, "/contact")
+
+  section.mt_80.mb_100
+    .container
+      .row.justify-content-center
+        .col-lg-5.mb-5.mb-lg-0
+          h2(class="contact-section-title") Get In Touch
+          div(style="display:flex;align-items:flex-start;margin-bottom:20px;")
+            i.fas.fa-map-marker-alt(style="color:#FFD700;font-size:20px;margin-right:16px;margin-top:3px;" aria-hidden="true")
+            div
+              h6(style="font-weight:600;margin-bottom:4px;") Address
+              p(style="color:#6b7280;margin:0;") Quarter 34, Linh Xuan Ward, Ho Chi Minh City, Vietnam
+          div(style="display:flex;align-items:flex-start;margin-bottom:20px;")
+            i.fas.fa-phone-alt(style="color:#FFD700;font-size:20px;margin-right:16px;margin-top:3px;" aria-hidden="true")
+            div
+              h6(style="font-weight:600;margin-bottom:4px;") Hotline
+              a(href="tel:02837252002" style="color:#0057B7;") (028) 372 52002
+          div(style="display:flex;align-items:flex-start;margin-bottom:20px;")
+            i.fas.fa-envelope(style="color:#FFD700;font-size:20px;margin-right:16px;margin-top:3px;" aria-hidden="true")
+            div
+              h6(style="font-weight:600;margin-bottom:4px;") Email
+              a(href="mailto:info@uit.edu.vn" style="color:#0057B7;") info@uit.edu.vn
+          div(style="display:flex;align-items:flex-start;")
+            i.fas.fa-clock(style="color:#FFD700;font-size:20px;margin-right:16px;margin-top:3px;" aria-hidden="true")
+            div
+              h6(style="font-weight:600;margin-bottom:4px;") Working Hours
+              p(style="color:#6b7280;margin:0;") Monday - Saturday: 7:30 AM - 4:30 PM
+
+        .col-lg-6.offset-lg-1
+          h2(class="contact-section-title") Send A Message
+          form#contact-form
+            .row
+              .col-md-6
+                div(class="single_input")
+                  label(for="name") Full Name *
+                  input(
+                    placeholder="e.g. John Doe"
+                    type="text"
+                    name="name"
+                    id="name"
+                    autocomplete="name"
+                    required
+                    )
+              .col-md-6
+                div(class="single_input")
+                  label(for="email") Email *
+                  input(
+                    placeholder="e.g. john@email.com"
+                    type="email"
+                    name="email"
+                    id="email"
+                    autocomplete="email"
+                    required
+                    )
+              .col-md-12
+                div(class="single_input")
+                  label(for="subject") Subject
+                  input(
+                    placeholder="e.g. Product inquiry"
+                    type="text"
+                    name="subject"
+                    id="subject"
+                    autocomplete="off"
+                    )
+              .col-md-12
+                div(class="single_input")
+                  label(for="message") Message *
+                  textarea(
+                    placeholder="Your message here..."
+                    rows="5"
+                    name="message"
+                    id="message"
+                    required
+                    )
+              .col-md-12
+                button.common_btn(type="submit")
+                  | Send Message
+                  i.fas.fa-long-arrow-right(aria-hidden="true")

@@ -1,0 +1,47 @@
+div(class="cart_page_summary")
+  h3 Order Summary
+  ul(cart-summary)
+  h6
+
+    | Subtotal
+    span
+      span(sub-total) 0
+  div(class="checkout_shipping")
+    h6 Shipping Method
+    div(shipping-list)
+  h6
+    | Discount
+    span
+      span(discount) 0
+  h6(class="checkout_point_row" style="display: none;" point-row)
+    label(style="display: flex; align-items: center; gap: 6px; cursor: pointer;")
+      input(type="checkbox" id="usePointCheckbox" use-point-checkbox)
+      | Use Points
+      span(style="font-weight: normal; font-size: 13px;" available-point)
+    span
+      span(point-discount) 0
+  h4
+    | Total
+    span
+      span(total) 0
+  form(id="applyCouponForm")
+    label.visually-hidden(for="couponCode") Coupon Code
+    input(
+      placeholder="Coupon Code"
+      type="text"
+      class="inner-input"
+      name="coupon"
+      id="couponCode"
+      autocomplete="off"
+      )
+    button(
+      class="common_btn" 
+      type="submit"
+      class="inner-button"
+      ) Apply
+    p(class="inner-view-coupon" style="display: none;")
+      span
+        | Coupon: 
+        b(class="inner-coupon")
+      a(href="javascript:;" class="inner-remove" aria-label="Remove coupon")
+        i.fal.fa-times(aria-hidden="true")

@@ -1,0 +1,2461 @@
+/* ============================================================
+   ECOM — UI REDESIGN
+   Override layer loaded after style.css + responsive.css.
+   Design system: Rubik / Nunito Sans | #2563EB blue | #F97316 CTA
+   ============================================================ */
+
+/* ── 0. FONTS ── */
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;1,6..12,400&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+/* ── 1. DESIGN TOKENS ── */
+:root {
+    /* Brand */
+    --themeColoeOne: #0057B7; 
+    --themeColoeOneDark: #003F88;
+    --themeColorTwo: #FFD700;
+    --themeColorTwoDark: #E6B800;
+
+    /* Palette */
+    --colorGreen:   #10B981;
+    --colorRed:     #EF4444;
+    --colorOlive:   #92856A;
+    --colorYellow:  #FCD34D;
+    --colorBlack:   #1E293B;
+    --paraColor:    #64748B;
+    --colorWhite:   #FFFFFF;
+
+    /* Surfaces */
+    --lightBg:      #F8FAFC;
+    --lightBg2:     #F1F5F9;
+    --borderColor:  #E2E8F0;
+
+    /* Typography */
+    --headingFont:  "Rubik", system-ui, sans-serif;
+    --bodyFont:     "Nunito Sans", system-ui, sans-serif;
+
+    /* Shape */
+    --radius-sm:    4px;
+    --radius:       8px;
+    --radius-lg:    12px;
+    --radius-xl:    16px;
+
+    /* Elevation */
+    --shadow-sm:  0 1px 2px 0 rgb(0 0 0 / .05);
+    --shadow:     0 1px 3px 0 rgb(0 0 0 / .10), 0 1px 2px -1px rgb(0 0 0 / .10);
+    --shadow-md:  0 4px 6px -1px rgb(0 0 0 / .10), 0 2px 4px -2px rgb(0 0 0 / .10);
+    --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / .10), 0 4px 6px -4px rgb(0 0 0 / .10);
+    --boxShadow:  var(--shadow-md);
+
+    /* Motion */
+    --t: .2s ease-out;
+}
+
+/* ── 2. BASE ── */
+
+/* Eliminate 300ms tap delay on mobile for all interactive elements */
+a, button, [role="button"], label, input[type="submit"], input[type="button"], input[type="reset"] {
+    touch-action: manipulation;
+}
+
+/* Scope img transition to opacity+transform only — animating "all" is expensive */
+img {
+    transition: opacity var(--t), transform var(--t) !important;
+}
+
+body {
+    font-family: var(--bodyFont);
+    color: var(--colorBlack);
+    background: var(--lightBg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--headingFont);
+    letter-spacing: -0.01em;
+}
+
+p, span, li, a {
+    font-family: var(--bodyFont);
+}
+
+/* Heading spans must inherit headingFont, not bodyFont */
+h1 span, h2 span, h3 span, h4 span, h5 span, h6 span {
+    font-family: inherit;
+}
+
+a {
+    transition: color var(--t), background-color var(--t), opacity var(--t);
+}
+
+/* ── 3. BUTTONS ── */
+.common_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    padding: 12px 28px;
+    font-family: var(--bodyFont);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    border-radius: var(--radius);
+    background: var(--themeColoeOne);
+    color: var(--colorWhite) !important;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: background var(--t), box-shadow var(--t), transform var(--t);
+}
+
+/* Remove old iMart slide-in overlay */
+.common_btn::after {
+    content: none !important;
+}
+
+.common_btn:hover {
+    background: var(--themeColoeOneDark);
+    color: var(--colorWhite) !important;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.common_btn:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+.common_btn:focus-visible {
+    outline: 3px solid #BFDBFE;
+    outline-offset: 2px;
+}
+
+.common_btn i {
+    font-size: 14px;
+    flex-shrink: 0;
+    transform: none !important;
+    transition: transform var(--t) !important;
+}
+
+.common_btn:hover i {
+    transform: translateX(3px) !important;
+}
+
+/* Orange / CTA variant used in default_home */
+.default_home .common_btn,
+.home_grocery .common_btn,
+.home_beauty .common_btn {
+    background: var(--themeColorTwo);
+}
+
+.default_home .common_btn:hover,
+.home_grocery .common_btn:hover,
+.home_beauty .common_btn:hover {
+    background: var(--themeColorTwoDark);
+}
+
+/* Full-width inside sign-in — only the SUBMIT button, not password-toggle */
+.sign_in_form form button.common_btn,
+.sign_up .sign_in_form form button.common_btn,
+.forgot_password form button.common_btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px 28px;
+    font-size: 16px;
+    border-radius: var(--radius);
+}
+
+/* ── 4. FORM INPUTS ── */
+.single_input {
+    position: relative;
+    border: 1.5px solid var(--borderColor);
+    border-radius: var(--radius);
+    margin-top: 28px;
+    background: var(--colorWhite);
+    transition: border-color var(--t), box-shadow var(--t);
+}
+
+.single_input:focus-within {
+    border-color: var(--themeColoeOne);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+
+.single_input label {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    background: var(--colorWhite);
+    color: var(--paraColor);
+    padding: 0 6px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    transition: color var(--t);
+}
+
+.single_input:focus-within label {
+    color: var(--themeColoeOne);
+}
+
+.single_input input,
+.single_input textarea {
+    border: none !important;
+    background: transparent;
+    font-family: var(--bodyFont);
+    font-size: 15px;
+    padding: 14px 16px;
+    color: var(--colorBlack);
+    width: 100%;
+    box-shadow: none !important;
+}
+
+.single_input input:focus,
+.single_input textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.single_input input::placeholder,
+.single_input textarea::placeholder {
+    color: #CBD5E1;
+}
+
+/* error label */
+.single_input .just-validate-error-label {
+    position: absolute;
+    bottom: -20px;
+    left: 4px;
+    font-size: 12px;
+    color: var(--colorRed);
+    white-space: nowrap;
+}
+
+/* ── 5. PASSWORD TOGGLE ── */
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-input-wrapper input {
+    padding-right: 60px !important;
+}
+
+/* ★ FIX: Exclude password-toggle from the generic ".sign_in_form form button" rule
+   that sets width:100%. This is the root cause of the broken toggle button. */
+.sign_in_form form button.password-toggle,
+.sign_up .sign_in_form form button.password-toggle,
+.forgot_password form button.password-toggle,
+.info_edit_form button.password-toggle,
+form button.password-toggle {
+    width: auto !important;
+    margin-top: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 6px;
+    bottom: 6px;
+    width: 36px;
+    height: auto;
+    transform: none;
+    background: var(--lightBg2);
+    border: none;
+    color: var(--paraColor);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    z-index: 2;
+    border-radius: var(--radius-sm);
+    transition: color var(--t), background var(--t);
+}
+
+.password-toggle:hover {
+    color: var(--themeColoeOne);
+    background: rgba(37, 99, 235, .10);
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid var(--themeColoeOne);
+    outline-offset: -2px;
+    color: var(--themeColoeOne);
+}
+
+/* Prevent the common_btn hover effects from leaking into the toggle */
+.password-toggle:hover {
+    transform: none !important;
+}
+
+.password-toggle i {
+    transform: none !important;
+    transition: color var(--t) !important;
+    font-size: 14px;
+}
+
+.password-toggle:hover i {
+    transform: none !important;
+}
+
+/* Auth forms: keep layout breathing room between grid rows */
+.sign_in_form .row {
+    row-gap: 18px;
+}
+
+/* ── 6. SIGN-IN / AUTH FORMS ── */
+
+/* Or divider — uses real spans instead of pseudo-elements to avoid cascade conflicts */
+.or-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+}
+
+.or-line {
+    flex: 1;
+    height: 1px;
+    background: var(--borderColor);
+}
+
+.or-text {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--paraColor);
+    white-space: nowrap;
+}
+
+/* Hide old p.or if still present elsewhere */
+.sign_in_form .or { display: none; }
+
+/* Lock auth form buttons to brand blue — body.default_home would override to orange */
+.sign_in_form form button.common_btn,
+.sign_up .sign_in_form form button.common_btn,
+.forgot_password form button.common_btn {
+    background: var(--themeColoeOne) !important;
+}
+
+.sign_in_form form button.common_btn:hover,
+.sign_up .sign_in_form form button.common_btn:hover,
+.forgot_password form button.common_btn:hover {
+    background: var(--themeColoeOneDark) !important;
+}
+
+.sign_in_form {
+    background: var(--colorWhite);
+    box-shadow: var(--shadow-lg);
+    padding: 48px;
+    margin: 30px 0;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--borderColor);
+}
+
+.sign_in_form h3 {
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 32px;
+    letter-spacing: -.02em;
+    color: var(--colorBlack);
+}
+
+.sign_in_form .forgot a {
+    color: var(--themeColoeOne);
+    font-weight: 500;
+    font-size: 14px;
+    transition: color var(--t);
+}
+
+.sign_in_form .forgot a:hover {
+    color: var(--themeColoeOneDark);
+}
+
+.sign_in_form .dont_account {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--paraColor);
+}
+
+.sign_in_form .dont_account a {
+    color: var(--themeColoeOne);
+    font-weight: 600;
+    font-size: 14px;
+    font-family: var(--bodyFont);
+}
+
+.sign_in_form .or {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--paraColor);
+    margin: 24px 0;
+}
+
+.sign_in_form .or::before,
+.sign_in_form .or::after {
+    background: var(--borderColor);
+    top: 8px;
+    width: 42%;
+}
+
+/* Social login — i18n safe (flex, no fixed width) */
+.sign_in_form ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: stretch;
+}
+
+.sign_in_form ul li {
+    flex: 1 1 auto;
+    min-width: 90px;
+    width: auto !important;
+}
+
+.sign_in_form ul li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-weight: 500;
+    font-size: 13px;
+    background: var(--lightBg2);
+    color: var(--colorBlack);
+    border: 1px solid var(--borderColor);
+    transition: background var(--t), border-color var(--t), color var(--t);
+    width: 100%;
+}
+
+.sign_in_form ul li a:hover {
+    background: var(--colorWhite);
+    border-color: var(--themeColoeOne);
+    color: var(--themeColoeOne);
+}
+
+.sign_in_form ul li a span {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    display: inline-flex;
+    position: static;
+    top: auto;
+    align-items: center;
+    justify-content: center;
+}
+
+.sign_in_form ul li a span i {
+    font-size: 15px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--t);
+    color: var(--paraColor);
+}
+
+.sign_in_form ul li a:hover .fa-google {
+    color: #ea4335 !important;
+}
+
+.sign_in_form ul li a:hover .fa-facebook-f {
+    color: #1877f2 !important;
+}
+
+.sign_in_form ul li a:hover .fa-twitter {
+    color: #1da1f2 !important;
+}
+
+/* ── 7. DASHBOARD SIDEBAR ── */
+.dashboard_sidebar {
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+    height: auto !important;
+    background: var(--colorWhite);
+    border: 1px solid var(--borderColor);
+    overflow: hidden;
+}
+
+/* Remove the -70px layout hack; sidebar aligns with its row */
+.dashboard_sidebar_area {
+    top: 0 !important;
+    overflow: visible !important;
+    border-radius: var(--radius-lg);
+}
+
+/* Gradient header for the user block */
+.dashboard_sidebar_user {
+    padding: 28px 20px 20px;
+    background: linear-gradient(135deg, var(--themeColoeOne) 0%, var(--themeColoeOneDark) 100%);
+    text-align: center;
+}
+
+.dashboard_sidebar_user .img {
+    width: 76px;
+    height: 76px;
+    border: 3px solid rgba(255, 255, 255, .45);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .2);
+    margin: 0 auto;
+}
+
+.dashboard_sidebar_user .img img {
+    border-radius: 50%;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+.dashboard_sidebar_user h3 {
+    color: var(--colorWhite);
+    font-size: 17px;
+    font-weight: 600;
+    margin-top: 14px;
+    margin-bottom: 4px;
+    -webkit-line-clamp: 1;
+}
+
+.dashboard_sidebar_user p {
+    color: rgba(255, 255, 255, .70);
+    font-size: 13px;
+}
+
+.dashboard_sidebar_user .img label {
+    background: var(--colorWhite);
+    border: none;
+    color: var(--themeColoeOne);
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    bottom: 2px;
+    right: 2px;
+    box-shadow: var(--shadow-sm);
+    border-radius: 50%;
+}
+
+.dashboard_sidebar_user .img label:hover {
+    background: var(--themeColorTwo);
+    color: var(--colorWhite);
+    border-color: transparent;
+}
+
+/* Sidebar menu */
+.dashboard_sidebar_menu ul {
+    padding: 8px 0 16px;
+}
+
+.dashboard_sidebar_menu ul li p {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    padding: 16px 20px 6px;
+    text-transform: uppercase;
+    color: var(--paraColor);
+    background: transparent;
+    border: none;
+    margin: 0;
+}
+
+.dashboard_sidebar_menu ul li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    margin: 2px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--paraColor);
+    border-radius: var(--radius-sm);
+    transition: color var(--t), background var(--t);
+}
+
+.dashboard_sidebar_menu ul li a span {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0;
+    transition: color var(--t);
+}
+
+.dashboard_sidebar_menu ul li:last-child a {
+    margin-bottom: 0;
+}
+
+.dashboard_sidebar_menu ul li a:hover,
+.dashboard_sidebar_menu ul li a.active,
+.dashboard_sidebar_menu ul li a:hover span,
+.dashboard_sidebar_menu ul li a.active span {
+    color: var(--themeColoeOne);
+}
+
+.dashboard_sidebar_menu ul li a:hover,
+.dashboard_sidebar_menu ul li a.active {
+    background: rgba(37, 99, 235, .07);
+}
+
+.dashboard_sidebar_menu ul li a.active {
+    font-weight: 600;
+}
+
+/* Remove old pseudo-element active indicator */
+.dashboard_sidebar_menu ul li a::after,
+.dashboard_sidebar_menu ul li a:hover::after,
+.dashboard_sidebar_menu ul li a.active::after {
+    display: none !important;
+}
+
+/* Dashboard content — reset mt_100 that was paired with the -70px sidebar hack */
+.dashboard .dashboard_content,
+.dashboard .dashboard_content.mt_100 {
+    margin-top: 0 !important;
+    background: var(--colorWhite);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--borderColor);
+}
+
+.dashboard .dashboard_title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+}
+
+/* ── 8. DASHBOARD OVERVIEW CARDS ── */
+.dashboard_overview_item {
+    border-radius: var(--radius-lg) !important;
+    border: 1px solid var(--borderColor);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--t), transform var(--t);
+}
+
+.dashboard_overview_item:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.dashboard_overview_item .icon {
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+/* ── 9. PRODUCT CARDS ── */
+.product_item {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--colorWhite);
+    border: 1px solid var(--borderColor);
+    transition: box-shadow var(--t), transform var(--t);
+}
+
+.product_item:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.product_item_2 {
+    border-radius: var(--radius-lg);
+    background: var(--colorWhite);
+    border: 1px solid var(--borderColor);
+    transition: box-shadow var(--t), transform var(--t);
+}
+
+.product_item_2:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* ── 10. HEADER ── */
+header.header_2 {
+    background: var(--colorWhite);
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--borderColor);
+}
+
+/* Header search */
+header.header_2 form {
+    width: 100%;
+    margin-left: 0;
+}
+
+header.header_2 form .input {
+    width: 100%;
+    flex: 1 1 auto;
+}
+
+/* Logo — prevent global img 100% height from distorting it */
+.header_logo img,
+.header_logo_area img {
+    height: auto !important;
+    width: auto !important;
+    max-height: 48px;
+    object-fit: contain !important;
+}
+
+.sign_in_img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+}
+
+.sign_in_img img,
+.footer_2_logo_area img.img-fluid {
+    height: auto !important;
+    object-fit: contain !important;
+}
+
+/* ── 11. NAVIGATION ── */
+.menu_item li a {
+    font-family: var(--bodyFont);
+    font-weight: 500;
+    transition: color var(--t);
+}
+
+.menu_item li a:hover {
+    color: var(--themeColoeOne);
+}
+
+/* Push icon bar to the far right when ul.menu_item is removed */
+.main_menu_area {
+    justify-content: space-between !important;
+}
+
+.main_menu_area ul.menu_icon {
+    margin-left: auto !important;
+}
+
+/* ── 12. CART / CHECKOUT BUTTON ── */
+.cart_summary_btn .common_btn,
+.product_list_item .common_btn {
+    white-space: nowrap;
+}
+
+/* ── 13. PAGINATION ── */
+.pagination_area .page-link {
+    border-radius: var(--radius-sm);
+    transition: background var(--t), color var(--t);
+}
+
+.pagination_area .page-link:focus {
+    outline: 2px solid var(--themeColoeOne);
+    outline-offset: 0;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+}
+
+/* ── 14. MAIN_MENU ACTIVE INDICATOR ── */
+.menu_item li a:focus-visible {
+    outline: 2px solid var(--themeColoeOne);
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+/* ── 15. AUTOFILL ── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--colorWhite) inset;
+    box-shadow:         0 0 0 1000px var(--colorWhite) inset;
+    -webkit-text-fill-color: var(--colorBlack);
+}
+
+/* ── 16. ACCESSIBILITY ── */
+:focus-visible {
+    outline: 2px solid var(--themeColoeOne);
+    outline-offset: 2px;
+}
+
+.form-check-input:focus {
+    border-color: var(--themeColoeOne);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+}
+
+/* ── 17. REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration:       .01ms !important;
+        animation-iteration-count: 1    !important;
+        transition-duration:      .01ms !important;
+        scroll-behavior:          auto  !important;
+    }
+}
+
+/* ── 18. NICE-SELECT DROPDOWN FIX ── */
+.nice-select {
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--borderColor) !important;
+    background: var(--colorWhite);
+    font-family: var(--bodyFont);
+    font-size: 13px;
+    font-weight: 500;
+    height: 40px;
+    line-height: 38px;
+    color: var(--colorBlack);
+    transition: border-color var(--t), box-shadow var(--t);
+}
+
+.nice-select:hover {
+    border-color: #CBD5E1 !important;
+}
+
+.nice-select:active,
+.nice-select.open,
+.nice-select:focus {
+    border-color: var(--themeColoeOne) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+}
+
+.nice-select .list {
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--borderColor) !important;
+    box-shadow: var(--shadow-lg);
+    margin-top: 4px;
+    max-height: 260px;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.nice-select .option {
+    font-family: var(--bodyFont);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 36px;
+    min-height: 36px;
+    padding: 0 16px;
+    transition: background var(--t), color var(--t);
+}
+
+.nice-select .option:hover,
+.nice-select .option.focus,
+.nice-select .option.selected.focus {
+    background: rgba(37, 99, 235, .06);
+    color: var(--themeColoeOne);
+}
+
+.nice-select .option.selected {
+    font-weight: 600;
+    color: var(--themeColoeOne);
+}
+
+.nice-select:after {
+    border-color: var(--paraColor);
+    right: 14px;
+    height: 6px;
+    width: 6px;
+}
+
+/* ── 20. CURRENCY / LANGUAGE SELECT IN HEADER ── */
+.topbar_right .nice-select {
+    height: 40px;
+    line-height: 38px;
+    min-width: 80px;
+    width: auto;
+    border: 1px solid var(--borderColor) !important;
+    border-radius: var(--radius) !important;
+    padding-left: 12px;
+    padding-right: 28px;
+    background: var(--colorWhite);
+}
+
+.topbar_right .nice-select .list {
+    min-width: 100%;
+    right: 0;
+    left: auto;
+}
+
+/* Mobile menu currency/language selects */
+.mobile_currency .nice-select {
+    width: 100%;
+    height: 38px;
+    line-height: 36px;
+    border-radius: var(--radius) !important;
+}
+
+/* ── 21. DASHBOARD PASSWORD FIELDS ── */
+/* Ensure dashboard form buttons don't break password toggle */
+.dashboard_profile_info_edit .password-toggle,
+.dashboard_change_password .password-toggle,
+.info_edit_form .password-toggle {
+    width: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.dashboard_profile_info_edit .single_input.password-input-wrapper,
+.dashboard_change_password .single_input.password-input-wrapper {
+    margin-top: 5px;
+    margin-bottom: 25px;
+}
+
+/* ── 22. MAP & ADDRESS FORM POLISH ── */
+#boxMap {
+    border-radius: var(--radius);
+    border: 1px solid var(--borderColor);
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.input-group .form-control {
+    border-radius: var(--radius) 0 0 var(--radius) !important;
+    border: 1.5px solid var(--borderColor);
+    font-family: var(--bodyFont);
+    font-size: 14px;
+    padding: 10px 14px;
+    transition: border-color var(--t), box-shadow var(--t);
+}
+
+.input-group .form-control:focus {
+    border-color: var(--themeColoeOne);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+
+.input-group .btn-outline-secondary {
+    border-radius: 0 var(--radius) var(--radius) 0 !important;
+    border: 1.5px solid var(--borderColor);
+    border-left: 0;
+    font-family: var(--bodyFont);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--colorWhite);
+    background: var(--themeColoeOne);
+    padding: 10px 20px;
+    transition: background var(--t);
+}
+
+.input-group .btn-outline-secondary:hover {
+    background: var(--themeColoeOneDark);
+    border-color: var(--themeColoeOneDark);
+    color: var(--colorWhite);
+}
+
+/* ── 23. CHECKOUT ADDRESS CARDS ── */
+.checkout_single_address {
+    border-radius: var(--radius-lg);
+    border: 1.5px solid var(--borderColor);
+    transition: border-color var(--t), box-shadow var(--t);
+}
+
+.checkout_single_address:has(.form-check-input:checked) {
+    border-color: var(--themeColoeOne);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+}
+
+/* ── 24. SELECT2 POLISH ── */
+.select2-container--default .select2-selection--single {
+    border-radius: var(--radius) !important;
+    border: 1.5px solid var(--borderColor) !important;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    transition: border-color var(--t);
+}
+
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--themeColoeOne) !important;
+}
+
+.select2-dropdown {
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--borderColor) !important;
+    box-shadow: var(--shadow-lg);
+    margin-top: 4px;
+}
+
+/* Hide Select2 search box for single selects */
+.select2-search--dropdown {
+    display: none;
+}
+
+.select2-results__option--highlighted[aria-selected] {
+    background: rgba(37, 99, 235, .08) !important;
+    color: var(--themeColoeOne) !important;
+}
+
+/* ── 25. RESPONSIVE ── */
+
+/* Tablet */
+@media (max-width: 991px) {
+    .dashboard_sidebar {
+        margin-bottom: 24px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .sign_in_form {
+        padding: 32px 20px;
+        border-radius: var(--radius-lg);
+    }
+
+    .sign_in_form h3 {
+        font-size: 22px;
+    }
+
+    .sign_in_form ul {
+        flex-direction: column;
+    }
+
+    .sign_in_form ul li {
+        flex: 0 0 100%;
+        width: 100% !important;
+    }
+
+    .common_btn {
+        padding: 11px 20px;
+        font-size: 14px;
+    }
+
+    .dashboard .dashboard_content {
+        padding: 20px !important;
+    }
+
+}
+
+/* Small mobile */
+@media (max-width: 479px) {
+    .sign_in_form {
+        padding: 24px 16px;
+    }
+
+    .single_input {
+        margin-top: 24px;
+    }
+}
+
+/* ── 21. VOICE SEARCH EFFECTS ── */
+header form .input .inner-voice {
+    transition: color var(--t), transform var(--t);
+    color: var(--paraColor);
+    padding: 4px;
+}
+
+header form .input .inner-voice:hover {
+    color: var(--themeColoeOne);
+    transform: scale(1.15);
+}
+
+header form .input .inner-voice.recording {
+    color: #ef4444 !important;
+    animation: voicePulse 1.2s infinite ease-in-out;
+}
+
+@keyframes voicePulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.25);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ── 23. UNIFIED HEADER FONT AWESOME ICONS ── */
+.menu_icon li a b {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    border: 1px solid #ddd !important;
+    background: var(--colorWhite) !important;
+    transition: border-color var(--t), background var(--t) !important;
+}
+
+.menu_icon li a b i {
+    font-size: 15px !important;
+    color: var(--colorBlack) !important;
+    transition: color var(--t) !important;
+}
+
+.menu_icon li a:hover b {
+    border-color: var(--themeColoeOne) !important;
+    background: rgba(37, 99, 235, 0.05) !important;
+}
+
+.menu_icon li a:hover b i {
+    color: var(--themeColoeOne) !important;
+}
+
+/* Category menu bar Font Awesome icon spacing */
+.menu_category_bar p span {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.menu_category_bar p span i {
+    font-size: 16px !important;
+    color: var(--colorWhite) !important;
+}
+
+/* Mobile menu area Font Awesome icons */
+.mobile_menu_list li a b {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    background: var(--lightBg2) !important;
+    border: 1px solid var(--borderColor) !important;
+}
+
+.mobile_menu_list li a b i {
+    font-size: 15px !important;
+    color: var(--colorBlack) !important;
+}
+
+/* ── 24. UNIFIED FOOTER PAYMENT FONT AWESOME ICONS ── */
+.footer_copyright .payment li {
+    width: 42px !important;
+    height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #f8fafc !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    border-radius: var(--radius-sm) !important;
+    overflow: visible !important;
+    transition: background var(--t), border-color var(--t) !important;
+    cursor: pointer;
+}
+
+.footer_copyright .payment li i {
+    font-size: 15px !important;
+    color: var(--paraColor) !important;
+    transition: color var(--t) !important;
+}
+
+.footer_copyright .payment li:hover {
+    background: var(--colorWhite) !important;
+    border-color: var(--themeColoeOne) !important;
+}
+
+.footer_copyright .payment li:hover i {
+    color: var(--themeColoeOne) !important;
+}
+
+.footer_copyright .payment li:first-child {
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    border: none !important;
+    cursor: default;
+    color: #94a3b8 !important;
+}
+
+/* ── 26. HIGH-FIDELITY PREMIUM DARK FOOTER (INNOVATION STYLE) ── */
+.footer_2 {
+    background: #0B0F19 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    position: relative;
+    z-index: 2;
+}
+
+.footer_2 .footer_2_logo_area p {
+    color: #94A3B8 !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    margin-top: 16px !important;
+}
+
+/* Social links styling */
+.footer_2 .footer_2_logo_area ul {
+    margin-top: 20px !important;
+    gap: 10px !important;
+}
+
+.footer_2 .footer_2_logo_area ul li span {
+    color: #94A3B8 !important;
+    font-weight: 600 !important;
+    margin-right: 4px;
+}
+
+.footer_2 .footer_2_logo_area ul li a {
+    width: 38px !important;
+    height: 38px !important;
+    line-height: 38px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #CBD5E1 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Specific Social Brand Hovers */
+.footer_2 .footer_2_logo_area ul li a:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.footer_2 .footer_2_logo_area ul li a .fa-facebook-f:hover,
+.footer_2 .footer_2_logo_area ul li a:has(.fa-facebook-f):hover {
+    background: #1877F2 !important;
+    border-color: #1877F2 !important;
+    color: #FFFFFF !important;
+}
+
+.footer_2 .footer_2_logo_area ul li a .fa-twitter:hover,
+.footer_2 .footer_2_logo_area ul li a:has(.fa-twitter):hover {
+    background: #1DA1F2 !important;
+    border-color: #1DA1F2 !important;
+    color: #FFFFFF !important;
+}
+
+.footer_2 .footer_2_logo_area ul li a .fa-google-plus-g:hover,
+.footer_2 .footer_2_logo_area ul li a:has(.fa-google-plus-g):hover {
+    background: #DB4437 !important;
+    border-color: #DB4437 !important;
+    color: #FFFFFF !important;
+}
+
+.footer_2 .footer_2_logo_area ul li a .fa-linkedin-in:hover,
+.footer_2 .footer_2_logo_area ul li a:has(.fa-linkedin-in):hover {
+    background: #0A66C2 !important;
+    border-color: #0A66C2 !important;
+    color: #FFFFFF !important;
+}
+
+/* Links Columns */
+.footer_link h3 {
+    color: #FFFFFF !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    position: relative;
+    padding-bottom: 12px !important;
+    margin-bottom: 24px !important;
+}
+
+.footer_link h3::after {
+    content: "" !important;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 35px;
+    height: 2px;
+    background: var(--themeColorTwo) !important; 
+    border-radius: 2px;
+}
+
+.footer_link ul li {
+    margin-bottom: 12px !important;
+}
+
+.footer_link ul li a {
+    color: #CBD5E1 !important;
+    font-size: 15px !important;
+    transition: all 0.25s ease !important;
+    display: inline-block;
+}
+
+.footer_link ul li a:hover {
+    color: var(--themeColorTwo) !important;
+    transform: translateX(4px) !important;
+}
+
+/* Contact Us Details Override */
+.footer_logo_area p {
+    color: #94A3B8 !important;
+}
+
+.footer_logo_area span {
+    display: flex !important;
+    align-items: center !important;
+    color: #94A3B8 !important;
+    font-size: 15px !important;
+    margin-top: 16px !important;
+    line-height: 1.5 !important;
+}
+
+.footer_logo_area span b {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    margin-right: 12px !important;
+}
+
+.footer_logo_area span b i {
+    color: var(--themeColorTwo) !important; /* Gold icons */
+    font-size: 16px !important;
+}
+
+.footer_logo_area span a {
+    color: #CBD5E1 !important;
+    transition: color 0.2s ease !important;
+}
+
+.footer_logo_area span a:hover {
+    color: var(--themeColorTwo) !important;
+}
+
+/* Copyright block */
+.footer_copyright {
+    background: #060912 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 24px 0 !important;
+    margin-top: 60px !important;
+}
+
+.footer_copyright p {
+    color: #64748B !important;
+    font-size: 14px !important;
+}
+
+.footer_copyright p b {
+    color: var(--themeColoeOne) !important;
+    font-weight: 600;
+}
+
+/* Payment Icons in Dark footer */
+.footer_copyright .payment li {
+    width: auto !important;
+    height: 32px !important;
+    padding: 0 12px !important;
+    gap: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: var(--radius-sm) !important;
+    transition: all 0.25s ease !important;
+    cursor: pointer;
+}
+
+.footer_copyright .payment li span {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #94A3B8 !important;
+    transition: color 0.25s ease !important;
+}
+
+.footer_copyright .payment li i {
+    font-size: 14px !important;
+    color: #94A3B8 !important;
+    transition: color 0.25s ease !important;
+}
+
+.footer_copyright .payment li:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--themeColorTwo) !important;
+    transform: translateY(-1px) !important;
+}
+
+.footer_copyright .payment li:hover i,
+.footer_copyright .payment li:hover span {
+    color: var(--themeColorTwo) !important;
+}
+
+/* ── Skip-to-main ── */
+.skip-to-main {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    z-index: 9999;
+    padding: 10px 16px;
+    background: var(--themeColor, #000);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0 0 6px 0;
+    transition: top .15s ease;
+}
+.skip-to-main:focus {
+    top: 0;
+    outline: 3px solid var(--themeColorTwo, #f60);
+    outline-offset: 2px;
+}
+
+/* ── Loading Button State ── */
+.common_btn[data-loading="true"],
+.btn[data-loading="true"] {
+    pointer-events: none;
+    opacity: .65;
+    position: relative;
+}
+.common_btn[data-loading="true"]::after,
+.btn[data-loading="true"]::after {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255,255,255,.5);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btn-spin .6s linear infinite;
+    margin-left: 8px;
+    vertical-align: -2px;
+}
+@keyframes btn-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Form Field Error State ── */
+.single_input.is-invalid input,
+.single_input.is-invalid textarea,
+.single_input.is-invalid select {
+    border-color: var(--colorRed, #dc3545) !important;
+    box-shadow: 0 0 0 3px rgba(220,53,69,.12) !important;
+}
+.single_input.is-valid input,
+.single_input.is-valid textarea,
+.single_input.is-valid select {
+    border-color: #198754 !important;
+}
+.single_input .just-validate-error-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    bottom: -22px;
+    left: 0;
+    font-size: 12px;
+    color: var(--colorRed, #dc3545);
+    white-space: nowrap;
+    animation: fade-in .15s ease;
+}
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Toast Notification Accessibility ── */
+.toast-notification {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    background: #1e293b;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,.18);
+    animation: toast-in .25s ease;
+}
+.toast-notification.success { background: #166534; }
+.toast-notification.error   { background: #9b1c1c; }
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Avatar initials — same style as admin chat */
+.avatar-initials {
+    background: linear-gradient(135deg, #22c5ad 0%, #7367f0 100%);
+    font-weight: 700;
+    letter-spacing: .5px;
+}
+.dashboard_sidebar_user .img .avatar-initials {
+    width: 100%; height: 100%; font-size: 48px;
+}
+.single_review .img .avatar-initials {
+    width: 100%; height: 100%; font-size: 22px;
+}
+
+/* ── 27. FEATURES — vertically center icon + equal-height row ── */
+/* Root cause: .icon has position:absolute;left:-45px but no top value → sits at top of card.
+   Fix: top:50% + translateY(-50%) centers it. Flex on columns ensures all cards stretch equally. */
+.features [class*="col-"] {
+    display: flex;
+    align-items: stretch;
+}
+
+.features_item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.features_item .icon {
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* ── 28. CATEGORY 2 — circular images with object-fit:contain ── */
+/* Root cause: global img { object-fit:cover !important } in style.css overrides all inline styles.
+   This rule has higher specificity AND !important so it wins. */
+.category_2 .category_item .img {
+    padding: 0 !important;   /* theme sets padding:40px which shrinks image area to 90x90 */
+    border-radius: 50% !important;
+    overflow: hidden !important;
+}
+
+.category_2 .category_item .img img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+.category_2 .category_item:hover .img {
+    border-radius: 50% !important;
+}
+
+/* ── 28. TRENDING — equal height cards ── */
+.trending_product_2 [class*="col-"] {
+    display: flex;
+    align-items: stretch;
+}
+
+.trending_product_2 .product_item_2 {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.trending_product_2 .product_item_2 .product_text {
+    flex: 1;
+}
+
+/* ── 29. SECTION HEADINGS — uniform bold + uniform font for all sections ── */
+.section_heading h3,
+.section_heading_2 h3,
+.section_heading h3 span,
+.section_heading_2 h3 span {
+    font-family: var(--headingFont) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em;
+}
+
+/* ── 28. VIEW ALL BUTTON — underline scoped to text only, not arrow padding ── */
+.view_all_btn_area .view_all_btn {
+    border-bottom: none;
+    text-decoration: underline;
+    text-decoration-color: #ddd;
+    text-underline-offset: 4px;
+    display: inline;
+}
+
+.view_all_btn_area .view_all_btn:hover {
+    border-bottom: none;
+    text-decoration-color: var(--themeColoeOne);
+}
+
+.view_all_btn_area .view_all_btn i {
+    text-decoration: none;
+}
+
+/* ── 30. DESKTOP NAV — Product Categories bar & dropdowns ── */
+
+/* Category bar: override yellow (themeColorTwo) → brand blue */
+.main_menu_2 .menu_category_bar,
+.menu_category_bar {
+    background: var(--themeColoeOne) !important;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+}
+
+.menu_category_bar p {
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    letter-spacing: .01em;
+}
+
+/* Category panel drop-down: tighten items, cleaner borders */
+.menu_cat_item {
+    border: 1px solid var(--borderColor) !important;
+    border-top: none !important;
+    border-radius: 0 0 var(--radius) var(--radius) !important;
+    box-shadow: var(--shadow-md) !important;
+    /* no overflow:hidden — fly-out .menu_cat_droapdown is positioned outside this panel */
+}
+
+.menu_cat_item li a {
+    padding: 7px 14px !important;
+    font-size: 13.5px !important;
+    border-bottom-color: var(--borderColor) !important;
+    transition: background var(--t), color var(--t), padding-left var(--t) !important;
+}
+
+.menu_cat_item li a span {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 6px !important;
+    background: var(--lightBg2) !important;
+    padding: 4px !important;
+    flex-shrink: 0;
+}
+
+.menu_cat_item > li:hover > a {
+    padding-left: 18px !important;
+    background: rgba(0, 87, 183, 0.05) !important;
+    color: var(--themeColoeOne) !important;
+}
+
+.menu_cat_item > li:hover > a span {
+    background: rgba(0, 87, 183, 0.12) !important;
+}
+
+/* "View All" — sticky CTA pinned to bottom of category panel */
+.menu_cat_item li.all_category {
+    position: sticky;
+    bottom: 0;
+    background: var(--colorWhite);
+    z-index: 1;
+}
+
+.menu_cat_item li.all_category a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--themeColoeOne) !important;
+    background: rgba(0, 87, 183, 0.05) !important;
+    border-top: 2px solid rgba(0, 87, 183, 0.15) !important;
+    border-radius: 0 !important;
+    transition: background var(--t) !important;
+}
+
+.menu_cat_item li.all_category a:hover {
+    background: rgba(0, 87, 183, 0.10) !important;
+}
+
+.menu_cat_item li.all_category a i {
+    font-size: 12px !important;
+    margin-left: 6px !important;
+    transition: transform var(--t) !important;
+}
+
+.menu_cat_item li.all_category a:hover i {
+    transform: translateX(3px) !important;
+}
+
+/* Products / Articles hover dropdowns */
+.menu_droapdown {
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--borderColor) !important;
+    box-shadow: var(--shadow-md) !important;
+    padding: 6px 0 !important;
+    top: 110% !important;
+    /* no overflow:hidden — child .menu_droapdown2 fly-outs position outside this panel */
+}
+
+.menu_droapdown > li > a {
+    font-size: 13.5px !important;
+    padding: 7px 20px !important;
+    color: var(--colorBlack) !important;
+    transition: background var(--t), color var(--t), padding-left var(--t) !important;
+}
+
+.menu_droapdown > li:hover > a,
+.main_menu_2 .menu_droapdown > li:hover > a,
+.menu_droapdown > li .active {
+    color: var(--themeColoeOne) !important;
+    background: rgba(0, 87, 183, 0.05) !important;
+    padding-left: 28px !important;
+}
+
+/* Hover indicator dot: use brand blue */
+.main_menu_2 .menu_droapdown > li > a::after {
+    background: var(--themeColoeOne) !important;
+}
+
+/* Main nav link hover/active: override yellow → blue */
+.main_menu_2 .menu_item > li:hover > a,
+.main_menu_2 .menu_item li a.active {
+    color: var(--themeColoeOne) !important;
+}
+
+/* ── 31. MOBILE OFFCANVAS MENU POLISH ── */
+
+/* Tab buttons — Categories / Menu */
+.mobile_menu_item_area .nav .nav-item button {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--paraColor) !important;
+    background: var(--lightBg2) !important;
+    transition: background var(--t), color var(--t) !important;
+}
+
+.mobile_menu_item_area .nav .nav-item button:hover,
+.mobile_menu_item_area .nav .nav-item button.active {
+    color: var(--colorWhite) !important;
+    background: var(--themeColoeOne) !important;
+}
+
+/* Mobile menu items: lift color + font */
+.main_mobile_menu li > a {
+    color: var(--colorBlack) !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+}
+
+.main_mobile_menu li:hover > a,
+.main_mobile_menu li.active > a {
+    color: var(--themeColoeOne) !important;
+}
+
+/* Sub-items: visually lighter */
+.main_mobile_menu .inner_menu li a {
+    font-size: 13px !important;
+    color: var(--paraColor) !important;
+    font-weight: 400 !important;
+    padding: 10px 0 !important;
+}
+
+.main_mobile_menu .inner_menu li:hover > a {
+    color: var(--themeColoeOne) !important;
+}
+
+/* Mobile icon header: align icons evenly */
+.mobile_menu_header {
+    background: var(--lightBg2) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden !important;
+}
+
+.mobile_menu_header li a b {
+    width: auto !important;
+    font-size: 16px;
+}
+
+/* ── 32. MOBILE ACCORDION — admin-style chevron (click-to-toggle, one-at-a-time) ── */
+
+/* Hide old plus/minus image indicators */
+.main_mobile_menu .mobile_dropdown::after,
+.main_mobile_menu .active::after {
+    display: none !important;
+    background: none !important;
+}
+
+/* Parent dropdown link: flex row so text + chevron are on same line */
+.main_mobile_menu .mobile_dropdown > a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+/* Chevron icon inside parent link */
+.main_mobile_menu .accordion-chevron {
+    font-size: 11px !important;
+    flex-shrink: 0 !important;
+    margin-left: 8px !important;
+    color: var(--paraColor) !important;
+    transition: transform 0.25s ease, color 0.2s ease !important;
+    transform: rotate(0deg) !important;
+}
+
+/* Rotate chevron and highlight when open */
+.main_mobile_menu .mobile_dropdown.active > a .accordion-chevron {
+    transform: rotate(90deg) !important;
+    color: var(--themeColoeOne) !important;
+}
+
+/* Active parent link: brand blue */
+.main_mobile_menu .mobile_dropdown.active > a {
+    color: var(--themeColoeOne) !important;
+}
+
+/* Submenu indent */
+.main_mobile_menu li .inner_menu {
+    padding-left: 12px !important;
+}
+
+/* ── 33. PRODUCT CARD — price layout: new price + old price wrap cleanly ── */
+/* Structure: <p class="price">text-node VND<del>old VND</del></p>
+   Both are flex items. When space is tight, <del> wraps to the next line. */
+.product_item .price,
+.product_item_2 .price {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: baseline !important;
+    gap: 2px 6px !important;
+    white-space: normal !important;
+}
+
+/* Old price: stays whole on its own line if it wraps */
+.product_item .price del,
+.product_item_2 .price del {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+}
+
+/* Title: 2-line clamp (user confirmed title can truncate, price cannot) */
+.product_item .title,
+.product_item_2 .title {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    white-space: normal !important;
+}
+
+/* ── 34. WISHLIST BUTTONS — hierarchy: primary Add to Cart vs ghost Delete ── */
+.wishlist_page .cart_page_action {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+/* Delete button: smaller ghost/outline — visually subordinate to Add to Cart */
+.wishlist_page .cart_page_action a.remove.common_btn {
+    background: transparent !important;
+    color: var(--colorRed) !important;
+    border: 1.5px solid var(--colorRed) !important;
+    padding: 7px 14px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.wishlist_page .cart_page_action a.remove.common_btn:hover {
+    background: var(--colorRed) !important;
+    color: var(--colorWhite) !important;
+    transform: none !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* ── 35. SHOP / CATEGORY PAGE — equal-height cards & filter sidebar polish ── */
+
+/* Equal-height cards at ALL breakpoints (col-6 mobile through col-xxl-3 desktop) */
+.shop_page #nav-home .row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+}
+
+.shop_page #nav-home .row [class*="col-"] {
+    display: flex !important;
+    align-items: stretch !important;
+}
+
+.shop_page .product_item_2 {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.shop_page .product_item_2 .product_text {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Filter sidebar — card container */
+#sticky_sidebar {
+    background: var(--colorWhite) !important;
+    border: 1px solid var(--borderColor) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: 20px 16px !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* Filter section headings */
+.shop_filter_area h3 {
+    font-family: var(--headingFont) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: .04em !important;
+    text-transform: uppercase !important;
+    color: var(--colorBlack) !important;
+    margin-bottom: 12px !important;
+}
+
+/* Section separators: use design-system border color */
+.sidebar_category,
+.sidebar_color,
+.sidebar_status,
+.sidebar_rating,
+.sidebar_related_product {
+    border-top-color: var(--borderColor) !important;
+    padding-top: 24px !important;
+    margin-top: 24px !important;
+}
+
+/* Filter labels */
+.sidebar_status .form-check label,
+.sidebar_rating .form-check label {
+    font-family: var(--bodyFont) !important;
+    font-size: 14px !important;
+    color: var(--colorBlack) !important;
+}
+
+/* Checkboxes: brand blue when checked */
+.sidebar_status .form-check-input:checked,
+.sidebar_rating .form-check-input:checked,
+.sidebar_color .form-check-input:checked {
+    background-color: var(--themeColoeOne) !important;
+    border-color: var(--themeColoeOne) !important;
+}
+
+/* Category links */
+.sidebar_category ul li a {
+    font-family: var(--bodyFont) !important;
+    font-size: 13.5px !important;
+    color: var(--paraColor) !important;
+    transition: color var(--t), padding-left var(--t) !important;
+}
+
+.sidebar_category ul li a:hover,
+.sidebar_category ul li a.active {
+    color: var(--themeColoeOne) !important;
+}
+
+/* Mobile filter button: brand blue instead of yellow */
+.shop_filter_btn {
+    background: var(--themeColoeOne) !important;
+    color: var(--colorWhite) !important;
+    border-radius: var(--radius) !important;
+    font-size: 15px !important;
+    font-family: var(--bodyFont) !important;
+}
+
+/* Gap between filter sidebar and product grid on desktop */
+@media (min-width: 992px) {
+    .shop_page .col-lg-8,
+    .shop_page .col-xl-9,
+    .shop_page .col-xxl-9 {
+        padding-left: 28px !important;
+    }
+}
+
+/* Range slider tooltip: constrain width so numbers don't overflow sidebar */
+.al-range-slider__tooltip {
+    max-width: 70px !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    font-size: 11px !important;
+    overflow: visible !important;
+}
+
+/* Product page top bar: tighten margin above cards */
+.shop_page .product_page_top {
+    margin-bottom: 16px !important;
+}
+
+/* Top rated products in sidebar */
+.sidebar_related_product ul li {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+}
+
+.sidebar_related_product .product_item .color {
+    flex-direction: row !important;
+}
+
+.sidebar_related_product .text .title {
+    font-family: var(--bodyFont) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: var(--colorBlack) !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+}
+
+.sidebar_related_product .text {
+    width: calc(100% - 80px) !important;
+}
+
+.sidebar_related_product .text .price {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--themeColoeOne) !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 2px 4px !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+}
+
+.sidebar_related_product .text .price del {
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    color: var(--paraColor) !important;
+    white-space: nowrap !important;
+}
+
+/* ── 31. GENERAL PRODUCT CARD EQUAL HEIGHTS (GRID + SLICK SLIDER) ── */
+/* Grid rows */
+.row > [class*="col-"]:has(> .product_item_2) {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.row > [class*="col-"]:has(> .product_item_2) > .product_item_2 {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+/* Slick sliders (only targeting product sliders to avoid breaking banner/fade sliders) */
+.flash_sell_2_slider .slick-track,
+.favourite_product_2_slider .slick-track {
+    display: flex !important;
+    align-items: stretch !important;
+}
+
+.flash_sell_2_slider .slick-slide,
+.favourite_product_2_slider .slick-slide {
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.flash_sell_2_slider .slick-slide > div,
+.favourite_product_2_slider .slick-slide > div {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.flash_sell_2_slider .slick-slide [class*="col-"],
+.favourite_product_2_slider .slick-slide [class*="col-"] {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+}
+
+.flash_sell_2_slider .slick-slide .product_item_2,
+.favourite_product_2_slider .slick-slide .product_item_2 {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+}
+
+/* Product text stretching */
+.product_item_2 .product_text {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
+/* ── 32. TRENDING PRODUCTS BACKGROUND & TABS FIX ── */
+.trending_product_2 .pws_tabs_list {
+    background-color: transparent !important;
+}
+
+/* ── 33. CATEGORY CIRCLE IMAGES CONTAIN tròn ── */
+.category_2 .category_item .img {
+    width: 170px !important;
+    height: 170px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    background: #f1f5f9 !important; /* Neutral light background */
+    padding: 15px !important; /* Padding for contain so it doesn't touch circle borders */
+    margin: 20px auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.category_2 .category_item .img img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important; /* Contain to prevent clipping heads */
+    mix-blend-mode: normal !important;
+}
+
+/* ── 34. 404 PAGE BUTTONS & LAYOUT FIX ── */
+.error_text div {
+    height: auto !important;
+}
+
+.error_text a.common_btn {
+    background: var(--themeColoeOne) !important;
+    color: var(--colorWhite) !important;
+}
+
+.error_text a.common_btn:hover {
+    background: var(--themeColoeOneDark) !important;
+    color: var(--colorWhite) !important;
+}
+
+/* ── 35. RESPONSIVE SYMMETRY FOR Custom 5-COLUMN GRID ── */
+/* 5 columns per row on screens 1400px and up */
+@media (min-width: 1400px) {
+    .col-xl-1-5 {
+        width: 20% !important;
+        flex: 0 0 20% !important;
+        max-width: 20% !important;
+    }
+}
+/* 4 columns per row on screens 1200px - 1399px */
+@media (min-width: 1200px) and (max-width: 1399px) {
+    .col-xl-1-5 {
+        width: 25% !important;
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+    }
+}
+
+/* ── 36. CLS PREVENTION — Reserve image space before load ── */
+.product_img {
+    display: block;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: var(--lightBg2);
+}
+
+/* Override fixed height with aspect-ratio so image scales with card width on all screen sizes */
+.product_item_2 .product_img {
+    height: auto !important;
+    aspect-ratio: 4 / 5;
+}
+
+.product_img_link {
+    display: block;
+    height: 100%;
+    overflow: hidden;
+}
+
+.product_img img,
+.product_img_link img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+/* Sidebar top-rated thumbnail */
+.sidebar_related_product li a.img {
+    display: block;
+    aspect-ratio: 1 / 1;
+    width: 80px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--lightBg2);
+    border-radius: var(--radius-sm);
+}
+
+.sidebar_related_product li a.img img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+/* ── 37. TABULAR NUMERALS — Prevent price column width jitter ── */
+/* font-variant-numeric: tabular-nums ensures all digits have equal width
+   so prices don't cause surrounding text to shift as they render. */
+.price,
+.price span,
+.price del,
+.cart_page_price h3,
+.product_text .price,
+.order_item_price,
+.checkout_summary_price {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+/* ── 38. ARIA LIVE REGION — Screen reader toast announcements ── */
+/* Visually hidden but readable by screen readers.
+   JS writes toast text here so assistive tech hears it. */
+.sr-only-live {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* ── 39. CONTACT PAGE ── */
+.contact-section-title {
+    color: var(--themeColoeOne);
+    font-weight: 700;
+    margin-bottom: 24px;
+    font-size: clamp(20px, 3vw, 28px);
+}
+
+#contact-form button.common_btn {
+    margin-top: 24px;
+}
+
+.contact-info-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.contact-info-item .contact-icon {
+    color: var(--themeColorTwo);
+    font-size: 20px;
+    margin-right: 16px;
+    margin-top: 3px;
+    flex-shrink: 0;
+    width: 24px;
+    text-align: center;
+}
+
+.contact-info-item h6 {
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 15px;
+}
+
+.contact-info-item p,
+.contact-info-item a {
+    color: var(--paraColor);
+    margin: 0;
+    font-size: 14px;
+}
+
+.contact-info-item a {
+    color: var(--themeColoeOne);
+    transition: color var(--t);
+}
+
+.contact-info-item a:hover {
+    color: var(--themeColoeOneDark);
+}
+
+/* ── 40. READONLY / DISABLED INPUT DISTINCTION ── */
+/* Readonly inputs look visually different from editable ones */
+input[readonly],
+textarea[readonly] {
+    background: var(--lightBg2) !important;
+    color: var(--paraColor) !important;
+    cursor: default !important;
+    border-color: var(--borderColor) !important;
+}
+
+input[disabled],
+textarea[disabled],
+button[disabled] {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* ── 41. EMPTY STATE ── */
+.empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--paraColor);
+}
+
+.empty-state .empty-state-icon {
+    font-size: 48px;
+    color: var(--borderColor);
+    margin-bottom: 16px;
+    display: block;
+}
+
+.empty-state h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--colorBlack);
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    max-width: 320px;
+    margin: 0 auto 20px;
+    line-height: 1.6;
+}
+
+/* ── 42. CURSOR POINTER — missing interactive elements ── */
+.btn_list li a,
+.details_list_btn li a,
+.details_variant_color li,
+.details_variant_size li,
+.category_item,
+.pagination_area .page-link,
+.view_all_btn,
+.mini_cart .offcanvas-body a,
+[button-add-cart],
+[button-add-wishlist],
+[button-add-compare],
+[btn-wishlist-quick],
+[btn-compare-quick],
+[btn-cart-quick] {
+    cursor: pointer !important;
+}
+
+/* ── 43. BLOG FORM INPUT — use single_input styles for blog comment form ── */
+.blog_details_comment_input .single_input {
+    margin-top: 20px;
+}
+
+/* ── 44. PRODUCT DETAIL SHARE BUTTONS ── */
+.shop_details_shate li a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+/* ── 45. TOUCH TARGET MINIMUM for product variant selectors ── */
+.details_variant_color li {
+    min-width: 32px;
+    min-height: 32px;
+    cursor: pointer;
+}
+
+.details_variant_size li {
+    min-height: 36px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    transition: background var(--t), color var(--t), border-color var(--t);
+}
+
+/* ── 46. FAQ PAGE — token-based accordion styling ── */
+.faq-item {
+    margin-bottom: 12px;
+    border: 1px solid var(--borderColor);
+    border-radius: var(--radius) !important;
+    overflow: hidden;
+}
+
+.faq-body {
+    color: var(--colorBlack);
+    line-height: 1.8;
+    font-size: 15px;
+}
+
+/* ── 47. PROGRESS WRAP / SCROLL-TO-TOP ── */
+/* Converted from div to button so it's keyboard-accessible */
+.progress-wrap {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.progress-wrap:focus-visible {
+    outline: 3px solid var(--themeColoeOne);
+    outline-offset: 3px;
+    border-radius: 50%;
+}
+
+/* ── 48. SUBSCRIPTION FORM ── */
+.subscription_form .visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* ── 49. PRODUCT DETAIL SHARE BUTTONS — aria + focus ── */
+.shop_details_shate li a:focus-visible {
+    outline: 2px solid var(--themeColoeOne);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+}
+
+/* ── 50. MODAL CLOSE BUTTON — prevent duplicate X icon ── */
+/* Bootstrap btn-close already renders the × via CSS background-image;
+   the <i> inside is purely decorative — hide it */
+.btn-close i {
+    display: none !important;
+}
+
+/* ── 51. WISHLIST/COMPARE/CART ICON LINKS — 44px min touch target ── */
+.menu_icon li a,
+.mobile_menu_header li a {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── 52. FLASH SALE / TRENDING PRODUCT — consistent card sizing ── */
+/* style.css set margin:0 12px on .flash_sell .product_item globally;
+   that breaks grid-mode cards. Reset to 0 and re-apply only inside Slick slides. */
+.flash_sell .product_item {
+    margin: 0;
+}
+.flash_sell .slick-slide .product_item {
+    margin: 0 8px;
+}
+/* Normalize bottom text padding so card heights match between sections */
+.flash_sell .product_item .product_text,
+.trending_product_2 .product_item .product_text {
+    padding: 12px 0;
+}
+
+/* ── PRINT: order detail page ── */
+@media print {
+  * { animation: none !important; transition: none !important; }
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+
+  /* Flatten Bootstrap grid — must come before specific hide rules */
+  .container, .container-fluid { max-width: 100% !important; width: 100% !important; padding: 0 12px !important; margin: 0 !important; }
+  .row { display: block !important; margin: 0 !important; }
+  [class*="col-"] { display: block !important; width: 100% !important; max-width: 100% !important; flex: none !important; padding: 0 !important; float: none !important; }
+
+  /* Stop wow animations without hiding */
+  .wow { visibility: visible !important; animation-name: none !important; }
+
+  /* Hide non-invoice elements — must come AFTER flatten rules to win */
+  .header_2,
+  .footer_2,
+  .page_banner,
+  .progress-wrap,
+  #chat-button,
+  .modal,
+  .dashboard_title,
+  .dashboard_invoice_footer a,
+  .dashboard_invoice_footer button { display: none !important; }
+
+  /* Hide sidebar specifically after the col-* flatten */
+  .col-xl-3 { display: none !important; }
+
+  /* Invoice layout */
+  section.dashboard { padding: 0 !important; margin: 0 !important; }
+  .dashboard_content { margin-top: 12px !important; padding: 0 !important; }
+  .dashboard_order_invoice { margin-top: 0 !important; border: none !important; border-radius: 0 !important; overflow: visible !important; }
+  .dashboard_order_invoice_area { padding: 0 !important; }
+}
+
+

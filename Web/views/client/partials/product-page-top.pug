@@ -1,0 +1,43 @@
+div(class="product_page_top")
+  .row
+    .col-4.col-xl-6.col-md-6
+      div(class="product_page_top_button")
+        nav
+          #nav-tab.nav.nav-tabs(role="tablist")
+            button#nav-home-tab.nav-link.active(
+              aria-label="Grid view"
+              aria-selected="true"
+              aria-controls="nav-home"
+              role="tab"
+              type="button"
+              data-bs-target="#nav-home"
+              data-bs-toggle="tab"
+              )
+              i.fas.fa-th(aria-hidden="true")
+            button#nav-profile-tab.nav-link(
+              aria-label="List view"
+              aria-selected="false"
+              aria-controls="nav-profile"
+              role="tab"
+              type="button"
+              data-bs-target="#nav-profile"
+              data-bs-toggle="tab"
+              )
+              i.fas.fa-list-ul(aria-hidden="true")
+        p Showing #{pagination.skip+1} - #{pagination.skip+productList.length} of #{pagination.totalRecord} results
+    .col-8.col-xl-6.col-md-6
+      ul(class="product_page_sorting")
+        li(select-js="sort")
+          select.show(class="select_js")
+            option(value="position-desc") Default
+            option(value="price-asc") Price: Low to High
+            option(value="price-desc") Price: High to Low
+            option(value="createdAt-desc") New Products
+            option(value="discount-desc") Most Discounted
+        li(select-js="limitItems")
+          select.show(class="select_js")
+            option(value="12") Show: 12
+            option(value="16") Show: 16
+            option(value="20") Show: 20
+            option(value="24") Show: 24
+            option(value="28") Show: 28

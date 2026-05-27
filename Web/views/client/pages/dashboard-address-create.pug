@@ -1,0 +1,111 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  //
+    =========================
+    PAGE BANNER START
+    ==========================
+  +page-banner(
+    {
+      name: pageTitle,
+    },
+    "/dashboard/address/create"
+  )
+  //
+    =========================
+    PAGE BANNER START
+    ==========================
+
+  //
+    ============================
+    DSHBOARD START
+    =============================
+  section.dashboard(class="mb_100")
+    .container
+      .row
+        .col-xl-3.wow.fadeInUp
+          include ../partials/dashboard-sidebar.pug
+        .col-xl-9.wow.fadeInRight
+          div(class="dashboard_content mt_100")
+            h3(class="dashboard_title")
+              | #{pageTitle}
+              a(
+                href="/dashboard/address" 
+                class="common_btn cancel_edit"
+                ) Cancel
+            div(class="dashboard_profile_info_edit")
+              form(class="info_edit_form" id="dashboardAddressCreateForm")
+                .row
+                  .col-md-6
+                    div(class="single_input")
+                      label(for="fullName") Full Name *
+                      input(
+                        placeholder="e.g. John Doe"
+                        type="text"
+                        name="fullName"
+                        id="fullName"
+                        autocomplete="name"
+                        )
+                  .col-md-6
+                    div(class="single_input")
+                      label(for="phone") Phone Number *
+                      input(
+                        placeholder="e.g. 0987654321"
+                        type="tel"
+                        name="phone"
+                        id="phone"
+                        autocomplete="tel"
+                        )
+                  .col-md-12
+                    label Select address on map *
+                    div(class="input-group")
+                      input(
+                        class="form-control" 
+                        placeholder="Enter address to search..." 
+                        type="text"
+                        id="mapSearchInput"
+                        )
+                      span(
+                        class="btn btn-outline-secondary"
+                        id="mapSearchBtn"
+                        ) Search
+                    div(id="boxMap" style="height: 350px; margin-bottom: 25px;")
+                  .col-md-12
+                    div(class="single_input")
+                      label(for="address") Address *
+                      input(
+                        type="text"
+                        name="address"
+                        id="address"
+                        autocomplete="street-address"
+                        )
+                  .col-md-6
+                    div(class="single_input")
+                      label(for="longitude") Longitude *
+                      input(type="text" name="longitude" id="longitude")
+                  .col-md-6
+                    div(class="single_input")
+                      label(for="latitude") Latitude *
+                      input(type="text" name="latitude" id="latitude")
+                  .col-md-6
+                    div(class="form-check" style="margin-bottom: 25px")
+                      input(
+                        class="form-check-input" 
+                        type="checkbox" 
+                        name="isDefault" 
+                        id="isDefault"
+                        style="padding: 0"
+                        )
+                      label(class="form-check-label" for="isDefault") Set as default address
+                  .col-md-12
+                    button(
+                      class="common_btn" 
+                      type="submit"
+                      )
+                      | Add New
+                      i.fas.fa-long-arrow-right(aria-hidden="true")
+  //
+    ============================
+    DSHBOARD END
+    =============================

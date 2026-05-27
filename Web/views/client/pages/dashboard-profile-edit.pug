@@ -1,0 +1,170 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  //
+    =========================
+    PAGE BANNER START
+    ==========================
+  +page-banner(
+    {
+      name: pageTitle,
+    },
+    `/dashboard/profile/edit`
+  )
+  //
+    =========================
+    PAGE BANNER START
+    ==========================
+
+  //
+    ============================
+    DSHBOARD START
+    =============================
+  section.dashboard(class="mb_100")
+    .container
+      .row
+        .col-xl-3.wow.fadeInUp
+          include ../partials/dashboard-sidebar.pug
+        .col-xl-9.wow.fadeInRight
+          div(class="dashboard_content mt_100")
+            h3(class="dashboard_title")
+              | #{pageTitle}
+              a(
+                href="/dashboard/profile" 
+                class="common_btn cancel_edit"
+                ) Cancel
+            div(class="dashboard_profile_info_edit")
+              form(class="info_edit_form" id="dashboardProfileEditForm")
+                .row
+                  .col-md-6
+                    div(class="single_input")
+                      label(for="fullName") Full Name *
+                      input(
+                        placeholder="e.g. John Doe"
+                        type="text"
+                        name="fullName"
+                        id="fullName"
+                        value=accountUser.fullName
+                        autocomplete="name"
+                        )
+                  .col-md-6
+                    div(class="single_input")
+                      label Phone Number
+                      input(
+                        placeholder="e.g. 0987654321"
+                        type="tel"
+                        name="phone"
+                        id="phone"
+                        value=accountUser.phone
+                        autocomplete="tel"
+                        )
+                  .col-md-12
+                    button(class="common_btn" type="submit")
+                      | Update
+                      i.fas.fa-long-arrow-right(aria-hidden="true")
+
+            h3(class="dashboard_title mt_40") Change Email
+            div(class="dashboard_profile_info_edit")
+              .row
+                .col-md-6
+                  div(class="single_input")
+                    label Current Email
+                    input(type="email" value=accountUser.email readonly aria-readonly="true" autocomplete="email" style="background:#f5f5f5;cursor:not-allowed;")
+              div#changeEmailStep1
+                .row
+                  .col-md-6
+                    div(class="single_input")
+                      label(for="newEmail") New Email *
+                      input(
+                        placeholder="e.g. newemail@gmail.com"
+                        type="email"
+                        id="newEmail"
+                        autocomplete="email"
+                        )
+                  .col-md-12
+                    button#btnSendEmailOtp(class="common_btn" type="button")
+                      | Send Code
+                      i.fas.fa-long-arrow-right(aria-hidden="true")
+              div#changeEmailStep2(style="display:none")
+                p.text-muted(style="font-size:14px;margin-bottom:16px;")
+                  | A verification code has been sent to your new email. Enter it below.
+                .row
+                  .col-md-6
+                    div(class="single_input")
+                      label(for="emailOtp") Verification Code *
+                      input(
+                        placeholder="Enter 6-digit code"
+                        type="text"
+                        id="emailOtp"
+                        maxlength="6"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        )
+                  .col-md-6.d-flex.align-items-end
+                    button#btnVerifyEmailOtp(class="common_btn" type="button")
+                      | Verify &amp; Update
+                      i.fas.fa-long-arrow-right(aria-hidden="true")
+              div#changeEmailStep3(style="display:none")
+                p(style="color:#22c55e;font-weight:600;")
+                  i.fas.fa-check-circle.me-1(aria-hidden="true")
+                  | Email updated successfully. Redirecting to login...
+
+              script.
+                (function() {
+                  const step1 = document.getElementById('changeEmailStep1');
+                  const step2 = document.getElementById('changeEmailStep2');
+                  const step3 = document.getElementById('changeEmailStep3');
+                  const btnSend = document.getElementById('btnSendEmailOtp');
+                  const btnVerify = document.getElementById('btnVerifyEmailOtp');
+
+                  btnSend.addEventListener('click', async () => {
+                    const newEmail = document.getElementById('newEmail').value.trim();
+                    if (!newEmail) return;
+                    btnSend.disabled = true;
+                    btnSend.textContent = 'Sending...';
+                    const res = await fetch('/dashboard/profile/change-email/request', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ newEmail })
+                    });
+                    const data = await res.json();
+                    btnSend.disabled = false;
+                    btnSend.innerHTML = 'Send Code <i class="fas fa-long-arrow-right"></i>';
+                    if (data.code === 'error') { notyf.error(data.message); return; }
+                    notyf.success(data.message);
+                    step1.style.display = 'none';
+                    step2.style.display = '';
+                  });
+
+                  btnVerify.addEventListener('click', async () => {
+                    const otp = document.getElementById('emailOtp').value.trim();
+                    if (!otp) return;
+                    btnVerify.disabled = true;
+                    btnVerify.textContent = 'Verifying...';
+                    const res = await fetch('/dashboard/profile/change-email/verify', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ otp })
+                    });
+                    const data = await res.json();
+                    btnVerify.disabled = false;
+                    btnVerify.innerHTML = 'Verify &amp; Update <i class="fas fa-long-arrow-right"></i>';
+                    if (data.code === 'error') { notyf.error(data.message); return; }
+                    step2.style.display = 'none';
+                    step3.style.display = '';
+                    setTimeout(() => { window.location.href = '/auth/login'; }, 2000);
+                  });
+                })();
+            
+            h3(class="dashboard_title mt_40") Change Password
+            div(class="dashboard_profile_info_edit")
+              p(style="color:#6b7280;font-size:14px;margin-bottom:20px;")
+                | Update your account password to keep your account secure.
+              a(href="/dashboard/change-password" class="common_btn")
+                | Change Password
+                i.fas.fa-long-arrow-right(aria-hidden="true")
+  //
+    ============================
+    DSHBOARD END
+    =============================

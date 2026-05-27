@@ -1,0 +1,266 @@
+//- ============================================
+//- Client Mixins (centralized)
+//- ============================================
+
+//- --- stars ---
+mixin stars(item)
+  - const ratingAvg = item.ratingAvg || item.rating || 0;
+  - const fullStar = Math.floor(ratingAvg); // 4.5 => 4
+  - const hasHalfStar = ratingAvg - fullStar >= 0.5; // true or false
+
+  - for(let i = 1; i <= 5; i++)
+    if (i <= fullStar)
+      i.fas.fa-star(aria-hidden="true")
+    else if ((i == fullStar + 1) && hasHalfStar)
+      i.fas.fa-star-half-alt(aria-hidden="true")
+    else
+      i.far.fa-star(aria-hidden="true")
+
+//- --- avatar ---
+//- Avatar with initials fallback
+//- Usage: +avatar(fullName, avatarUrl, sizeClass)
+//- sizeClass: "sm" (32px), "md" (48px), "lg" (64px), "xl" (100px)
+mixin avatar(fullName, avatarUrl, sizeClass)
+  - var size = sizeClass || "md"
+  - var name = fullName || "U"
+  - var parts = name.trim().split(/\s+/)
+  - var initials = parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : parts[0][0].toUpperCase()
+  - var cdnUrl = (avatarUrl && !avatarUrl.startsWith('http')) ? (domainCDN + '/' + avatarUrl) : null
+  if cdnUrl
+    img.avatar-img(
+      src=cdnUrl
+      alt=name
+      class=`avatar-${size}`
+    )&attributes(attributes)
+  else
+    .avatar-initials.notranslate(
+      class=`avatar-${size}`
+      style="background: linear-gradient(135deg, #22c5ad 0%, #7367f0 100%)"
+      title=name
+      translate="no"
+    )&attributes(attributes)
+      span= initials
+
+//- --- blog-item ---
+mixin blog-item(item)
+  div(class="blog_item")
+    a(
+      class="blog_img" 
+      href=`/article/detail/${item.slug}`
+      )
+      img.img-fluid.w-100(
+        alt=item.name
+        src=`${domainCDN}${item.avatar}`
+        loading="lazy"
+        )
+    div(class="blog_text")
+      ul.top
+        if (item.authorName)
+          li
+            span
+              i.far.fa-user(aria-hidden="true")
+            | #{item.authorName}
+        if (item.date)
+          li
+            span
+              i.far.fa-calendar-alt(aria-hidden="true")
+            | #{item.date}
+      a.title(href=`/article/detail/${item.slug}`)
+        | #{item.name}
+      ul.bottom
+        li
+          a(href=`/article/detail/${item.slug}`)
+            | View More
+            i.fas.fa-long-arrow-right(aria-hidden="true")
+
+//- --- menu-category-item ---
+mixin renderCategory(items, level = 0)
+  //- Determine class for ul by level
+  -
+    var ulClass = "";
+    if (level == 0) ulClass = "menu_cat_item";
+    else if (level == 1) ulClass = "menu_cat_droapdown";
+    else ulClass = "sub_category";
+
+  if (items && items.length > 0)
+    ul(class=ulClass)
+      each item in items
+        if (item.status == "active")
+          li
+            a(href=`/product/category/${item.slug}`)
+              if (level == 0 && item.avatar)
+                span
+                  img(
+                    alt=item.name
+                    src=`${domainCDN}${item.avatar}`
+                    loading="lazy"
+                    )
+              | #{item.name}
+              if (level > 0 && item.children && item.children.length > 0)
+                i.fal.fa-angle-right(aria-hidden="true")
+            if (item.children && item.children.length > 0)
+              +renderCategory(item.children, level+1)
+      if(level == 0)
+        li(class="all_category")
+            a(href="/product")
+              | View All
+              i.far.fa-arrow-right(aria-hidden="true")
+  else if (level == 0)
+    ul(class=ulClass)
+      li(class="all_category")
+          a(href="/product")
+            | View All
+            i.far.fa-arrow-right(aria-hidden="true")
+
+//- --- page-banner ---
+mixin page-banner(data, link)
+  section(class="page_banner")
+    div(class="page_banner_overlay")
+      .container
+        .row
+          .col-12
+            .wow.fadeInUp(class="page_banner_text")
+              h1 #{data.name}
+              ul
+                li
+                  a(href="/")
+                    i.fal.fa-home-lg(aria-hidden="true")
+                    | Home
+                li
+                  a(href=link) #{data.name}
+
+//- --- product-item ---
+mixin product-item(item)
+  div(class="product_item_2 product_item")
+    div(class="product_img")
+      a.product_img_link(
+        href=`/product/detail/${item.slug}`
+        aria-label=item.name
+        )
+        img.img-fluid.w-100(
+          alt=item.name
+          src=`${domainCDN}${item.images[0]}`
+          loading="lazy"
+          )
+      ul(class="discount_list")
+        if (item.discount > 0)
+          li.discount
+            b -
+            | #{item.discount}%
+      ul(class="btn_list")
+        li
+          a(
+            href="javascript:;"
+            btn-compare-quick
+            data-product-id=item._id
+            title="Compare"
+            aria-label="Compare"
+            )
+            i.far.fa-exchange-alt(aria-hidden="true")
+        li
+          a(
+            href="javascript:;"
+            btn-wishlist-quick
+            data-product-id=item._id
+            title="Add to Wishlist"
+            aria-label="Add to Wishlist"
+            )
+            i.far.fa-heart(aria-hidden="true")
+        li
+          a(
+            href="javascript:;"
+            btn-cart-quick
+            data-product-id=item._id
+            title="Add to Cart"
+            aria-label="Add to Cart"
+            )
+            i.far.fa-shopping-cart(aria-hidden="true")
+    div(class="product_text")
+      a.title(href=`/product/detail/${item.slug}`) #{item.name}
+      p.price.d-flex.flex-wrap.align-items-baseline.gap-1
+        if (item.priceNew)
+          span #{formatVND(item.priceNew)}
+        if (item.priceOld)
+          del #{formatVND(item.priceOld)}
+      p.rating
+        +stars(item)
+        span (#{item.ratingCount} Reviews)
+      if (item.colorList.length > 0)
+        ul.color
+          each color in item.colorList
+            li(style=`background:${color}`)
+
+//- --- product-list-item ---
+mixin product-list-item(item)
+  div(class="product_list_item product_item_2 product_item")
+    .row.align-items-center
+      .col-md-5.col-sm-6.col-xxl-4
+        div(class="product_img")
+          img.img-fluid.w-100(
+            alt=item.name
+            src=`${domainCDN}${item.images[0]}`
+            loading="lazy"
+            )
+          ul(class="discount_list")
+            if (item.discount > 0)
+              li.discount
+                b -
+                | #{item.discount}%
+          ul(class="btn_list")
+            li
+              a(
+                href="javascript:;"
+                btn-compare-quick
+                data-product-id=item._id
+                title="Compare"
+                aria-label="Compare"
+                )
+                i.far.fa-exchange-alt(aria-hidden="true")
+            li
+              a(
+                href="javascript:;"
+                btn-wishlist-quick
+                data-product-id=item._id
+                title="Add to Wishlist"
+                aria-label="Add to Wishlist"
+                )
+                i.far.fa-heart(aria-hidden="true")
+      .col-md-7.col-sm-6.col-xxl-8
+        div(class="product_text")
+          a.title(href=`/product/detail/${item.slug}`)
+            | #{item.name}
+          p.rating
+            +stars(item)
+            span (#{item.ratingCount} Reviews)
+          p.price.d-flex.flex-wrap.align-items-baseline.gap-1
+            if (item.priceNew)
+              span #{formatVND(item.priceNew)}
+            if (item.priceOld)
+              del #{formatVND(item.priceOld)}
+          if (item.colorList.length > 0)
+            ul.color
+              each color in item.colorList
+                li(style=`background:${color}`)
+          p(class="short_description")
+            | !{item.description}
+          a(
+            href=`/product/detail/${item.slug}`
+            class="common_btn"
+            )
+            | View Details
+            i.fas.fa-long-arrow-right(aria-hidden="true")
+
+//- --- products-slider ---
+mixin products-slider(title1, title2, productList)
+  section.wow.fadeInUp(class="related_products mt_90 mb_70")
+    .container
+      .row
+        .col-xl-6
+          div(class="section_heading_2 section_heading")
+            h3
+              span #{title1} 
+              | #{title2}
+      .row(class="mt_25 flash_sell_2_slider")
+        each item in productList
+          .col-xl-1-5
+            +product-item(item)

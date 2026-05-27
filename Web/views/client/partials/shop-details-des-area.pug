@@ -1,0 +1,75 @@
+include ../mixins/index.pug
+
+div(class="shop_details_des_area")
+  ul#pills-tab2.nav.nav-pills(role="tablist")
+    li.nav-item(role="presentation")
+      button#description-tab.nav-link.active(
+        aria-selected="false" 
+        aria-controls="description" 
+        role="tab" 
+        type="button" 
+        data-bs-target="#description" 
+        data-bs-toggle="pill"
+        ) Description
+    li.nav-item(role="presentation")
+      button#description-tab4.nav-link(
+        aria-selected="false" 
+        aria-controls="description4" 
+        role="tab" 
+        type="button" 
+        data-bs-target="#description4" 
+        data-bs-toggle="pill"
+        ) Reviews
+  #pills-tabContent2.tab-content
+    #description.tab-pane.fade.show.active(
+      tabindex="0" 
+      aria-labelledby="description-tab" 
+      role="tabpanel"
+      )
+      div(class="shop_details_description")
+        | !{productDetail.content}
+    #description4.tab-pane.fade(
+      tabindex="0" 
+      aria-labelledby="description-tab4" 
+      role="tabpanel"
+      )
+      div(class="shop_details_review")
+        div(class="single_review_list_area")
+          h3 Customer Reviews
+          each item in reviewList
+            - const alreadyReported = accountUser && item.reportedBy && item.reportedBy.includes(String(accountUser.id))
+            div(class="single_review")
+              .img
+                if item.user
+                  +avatar(item.user.fullName, item.user.avatar || null, "md").img-fluid.w-100
+              .text
+                h5
+                  | #{item.user ? item.user.fullName : 'Anonymous'}
+                  span
+                    +stars(item)
+                p.date #{item.createdAt ? item.createdAt.toLocaleString("vi-VN") : ''}
+                p.description
+                  | #{item.comment}
+                ul
+                  each image in item.images
+                    li
+                      img.img-fluid.w-100(
+                        alt="Review photo"
+                        src=`${domainCDN}${image}`
+                        loading="lazy"
+                        )
+                if accountUser
+                  div(style="text-align: right; margin-top: 10px;")
+                    if alreadyReported
+                      span.review-report-done
+                        i.fas.fa-flag
+                        |  Reported
+                    else
+                      button.btn.btn-report-review(
+                        type="button"
+                        data-review-id=`${item.id}`
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalReportReview"
+                      )
+                        i.far.fa-flag
+                        |  Report

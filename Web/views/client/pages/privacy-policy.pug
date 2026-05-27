@@ -1,0 +1,28 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner({ name: pageTitle }, "/privacy-policy")
+
+  section.mt_80.mb_100
+    .container
+      .row.justify-content-center
+        .col-lg-8
+          p(style="color:#6b7280;font-size:13px;margin-bottom:32px;") Last updated: September 7, 2026
+
+          h4(style="color:#0057B7;font-weight:600;margin-bottom:12px;") 1. Information We Collect
+          p(style="color:#374151;line-height:1.8;") We collect information you provide when creating an account, placing an order, or contacting us - including your name, email address, phone number, and shipping address. We also collect browsing data to improve your experience.
+
+          h4(style="color:#0057B7;font-weight:600;margin:28px 0 12px;") 2. How We Use Your Information
+          p(style="color:#374151;line-height:1.8;") Your information is used to process orders, send order updates, provide customer support, and improve our services. We do not sell your personal data to third parties.
+
+          h4(style="color:#0057B7;font-weight:600;margin:28px 0 12px;") 3. Cookies
+          p(style="color:#374151;line-height:1.8;") We use cookies to keep you logged in, remember your cart, and analyze site traffic. You may disable cookies in your browser settings, though some features may not function correctly.
+
+          h4(style="color:#0057B7;font-weight:600;margin:28px 0 12px;") 4. Data Security
+          p(style="color:#374151;line-height:1.8;") We implement industry-standard security measures to protect your personal information. Passwords are encrypted and never stored in plain text.
+
+          h4(style="color:#0057B7;font-weight:600;margin:28px 0 12px;") 5. Contact
+          p(style="color:#374151;line-height:1.8;")
+            | For privacy-related questions, contact us at 
+            a(href="mailto:info@uit.edu.vn" style="color:#0057B7;") info@uit.edu.vn

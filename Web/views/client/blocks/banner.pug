@@ -1,0 +1,98 @@
+include ../mixins/index.pug
+
+- const isVideo = (url) => url && /\.(mp4|webm|ogg|mov)$/i.test(url)
+
+//
+  =========================
+    BANNER 2 START
+    ==========================
+section(class="banner_2")
+  .container
+    .row
+      .col-xl-2.d-none.d-xxl-block
+        if blockData.categories && blockData.categories.enable
+          +renderCategory(categoryProductList, 0)
+      .col-xxl-7.col-lg-8
+        div(class="banner_content")
+          .row(class="banner_2_slider")
+            each slider in blockData.sliders
+              .col-xl-12
+                if isVideo(getFullUrl(slider.background))
+                  .wow.fadeInUp(
+                    class="banner_slider_2 position-relative overflow-hidden"
+                  )
+                    video(
+                      autoplay
+                      muted
+                      loop
+                      playsinline
+                      class="position-absolute w-100 h-100 object-fit-cover start-0 top-0"
+                      style="z-index: 1;"
+                    )
+                      source(src=getFullUrl(slider.background))
+                    div(class="banner_slider_2_text position-relative" style="z-index: 2;")
+                      h3 #{slider.subtitle}
+                      h1 #{slider.title}
+                      a(
+                        href=slider.button.link
+                        class="common_btn"
+                      )
+                        | #{slider.button.text}
+                        i.fas.fa-long-arrow-right(aria-hidden="true")
+                else
+                  .wow.fadeInUp(
+                    style=`background: url(${getFullUrl(slider.background)});`
+                    class="banner_slider_2"
+                  )
+                    div(class="banner_slider_2_text")
+                      h3 #{slider.subtitle}
+                      h1 #{slider.title}
+                      a(
+                        href=slider.button.link
+                        class="common_btn"
+                      )
+                        | #{slider.button.text}
+                        i.fas.fa-long-arrow-right(aria-hidden="true")
+      .col-xxl-3.col-lg-4.col-sm-12.col-md-12
+        .row
+          .col-xl-12
+            if isVideo(getFullUrl(blockData.sideBanner.background))
+              .wow.fadeInUp(
+                class="banner_2_add position-relative overflow-hidden"
+              )
+                video(
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  class="position-absolute w-100 h-100 object-fit-cover start-0 top-0"
+                  style="z-index: 1;"
+                )
+                  source(src=getFullUrl(blockData.sideBanner.background))
+                .text.position-relative(style="z-index: 2;")
+                  h4 #{blockData.sideBanner.subtitle}
+                  h2 #{blockData.sideBanner.title}
+                  a(
+                    href=blockData.sideBanner.button.link
+                    class="common_btn"
+                  )
+                    | #{blockData.sideBanner.button.text}
+                    i.fas.fa-long-arrow-right(aria-hidden="true")
+            else
+              .wow.fadeInUp(
+                style=`background: url(${getFullUrl(blockData.sideBanner.background)});`
+                class="banner_2_add"
+              )
+                .text
+                  h4 #{blockData.sideBanner.subtitle}
+                  h2 #{blockData.sideBanner.title}
+                  a(
+                    href=blockData.sideBanner.button.link
+                    class="common_btn"
+                  )
+                    | #{blockData.sideBanner.button.text}
+                    i.fas.fa-long-arrow-right(aria-hidden="true")
+//
+  =========================
+    BANNER 2 END
+    ==========================

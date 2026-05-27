@@ -1,0 +1,28 @@
+div(class="blog_details_left")
+  div(class="blog_details_img_1")
+    img.img-fluid.w-100(
+      alt=articleDetail.name
+      src=`${domainCDN}${articleDetail.avatar}`
+      loading="eager"
+      fetchpriority="high"
+      )
+  ul.d-flex.flex-wrap(class="blog_details_top")
+    if (articleDetail.date)
+      li
+        span
+          i.far.fa-calendar-alt.me-2(aria-hidden="true")
+        | #{articleDetail.date}
+    if (articleDetail.authorName)
+      li
+        span
+          i.far.fa-user(aria-hidden="true")
+        | #{articleDetail.authorName}
+    li
+      span
+        i.far.fa-eye.me-2(aria-hidden="true")
+      | #{articleDetail.view || 0} Views
+
+  div(class="blog_details_desc")
+    | !{articleDetail.description}
+  div(class="blog_details_content")
+    | !{articleDetail.content}

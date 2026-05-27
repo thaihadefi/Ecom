@@ -1,0 +1,133 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  //
+    =========================
+    PAGE BANNER START
+    ==========================
+  +page-banner(
+    {
+      name: pageTitle,
+    },
+    `/dashboard/order/detail/${orderDetail.id}`
+  )
+  //
+    =========================
+    PAGE BANNER START
+    ==========================
+
+  //
+    ============================
+    DSHBOARD START
+    =============================
+  section.dashboard(class="mb_100")
+    .container
+      .row
+        .col-xl-3.wow.fadeInUp
+          include ../partials/dashboard-sidebar.pug
+        .col-xl-9.wow.fadeInRight
+          div(class="dashboard_content mt_100")
+            h3(class="dashboard_title")
+              | #{pageTitle}
+              a(
+                href="/dashboard/order/list" 
+                class="back_btn common_btn"
+                ) Back
+            div(class="dashboard_order_invoice_area")
+              div(class="dashboard_order_invoice")
+                div(class="dashboard_invoice_header")
+                  .text
+                    h2 Order Details
+                    ul
+                      li
+                        span Full Name:
+                        | #{orderDetail.fullName}
+                      li
+                        span Phone Number:
+                        | #{orderDetail.phone}
+                      li
+                        span Address:
+                        | #{orderDetail.address}
+                      li
+                        span Order Date:
+                        | #{orderDetail.createdAt ? orderDetail.createdAt.toLocaleString('vi-VN') : ''}
+                      li
+                        span Payment Method:
+                        case orderDetail.paymentMethod
+                          when "money"
+                            | Cash
+                          when "vnpay"
+                            | VNPay
+                          when "zalopay"
+                            | ZaloPay
+                      li
+                        span Payment Status:
+                        case orderDetail.paymentStatus
+                          when "unpaid"
+                            | Unpaid
+                          when "paid"
+                            | Paid
+                          when "refunded"
+                            | Refunded
+                      li
+                        span Order Status:
+                        case orderDetail.orderStatus
+                          when "pending"
+                            | Pending
+                          when "confirmed"
+                            | Confirmed
+                          when "shipping"
+                            | Shipping
+                          when "completed"
+                            | Completed
+                          when "cancelled"
+                            | Cancelled
+                          when "returned"
+                            | Returned
+                div(class="invoice_table")
+                  .table-responsive
+                    table.table
+                      thead
+                        tr
+                          th Product Name
+                          th Price
+                          th Quantity
+                          th Total
+                      tbody
+                        each item in orderDetail.items
+                          tr
+                            td
+                              | #{item.name} 
+                              if (item.variant && item.variant.length > 0)
+                                | (
+                                each v, index in item.variant
+                                  | #{v}
+                                  if (index < item.variant.length - 1)
+                                    | , 
+                                | )
+                            td #{(item.price || 0).toLocaleString("vi-VN")} VND
+                            td #{item.quantity}
+                            td #{((item.price || 0) * item.quantity).toLocaleString("vi-VN")} VND
+                      tfoot
+                        tr
+                          td(colspan="3")
+                            b Subtotal
+                          td
+                            b #{(orderDetail.subTotal || 0).toLocaleString("vi-VN")} VND
+                        if (orderDetail.discount)
+                          tr
+                            td(colspan="3") Discount (#{orderDetail.coupon})
+                            td -#{(orderDetail.discount || 0).toLocaleString("vi-VN")} VND
+                        tr
+                          td(colspan="3") Shipping Fee
+                          td #{(orderDetail.shipping && orderDetail.shipping.fee != null ? orderDetail.shipping.fee : 0).toLocaleString("vi-VN")} VND
+                        tr
+                          td(colspan="3")
+                            b Total
+                          td
+                            b #{(orderDetail.total || 0).toLocaleString("vi-VN")} VND
+                div(class="dashboard_invoice_footer")
+                  h4 Note
+                  div #{orderDetail.note}
+                  button.common_btn(type="button" onclick="window.print()") Download Invoice

@@ -1,0 +1,82 @@
+extends ../layouts/default.pug
+
+block main
+  //
+    =========================
+    SIGN IN PAGE START
+    ==========================
+  section(class="sign_in mt_100 mb_100")
+    .container
+      .row.justify-content-center
+        .col-xxl-5.col-lg-6.col-md-8.col-sm-10.wow.fadeInUp
+          div(class="sign_in_form")
+            h3 #{pageTitle}
+            if oauthError
+              p(style="color:#b91c1c;margin:8px 0 12px;") #{oauthError}
+            form(id="loginForm")
+              .row
+                .col-xl-12
+                  div(class="single_input")
+                    label(for="email") Email
+                    input(
+                      placeholder="e.g. johndoe@gmail.com"
+                      type="email"
+                      name="email"
+                      id="email"
+                      autocomplete="email"
+                      )
+                .col-xl-12
+                  div(class="single_input password-input-wrapper")
+                    label(for="password") Password
+                    input(
+                      placeholder="••••••••"
+                      type="password"
+                      name="password"
+                      id="password"
+                      autocomplete="current-password"
+                      )
+                    button(
+                      type="button"
+                      class="password-toggle"
+                      aria-label="Show or hide password"
+                      )
+                      i.far.fa-eye(aria-hidden="true")
+                .col-12
+                  .forgot
+                    .form-check
+                      input#flexCheckDefault.form-check-input(
+                        value=""
+                        type="checkbox"
+                        name="rememberPassword"
+                        )
+                      label.form-check-label(for="flexCheckDefault") Remember password
+                    a(href="/auth/forgot-password") Forgot password?
+                .col-xl-12
+                  button(
+                    class="common_btn" 
+                    type="submit"
+                    )
+                    | Login
+                    i.fas.fa-long-arrow-right(aria-hidden="true")
+            p(class="dont_account")
+              | Don't have an account? 
+              a(href="/auth/register") Register
+            .or-divider
+              span.or-line
+              span.or-text Or
+              span.or-line
+            ul
+              li
+                a(href="/auth/google")
+                  span
+                    i.fab.fa-google(aria-hidden="true")
+                  | Google
+              li
+                a(href="/auth/facebook")
+                  span
+                    i.fab.fa-facebook-f(aria-hidden="true")
+                  | Facebook
+  //
+    =========================
+    SIGN IN PAGE END
+    ==========================

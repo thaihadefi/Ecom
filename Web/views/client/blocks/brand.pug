@@ -1,0 +1,32 @@
+//
+  =========================
+    BRAND 2 START
+    ==========================
+section(class="brand_2 mt_85")
+  .container
+    .row
+      .col-xl-6.col-sm-9
+        div(class="section_heading_2 section_heading")
+          h3
+            | #{blockData.title.normal}
+            span #{blockData.title.highlight}
+      .col-xl-6.col-sm-3
+        div(class="view_all_btn_area")
+          a(
+            href=blockData.linkViewAll
+            class="view_all_btn"
+            ) #{blockData.viewAll}
+    .row(class="mt_40")
+      .col-12
+        ul
+          each item in blockData.brands
+            li.wow.fadeInUp
+              a(href=item.link)
+                img.img-fluid(
+                  alt=item.name
+                  src=getFullUrl(item.image)
+                  )
+//
+  =========================
+    BRAND 2 END
+    ==========================

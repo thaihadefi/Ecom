@@ -1,0 +1,28 @@
+div(id="sticky_sidebar")
+  .wow.fadeInRight(class="blog_details_right")
+
+    div(class="blog_details_right_header sidebar_blog")
+      h3 Popular Articles
+      each item in popularBlogList
+        .d-flex.flex-wrap(class="popular_blog")
+          div(class="popular_blog_img")
+            img.img-fluid.w-100(
+              alt=item.name
+              src=`${domainCDN}${item.avatar}`
+              loading="lazy"
+              )
+          div(class="popular_blog_text")
+            p
+              span
+                i.far.fa-calendar-alt.me-2(aria-hidden="true")
+              | #{item.createdAtFormat}
+            a.title.w-100(href=`/article/detail/${item.slug}`)
+              | #{item.name}
+    div(class="blog_details_right_header")
+      h3 Popular Categories
+      ul(class="sidebar_blog_category")
+        each item in popularCategoryBlogList
+          li
+            a(href=`/article/category/${item.slug}`)
+              p #{item.name}
+              span (#{item.totalRecord})

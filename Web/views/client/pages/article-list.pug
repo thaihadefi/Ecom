@@ -1,0 +1,21 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner({name: "Articles"}, "/article")
+  section(class="blog_right_sidebar blog_2 mt_75 mb_100")
+    .container
+      .row
+        .col-xl-9.col-lg-8
+          .row
+            if articleList && articleList.length
+              each item in articleList
+                .col-xl-4.col-md-6.wow.fadeInUp
+                  +blog-item(item)
+            else
+              .col-12
+                p.text-center.py-5 No articles found.
+          .row
+            include ../partials/pagination-area.pug
+        .col-xl-3.col-lg-4.col-md-8
+          include ../partials/sticky-sidebar-blog.pug
