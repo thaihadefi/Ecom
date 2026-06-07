@@ -1,0 +1,296 @@
+extends ../layouts/blank.pug
+include ../mixins/index.pug
+
+block main
+  style.
+    .folder-card { transition: background-color .15s ease, border-color .15s ease; cursor: pointer; }
+    .folder-card:hover { background-color: var(--bs-primary-bg-subtle); border-color: var(--bs-primary) !important; }
+    .folder-card .delete-folder-btn, .folder-card .rename-folder-btn { opacity: 0; transition: opacity .15s; }
+    .folder-card:hover .delete-folder-btn, .folder-card:hover .rename-folder-btn { opacity: 1; }
+    .file-row:hover .row-actions { opacity: 1; }
+    .row-actions { opacity: 0.4; transition: opacity .15s ease; }
+    tr:hover .row-actions { opacity: 1; }
+    .action-btn { width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 12px; }
+
+  //- Cut / Paste Banner
+  #paste-container.alert.alert-warning.border-warning.d-none.d-flex.align-items-center.justify-content-between.flex-wrap.gap-2.mb-3.py-2.px-3(role="alert")
+    .d-flex.align-items-center.gap-2
+      i.fa-solid.fa-scissors.text-warning
+      span.mb-0.small Moving:&nbsp;
+        strong#cutting-item-name
+      span#cutting-item-type.badge.bg-warning.text-dark.small(style="font-size:10px") CUT
+    .d-flex.gap-2
+      button.btn.btn-sm.btn-primary(button-paste-item)
+        i.fa-solid.fa-paste.me-1
+        | Paste Here
+      button.btn.btn-sm.btn-outline-secondary(button-cancel-cut)
+        i.fa-solid.fa-xmark.me-1
+        | Cancel
+
+  //- Breadcrumb nav
+  nav.mb-3(aria-label="Folder navigation")
+    ul.list-group.list-group-horizontal-md.flex-wrap.m-0(breadcumb-folder)
+
+  //- Folders Card
+  .card.mb-3
+    .card-header.d-flex.align-items-center.justify-content-between.flex-wrap.gap-2
+      h5.card-title.mb-0
+        i.fa-solid.fa-folder-open.me-2.text-warning
+        | Folders
+      form#formCreateFolder.d-flex.gap-2.align-items-center(form-create-folder)
+        .input-group.input-group-sm(style="width:260px")
+          input#folderNameInput.form-control(
+            placeholder="New folder name"
+            type="text"
+            name="folderName"
+            aria-label="Folder name"
+          )
+          button.btn.btn-outline-primary(type="submit")
+            i.fa-solid.fa-folder-plus.me-1
+            | Create
+    .card-body
+      if !folderList || !folderList.length
+        .text-center.py-4.text-muted
+          i.fa-solid.fa-folder-open.fa-2x.mb-2.d-block.opacity-25
+          p.mb-0.small No folders yet. Create one above.
+      else
+        .row.g-2
+          each item in folderList
+            .col-6.col-sm-4.col-md-3.col-xl-2
+              .border.rounded.p-2.text-center.folder-card.position-relative(data-folder-path=item.name)
+                .position-absolute.top-0.end-0.me-1.mt-1.d-flex.gap-1(style="z-index:2")
+                  button.btn.btn-sm.btn-link.text-secondary.p-0.rename-folder-btn.border-0(
+                    button-rename-folder
+                    data-folder-name=item.name
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalRenamefolder"
+                    title="Rename folder"
+                    type="button"
+                    style="line-height:1"
+                  )
+                    i.fa-solid.fa-pen.fa-xs
+                  button.btn.btn-sm.btn-link.text-secondary.p-0.border-0(
+                    button-cut-folder
+                    data-folder-name=item.name
+                    title="Cut to move"
+                    type="button"
+                    style="line-height:1"
+                  )
+                    i.fa-solid.fa-scissors.fa-xs
+                  button.btn.btn-sm.btn-link.text-danger.p-0.delete-folder-btn.border-0(
+                    button-delete-folder
+                    data-folder-name=item.name
+                    title="Delete folder"
+                    type="button"
+                    style="line-height:1"
+                  )
+                    i.fa-solid.fa-xmark.fa-xs
+                a.d-block.text-decoration-none.text-reset.stretched-link(
+                  href="javascript:;"
+                  button-to-folder
+                  data-folder-path=item.name
+                )
+                i.fa-solid.fa-folder.text-warning.mb-1(style="font-size:2rem")
+                p.small.text-truncate.mb-0.fw-medium(title=item.name) #{item.name}
+                p.text-muted.mb-0(style="font-size:10px") #{item.createdAtFormat}
+
+  //- Files Card
+  .card.mb-3
+    .card-header.d-flex.align-items-center.justify-content-between.flex-wrap.gap-2
+      h5.card-title.mb-0
+        i.fa-solid.fa-file.me-2.text-primary
+        | Files
+      .d-flex.align-items-center.gap-2
+        form.input-group.input-group-sm(form-search style="width:280px")
+          input.form-control(
+            placeholder="Search files..."
+            type="text"
+            name="keyword"
+          )
+          button.btn.btn-outline-secondary(type="submit")
+            i.fa-solid.fa-search
+        button.btn.btn-sm.btn-outline-secondary(button-copy-multi type="button")
+          i.fa-solid.fa-copy.me-1
+          | Copy Selected
+    .card-body.p-0
+      if !listFile || !listFile.length
+        .text-center.py-5.text-muted
+          i.fa-solid.fa-file-circle-xmark.fa-2x.mb-2.d-block.opacity-25
+          p.mb-0.small No files in this folder. Upload some below.
+      else
+        .table-responsive
+          table.table.table-hover.align-middle.mb-0
+            thead.table-light.border-bottom
+              tr
+                th.ps-3(scope="col" style="width:44px")
+                  input(type="checkbox" class="checkbox-all" aria-label="Select all files")
+                th(scope="col") Name
+                th.text-muted.fw-normal.small(scope="col" style="width:140px") Date
+                th.text-muted.fw-normal.small(scope="col" style="width:80px") Size
+                th.pe-3(scope="col" style="width:220px")
+            tbody
+              each item in listFile
+                tr.file-row
+                  td.ps-3
+                    input(type="checkbox" class="checkbox-input" value=`${item.folder}/${item.filename}` aria-label=`Select ${item.filename}`)
+                  td
+                    .d-flex.align-items-center.gap-2
+                      if (item.mimetype.includes("image"))
+                        img(
+                          src=`${domainCDN}${item.folder}/${item.filename}`
+                          class="rounded object-fit-cover flex-shrink-0"
+                          style="width:38px;height:38px"
+                          loading="lazy"
+                          alt=item.filename
+                        )
+                      else if (item.mimetype.includes("audio"))
+                        .d-flex.justify-content-center.align-items-center.rounded.bg-primary.bg-opacity-10.flex-shrink-0(style="width:38px;height:38px")
+                          i.fa-solid.fa-headphones.text-primary.fa-sm
+                      else if (item.mimetype.includes("video"))
+                        .d-flex.justify-content-center.align-items-center.rounded.bg-danger.bg-opacity-10.flex-shrink-0(style="width:38px;height:38px")
+                          i.fa-solid.fa-video.text-danger.fa-sm
+                      else if (item.mimetype.includes("application/pdf"))
+                        .d-flex.justify-content-center.align-items-center.rounded.bg-danger.bg-opacity-10.flex-shrink-0(style="width:38px;height:38px")
+                          i.fa-solid.fa-file-pdf.text-danger.fa-sm
+                      else
+                        .d-flex.justify-content-center.align-items-center.rounded.bg-secondary.bg-opacity-10.flex-shrink-0(style="width:38px;height:38px")
+                          i.fa-solid.fa-file.text-secondary.fa-sm
+                      span.text-truncate.small(style="max-width:220px" title=item.filename) #{item.filename}
+                  td.text-muted(style="font-size:12px") #{item.createdAtFormat}
+                  td.text-muted(style="font-size:12px") #{item.sizeFormat}
+                  td.pe-3
+                    .d-flex.justify-content-end.gap-1.row-actions
+                      a.action-btn.btn.btn-sm.btn-outline-success(
+                        href="javascript:;"
+                        button-select-file
+                        data-content=`${item.folder}/${item.filename}`
+                        title="Select"
+                        )
+                        i.fa-solid.fa-check
+                      a.action-btn.btn.btn-sm.btn-outline-secondary(
+                        href="javascript:;"
+                        button-copy
+                        data-content=`${item.folder}/${item.filename}`
+                        title="Copy link"
+                        )
+                        i.fa-solid.fa-copy
+                      a.action-btn.btn.btn-sm.btn-outline-secondary(
+                        href="javascript:;"
+                        button-cut-file
+                        data-file-folder=item.folder
+                        data-file-name=item.filename
+                        title="Cut to move"
+                        )
+                        i.fa-solid.fa-scissors
+                      a.action-btn.btn.btn-sm.btn-outline-secondary(
+                        href="javascript:;"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalPreviewFile"
+                        button-preview-file
+                        data-file=`${domainCDN}${item.folder}/${item.filename}`
+                        data-mimetype=item.mimetype
+                        title="Preview"
+                        )
+                        i.fa-solid.fa-eye
+                      a.action-btn.btn.btn-sm.btn-outline-secondary(
+                        href=`${domainCDN}${item.folder}/${item.filename}?type=download`
+                        title="Download"
+                        )
+                        i.fa-solid.fa-download
+                      a.action-btn.btn.btn-sm.btn-outline-secondary(
+                        href="javascript:;"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalChangeFileName"
+                        button-change-file-name
+                        data-file-folder=item.folder
+                        data-file-name=item.filename
+                        title="Rename"
+                        )
+                        i.fa-solid.fa-pen
+                      a.action-btn.btn.btn-sm.btn-outline-danger(
+                        href="javascript:;"
+                        button-delete-file
+                        data-file-folder=item.folder
+                        data-file-name=item.filename
+                        title="Delete"
+                        )
+                        i.fa-solid.fa-trash
+        .p-3.border-top
+          +pagination()
+
+  //- Upload Card
+  .card
+    .card-header
+      h5.card-title.mb-0
+        i.fa-solid.fa-cloud-arrow-up.me-2.text-primary
+        | Upload Files
+    .card-body
+      div(id="uppy-upload")
+
+  //- Modal: Preview File
+  #modalPreviewFile.modal.fade(aria-hidden="true" tabindex="-1")
+    .modal-dialog.modal-lg.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title
+            i.fa-solid.fa-eye.me-2.opacity-50
+            | Preview
+          button.btn-close(aria-label="Close" data-bs-dismiss="modal" type="button")
+        .modal-body
+          .inner-preview
+
+  //- Modal: Rename File
+  #modalChangeFileName.modal.fade(aria-hidden="true" tabindex="-1")
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title
+            i.fa-solid.fa-pen.me-2.opacity-50
+            | Rename File
+          button.btn-close(aria-label="Close" data-bs-dismiss="modal" type="button")
+        .modal-body
+          form#formChangeFileName(action="")
+            .mb-3.d-none
+              input(type="text" class="form-control" name="fileFolder")
+            .mb-3.d-none
+              input(type="text" class="form-control" name="oldFileName")
+            .mb-3
+              label.form-label.fw-medium(for="newFileName") New file name
+              input#newFileName.form-control(
+                type="text"
+                name="newFileName"
+                placeholder="e.g. my-photo.jpg"
+                autocomplete="off"
+              )
+            .d-flex.gap-2.justify-content-end.pt-1
+              button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancel
+              button.btn.btn-primary(type="submit")
+                i.fa-solid.fa-check.me-1
+                | Save
+
+  //- Modal: Rename Folder
+  #modalRenamefolder.modal.fade(aria-hidden="true" tabindex="-1")
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title
+            i.fa-solid.fa-folder.me-2.text-warning.opacity-75
+            | Rename Folder
+          button.btn-close(aria-label="Close" data-bs-dismiss="modal" type="button")
+        .modal-body
+          form#formRenameFolder(form-rename-folder)
+            .mb-3.d-none
+              input(type="text" class="form-control" name="oldFolderName")
+            .mb-3
+              label.form-label.fw-medium(for="newFolderName") New folder name
+              input#newFolderName.form-control(
+                type="text"
+                name="newFolderName"
+                placeholder="e.g. products-2025"
+                autocomplete="off"
+              )
+            .d-flex.gap-2.justify-content-end.pt-1
+              button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancel
+              button.btn.btn-primary(type="submit")
+                i.fa-solid.fa-check.me-1
+                | Rename

@@ -1,0 +1,105 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="productCreateForm")
+        .row
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="name") Product Name *
+              input.form-control(id="name" type="text" name="name")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="slug") Slug *
+              .input-group
+                span.btn.btn-outline-info(
+                  btn-generate-slug="Product" 
+                  from="name"
+                  to="slug"
+                ) Automatic
+                input.form-control(id="slug" type="text" name="slug")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="position") Position
+              input.form-control(id="position" type="number" name="position")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="status") Status
+              select.form-select(id="status" name="status")
+                option(value="draft") Draft
+                option(value="active") Active
+                option(value="inactive") Inactive
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label Category
+              div(class="checkbox-list" checkbox-list="category")
+                +checkbox-list(categoryList)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="priceOld") Old Price
+              input.form-control(id="priceOld" type="number" name="priceOld")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="priceNew") New Price
+              input.form-control(id="priceNew" type="number" name="priceNew")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="stock") Stock
+              input.form-control(id="stock" type="number" name="stock")
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Attributes List
+              div(class="checkbox-list" checkbox-list="attributes")
+                +checkbox-list(attributeList)
+              span.btn.btn-outline-info.mt-1(
+                button-render-variant="attributes"
+              ) Create Variant
+              script.
+                const attributeList = !{JSON.stringify(attributeList)};
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Variants List
+              .table-responsive-sm
+                table.table.mb-0(variant-table)
+                  thead.table-light
+                    tr
+                  tbody
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Images List
+              div(class="form-multi-file")
+                .input-group
+                  span.btn.btn-outline-info(
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalFileManager"
+                  ) Select File
+                  span.btn.btn-outline-info(
+                    button-paste
+                  ) Paste File
+                .inner-list-image(multi-file="images")
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="description") Short Description
+              textarea(id="description" name="description" textarea-mce)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="content") Detailed Content
+              textarea(id="content" name="content" textarea-mce)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Tags
+              select(select-tag name="tags")
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Frequently Bought Together
+              select(select-tag name="boughtTogether" multiple taggable="false")
+                each item in productList
+                  option(value=item.id) #{item.name}
+        button.btn.btn-primary(type="submit") Create New
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/product/list`) Cancel

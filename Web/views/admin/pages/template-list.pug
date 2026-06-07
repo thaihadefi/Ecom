@@ -1,0 +1,61 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            .col-auto
+              a.btn.btn-primary(
+                href=`/${pathAdmin}/template/create`
+                )
+                i.fa-solid.fa-plus.me-1
+                | Create Template
+        .card-body.pt-0
+          .row
+            .col-lg-6
+              +form-search()
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th(scope="col") No.
+                  th(scope="col") Template Name
+                  th(scope="col") Slug
+                  th(scope="col") Status
+                  th.text-end(scope="col") Action
+              tbody
+                if !recordList || !recordList.length
+                  +empty-state()
+                else
+                  each item, index in recordList
+                    tr
+                      td #{pagination.skip + index + 1}
+                      td #{item.name}
+                      td #{item.slug}
+                      td
+                        if (item.status == "active")
+                          span(class="badge bg-success") Active
+                        else if (item.status == "inactive")
+                          span(class="badge bg-danger") Inactive
+                      td.text-end
+                        a.tbl-action(
+                          href=`/${pathAdmin}/template/edit/${item.id}`
+                          title="Edit"
+                          aria-label="Edit"
+                        )
+                          i.las.la-pen.text-secondary.fs-20
+                        a.tbl-action.danger(
+                          href="javascript:;"
+                          button-api
+                          data-method="DELETE"
+                          data-api=`/${pathAdmin}/template/delete/${item.id}`
+                          title="Delete"
+                          aria-label="Delete"
+                        )
+                          i.las.la-trash-alt.text-secondary.fs-20
+          +pagination()

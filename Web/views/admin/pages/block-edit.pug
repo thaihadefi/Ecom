@@ -1,0 +1,76 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="blockEditForm")
+        .row
+          .col-md-6.col-lg-6.d-none
+            .mb-3
+              label.form-label(for="id") Id
+              input.form-control(id="id" type="text" name="id" value=blockDetail.id)
+          .col-md-12
+            .mb-3
+              label.form-label(for="name") Block Name *
+              input.form-control(id="name" type="text" name="name" value=blockDetail.name)
+          .col-md-6
+            .mb-3
+              label.form-label(for="fileName") Interface File *
+              select.form-select(name="fileName" id="fileName")
+                option(value="") - Select Interface File -
+                each file in fileList
+                  option(
+                    value=file
+                    selected=(blockDetail.fileName == file)
+                    ) #{file}
+          .col-md-6
+            .mb-3
+              label.form-label(for="status") Status
+              select.form-select(id="status" name="status")
+                option(
+                  value="active"
+                  selected=(blockDetail.status == "active")
+                  ) Active
+                option(
+                  value="inactive"
+                  selected=(blockDetail.status == "inactive")
+                  ) Inactive
+          .col-md-12
+            .mb-3.p-3.bg-light.rounded.border
+              +form-group-file(
+                "File Upload Helper (Select/Upload image/video here to auto-copy its path)",
+                "",
+                "helperFile",
+                "",
+                "Select a file to automatically copy its path..."
+              )
+          .col-md-12
+            .mb-3
+              label.form-label(for="data") Block Data (JSON format)
+              div(json-editor style="height: 500px" data=blockDetail.data)
+        button.btn.btn-primary(type="submit") Update
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/block/list`) Cancel
+
+  script.
+    document.addEventListener("DOMContentLoaded", () => {
+      const helperFile = document.getElementById("helperFile");
+      if (helperFile) {
+        helperFile.addEventListener("input", () => {
+          const value = helperFile.value;
+          if (value) {
+            navigator.clipboard.writeText(value).then(() => {
+              if (window.notyf) {
+                window.notyf.success("Copied path to clipboard! Paste it into the JSON editor below.");
+              }
+            }).catch(err => {
+              console.error("Failed to copy path: ", err);
+            });
+          }
+        });
+      }
+    });

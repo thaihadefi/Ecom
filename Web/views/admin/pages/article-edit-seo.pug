@@ -1,0 +1,15 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}: #{articleDetail.name}
+    .card-body.pt-0
+      form(id="articleEditSeoForm")
+        +seo-fields(articleDetail)
+        button.btn.btn-primary(type="submit") Update
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/list`) Cancel
+

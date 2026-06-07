@@ -1,0 +1,74 @@
+extends ../layouts/default.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="couponCreateForm")
+        .row
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="code") Coupon Code *
+              input.form-control(id="code" type="text" name="code" placeholder="e.g. SUMMER2026")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="name") Coupon Name *
+              input.form-control(id="name" type="text" name="name" placeholder="e.g. Summer Sale 2026")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="typeDiscount") Discount Type
+              select.form-select(id="typeDiscount" name="typeDiscount")
+                option(value="percentage") Percentage
+                option(value="fixed") Fixed Amount
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="value") Discount Value
+              input.form-control(id="value" type="number" name="value")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="minOrderValue") Minimum Order Value
+              input.form-control(id="minOrderValue" type="number" name="minOrderValue")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="maxDiscountValue") Maximum Discount Value (for %)
+              input.form-control(id="maxDiscountValue" type="number" name="maxDiscountValue")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="usageLimit") Usage Limit
+              input.form-control(id="usageLimit" type="number" name="usageLimit")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="typeDisplay") Display Type
+              select.form-select(id="typeDisplay" name="typeDisplay")
+                option(value="public") Public
+                option(value="private") Private
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="status") Status
+              select.form-select(id="status" name="status")
+                option(value="active") Active
+                option(value="inactive") Inactive
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label Validity Period
+              .input-group(date-range)
+                input.form-control(
+                  name="startDate" 
+                  placeholder="Start Date" 
+                  type="text"
+                  )
+                span.input-group-text to
+                input.form-control.rounded-end(
+                  name="endDate"  
+                  placeholder="End Date" 
+                  type="text"
+                  )
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="description") Description
+              textarea(id="description" name="description" textarea-mce)
+        button.btn.btn-primary(type="submit") Create New
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/coupon/list`) Cancel

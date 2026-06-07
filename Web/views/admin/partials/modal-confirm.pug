@@ -1,0 +1,19 @@
+#modalConfirm.modal.fade(
+  aria-hidden="true"
+  aria-labelledby="modalConfirmTitle"
+  role="dialog"
+  tabindex="-1"
+)
+  .modal-dialog.modal-dialog-centered.modal-sm
+    .modal-content
+      .modal-header.border-0.pb-0
+        button.btn-close(aria-label="Close" data-bs-dismiss="modal" type="button")
+      .modal-body.text-center.px-4.pt-2.pb-3
+        .d-flex.justify-content-center.mb-3
+          .rounded-circle.bg-danger-subtle.d-flex.align-items-center.justify-content-center(style="width:56px;height:56px")
+            i.las.la-trash-alt.text-danger.fs-24(aria-hidden="true")
+        h5.fw-semibold.mb-1(id="modalConfirmTitle") Delete
+        p.text-muted.small.mb-0(id="modalConfirmMessage") This action cannot be undone.
+      .modal-footer.border-0.justify-content-center.gap-2.pt-0
+        button.btn.btn-outline-secondary.px-4(data-bs-dismiss="modal") Cancel
+        button.btn.btn-danger.px-4(id="modalConfirmOk") Delete

@@ -1,0 +1,90 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            // end col
+            .col-auto
+              button.btn.btn-danger.me-1(
+                button-soft-delete-many
+                data-api=`/${pathAdmin}/product/category/delete-many`
+                style="display:none"
+              )
+                i.las.la-trash-alt.me-1
+                | Move to Trash
+              a.btn.btn-outline-danger.me-1(href=`/${pathAdmin}/product/category/trash`)
+                i.las.la-trash-alt.me-1
+                | Trash
+              a.btn.btn-primary(
+                href=`/${pathAdmin}/product/category/create`
+                )
+                i.fa-solid.fa-plus.me-1
+                | Create Category
+          // end row
+        // end card-header
+        .card-body.pt-0
+          .row
+            .col-lg-6
+              +form-search()
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th(scope="col")
+                    input.checkbox-all(type="checkbox")
+                  th(scope="col") No.
+                  th(scope="col") Avatar
+                  th(scope="col") Category Name
+                  th(scope="col") Parent Category
+                  th(scope="col") Status
+                  th(scope="col") Views
+                  th.text-end(scope="col") Action
+              tbody
+                if !recordList || !recordList.length
+                  +empty-state()
+                else
+                  each item, index in recordList
+                    tr
+                      td
+                        input.checkbox-input(type="checkbox" value=`${item.id}`)
+                      td #{pagination.skip + index + 1}
+                      td
+                        if(item.avatar)
+                          img(
+                            src=`${domainCDN}${item.avatar}`
+                            class="rounded thumb-md me-1 d-inline"
+                            alt=""
+                            loading="lazy"
+                          )
+                      td #{item.name}
+                      td #{item.parentName}
+                      td
+                        if (item.status == "active")
+                          span(class="badge bg-success") Active
+                        else if (item.status == "inactive")
+                          span(class="badge bg-danger") Inactive
+                      td #{item.view}
+                      td.text-end
+                        a.tbl-action(
+                          href=`/${pathAdmin}/product/category/edit/${item.id}`
+                          title="Edit category"
+                          aria-label="Edit category"
+                        )
+                          i.las.la-pen.text-secondary.fs-20
+                        a.tbl-action.danger(
+                          href="javascript:;"
+                          button-api
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/product/category/delete/${item.id}`
+                          title="Move to trash"
+                          aria-label="Move to trash"
+                        )
+                          i.las.la-trash-alt.text-secondary.fs-20
+          +pagination()
+    // end col

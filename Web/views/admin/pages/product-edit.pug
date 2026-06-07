@@ -1,0 +1,147 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="productEditForm")
+        .row
+          .col-md-6.col-lg-6.d-none
+            .mb-3
+              label.form-label(for="id") Id *
+              input.form-control(id="id" type="text" name="id" value=productDetail.id)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="name") Product Name *
+              input.form-control(id="name" type="text" name="name" value=productDetail.name)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="slug") Slug *
+              .input-group
+                span.btn.btn-outline-info(
+                  btn-generate-slug="Product" 
+                  from="name"
+                  to="slug"
+                ) Automatic
+                input.form-control(id="slug" type="text" name="slug" value=productDetail.slug)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="position") Position
+              input.form-control(id="position" type="number" name="position" value=productDetail.position)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="status") Status
+              select.form-select(id="status" name="status")
+                option(
+                  value="draft"
+                  selected=(productDetail.status == "draft")
+                  ) Draft
+                option(
+                  value="active"
+                  selected=(productDetail.status == "active")
+                  ) Active
+                option(
+                  value="inactive"
+                  selected=(productDetail.status == "inactive")
+                  ) Inactive
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label Category
+              div(class="checkbox-list" checkbox-list="category")
+                +checkbox-list(categoryList, 0, productDetail.category)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="priceOld") Old Price
+              input.form-control(id="priceOld" type="number" name="priceOld" value=productDetail.priceOld)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="priceNew") New Price
+              input.form-control(id="priceNew" type="number" name="priceNew" value=productDetail.priceNew)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="stock") Stock
+              input.form-control(id="stock" type="number" name="stock" value=productDetail.stock)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Attributes List
+              div(class="checkbox-list" checkbox-list="attributes")
+                +checkbox-list(attributeList, 0, productDetail.attributes)
+              span.btn.btn-outline-info.mt-1(
+                button-render-variant="attributes"
+              ) Create Variant
+              script.
+                const attributeList = !{JSON.stringify(attributeList)};
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Variants List
+              .table-responsive-sm
+                table.table.mb-0(variant-table)
+                  thead.table-light
+                    tr
+                      th(scope="col") Status
+                      each name in attributeNameList
+                        th(scope="col") #{name}
+                      th(scope="col") Old Price
+                      th(scope="col") New Price
+                      th(scope="col") Stock
+                  tbody
+                    each item in productDetail.variants
+                      tr
+                        td
+                          .form-check.form-switch.form-switch-success
+                            input.form-check-input(type="checkbox" checked=item.status)
+                          input(class="d-none" attribute-value value=item.attributeValue)
+                        each attr in item.attributeValue
+                          td #{attr.label}
+                        td
+                          input.form-control(type="number" value=item.priceOld price-old)
+                        td
+                          input.form-control(type="number" value=item.priceNew price-new)
+                        td
+                          input.form-control(type="number" value=item.stock stock)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Images List
+              div(class="form-multi-file")
+                .input-group
+                  span.btn.btn-outline-info(
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalFileManager"
+                  ) Select File
+                  span.btn.btn-outline-info(
+                    button-paste
+                  ) Paste File
+                .inner-list-image(multi-file="images")
+                  each image in productDetail.images
+                    .inner-image
+                      img(src=`${domainCDN}${image}`, alt="" loading="lazy" src-relative=image)
+                      span.inner-remove x
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="description") Short Description
+              textarea(id="description" name="description" textarea-mce) #{productDetail.description}
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="content") Detailed Content
+              textarea(id="content" name="content" textarea-mce) #{productDetail.content}
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Tags
+              select(select-tag name="tags" multiple)
+                each tag in productDetail.tags
+                  option(value=tag selected) #{tag}
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label Frequently Bought Together
+              select(select-tag name="boughtTogether" multiple taggable="false")
+                each item in productList
+                  option(
+                    value=item.id
+                    selected=(productDetail.boughtTogether.includes(item.id))
+                    ) #{item.name}
+        button.btn.btn-primary(type="submit") Update
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/product/list`) Cancel

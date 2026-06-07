@@ -1,0 +1,37 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          +trash-header(`/${pathAdmin}/product/attribute`)
+        .card-body.pt-0
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th(scope="col") No.
+                  th(scope="col") Attribute Name
+                  th(scope="col") Type
+                  th(scope="col") Deleted At
+                  th.text-end(scope="col") Action
+              tbody
+                if !recordList || !recordList.length
+                  +empty-state("Trash is empty")
+                else
+                  each item, index in recordList
+                    tr
+                      td #{index + 1}
+                      td #{item.name}
+                      td #{item.type}
+                      td
+                        small #{formatDateTime(item.deletedAt)}
+                      td.text-end
+                        +trash-action-buttons(
+                          `/${pathAdmin}/product/attribute/undo/${item.id}`,
+                          `/${pathAdmin}/product/attribute/destroy/${item.id}`
+                        )
+    // end col
+

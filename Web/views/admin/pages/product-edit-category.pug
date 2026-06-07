@@ -1,0 +1,62 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="productEditCategoryForm")
+        .row
+          .col-md-6.col-lg-6.d-none
+            .mb-3
+              label.form-label(for="id") Id *
+              input.form-control(id="id" type="text" name="id" value=categoryDetail.id)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="name") Category Name *
+              input.form-control(id="name" type="text" name="name" value=categoryDetail.name)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="slug") Slug *
+              .input-group
+                span.btn.btn-outline-info(
+                  btn-generate-slug="CategoryProduct"
+                  from="name"
+                  to="slug"
+                ) Automatic
+                input.form-control(id="slug" type="text" name="slug" value=categoryDetail.slug)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="parent") Parent Category
+              select.form-select(id="parent" name="parent")
+                option(value="") -- Select Category --
+                +options(categoryList, 0, categoryDetail.parent)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="status") Status
+              select.form-select(id="status" name="status")
+                option(
+                  value="active"
+                  selected=(categoryDetail.status == "active" ? true : false)
+                  ) Active
+                option(
+                  value="inactive"
+                  selected=(categoryDetail.status == "inactive" ? true : false)
+                  ) Inactive
+          .col-md-6.col-lg-6
+            .mb-3
+              +form-group-file(
+                "Avatar", 
+                "avatar", 
+                "avatar",
+                categoryDetail.avatar
+                )
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="description") Description
+              textarea.form-control(id="description" name="description" textarea-mce) #{categoryDetail.description}
+        button.btn.btn-primary(type="submit") Update
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/product/category`) Cancel

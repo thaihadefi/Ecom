@@ -1,0 +1,32 @@
+.chat-box-left
+  .chat-body-left.px-3.py-2
+    .row
+      .col
+        each item in chatRoomList
+          .p-2.border-dashed.border-theme-color.rounded.mb-2(class=`${chatRoomDetail && item.id === chatRoomDetail.id ? 'bg-light' : ''}` user-id=item.userId)
+            a(href=`/${pathAdmin}/chat/detail/${item.id}`)
+              .d-flex.align-items-start
+                .position-relative
+                  - const _p = (item.infoUser.fullName || '').trim().split(/\s+/)
+                  - const _i = ((_p[0]||'')[0]||'').toUpperCase() + ((_p.length>1?_p[_p.length-1]:_p[0]||'')[_p.length>1?0:1]||'').toUpperCase()
+                  if item.infoUser.avatar && !item.infoUser.avatar.startsWith('http')
+                    img.thumb-lg.rounded-circle(
+                      alt=item.infoUser.fullName
+                      src=`${domainCDN}/${item.infoUser.avatar}`
+                      onerror=`this.style.display='none';this.nextElementSibling.style.display='flex'`
+                    )
+                    span.avatar-initials.thumb-lg.rounded-circle(style="display:none") #{_i}
+                  else
+                    span.avatar-initials.thumb-lg.rounded-circle #{_i}
+                  span.position-absolute.bottom-0.end-0.d-none(user-status)
+                    i.fa-solid.fa-circle.text-success.fs-10.border-2.border-theme-color
+                .flex-grow-1.ms-2.text-truncate.align-self-center
+                  h6.my-0.fw-medium.text-dark.fs-14
+                    | #{item.infoUser.fullName}
+                    if (item.lastMessage)
+                      small.float-end.text-muted.fs-11 #{item.lastMessage.createdAtFormat}
+                  span.user-lastseen(data-user-id=item.userId)
+                  if (item.lastMessage)
+                    div.text-muted.mb-0 #{item.lastMessage.content}
+                      if (item.unreadCount.admin > 0)
+                        span.badge.float-end.rounded.text-white.bg-success #{item.unreadCount.admin}

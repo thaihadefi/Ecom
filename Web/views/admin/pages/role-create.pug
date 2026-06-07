@@ -1,0 +1,33 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="roleCreateForm")
+        .row
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="name") Role Name *
+              input.form-control(id="name" type="text" name="name")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="description") Short Description
+              input.form-control(id="description" type="text" name="description")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label Permissions
+              div(class="checkbox-list" checkbox-list="permissions")
+                +checkbox-list(permissionList)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="status") Status
+              select.form-select(id="status" name="status")
+                option(value="active") Active
+                option(value="inactive") Inactive
+        button.btn.btn-primary(type="submit") Create New
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/role/list`) Cancel

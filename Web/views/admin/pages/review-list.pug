@@ -1,0 +1,154 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            .col-auto
+              button.btn.btn-danger.me-1(
+                button-delete-many
+                data-api=`/${pathAdmin}/review/destroy-many`
+                style="display:none"
+              )
+                i.fa-solid.fa-trash.me-1
+                | Delete Permanently
+        .card-body.pt-0
+          ul.nav.nav-tabs.mb-3
+            li.nav-item
+              a.nav-link(href=`/${pathAdmin}/review/list` class=`${filterTab === 'all' ? 'active' : ''}`) All
+            li.nav-item
+              a.nav-link(href=`/${pathAdmin}/review/list?filter=reported` class=`${filterTab === 'reported' ? 'active' : ''}`)
+                | Reported
+                if reportedCount > 0
+                  span.badge.bg-danger.ms-1 #{reportedCount}
+            li.nav-item
+              a.nav-link(href=`/${pathAdmin}/review/list?filter=hidden` class=`${filterTab === 'hidden' ? 'active' : ''}`)
+                | Hidden
+                if hiddenCount > 0
+                  span.badge.bg-secondary.ms-1 #{hiddenCount}
+          .row
+            .col-lg-6
+              +form-search()
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th(scope="col")
+                    input.form-check-input.checkbox-all(type="checkbox")
+                  th(scope="col") No.
+                  th(scope="col") User
+                  th(scope="col") Product
+                  th(scope="col" style="width: 240px;") Review
+                  th.text-center(scope="col") Status
+                  th(scope="col") Date
+                  th.text-end(scope="col") Action
+              tbody
+                if !recordList || !recordList.length
+                  +empty-state()
+                else
+                  each item, index in recordList
+                    tr(class=`${item.reportCount > 0 ? 'table-warning' : ''}`)
+                      td
+                        input.form-check-input.checkbox-input(type="checkbox" value=item.id)
+                      td #{pagination.skip + index + 1}
+                      td
+                        div(class="d-flex align-items-center gap-2")
+                          if (item.user && item.user.avatar && !item.user.avatar.startsWith('http'))
+                            img(
+                              src=`${domainCDN}/${item.user.avatar}`
+                              class="rounded-circle thumb-md flex-shrink-0"
+                              alt=""
+                              loading="lazy"
+                            )
+                          div
+                            if (item.user)
+                              div.fw-medium.fs-13 #{item.user.fullName}
+                              div.text-muted.fs-11 #{item.user.email}
+                            else
+                              div.text-muted (Deleted user)
+                      td
+                        div(class="d-flex align-items-center gap-2")
+                          if (item.product && item.product.images && item.product.images.length > 0)
+                            img(
+                              src=`${domainCDN}${item.product.images[0]}`
+                              class="rounded thumb-md flex-shrink-0"
+                              alt=""
+                              loading="lazy"
+                            )
+                          if item.product
+                            div.fs-13 #{item.product.name}
+                      td
+                        div.d-flex.align-items-center.gap-1.mb-1
+                          each i in [1,2,3,4,5]
+                            i(class=`fa-star fs-12 ${i <= item.rating ? 'fa-solid text-warning' : 'fa-regular text-muted'}`)
+                          span.ms-1.fw-medium.fs-13 #{item.rating}/5
+                        if item.comment
+                          p.text-muted.mb-1.fs-13(style="max-width:220px; white-space:normal; word-break:break-word;") #{item.comment}
+                        if item.images && item.images.length > 0
+                          div.d-flex.flex-wrap.gap-1.mt-1
+                            each img in item.images
+                              img(
+                                src=`${domainCDN}${img}`
+                                class="rounded"
+                                style="width:40px;height:40px;object-fit:cover;"
+                              
+                                alt=""
+                                loading="lazy"
+                              )
+                        if item.reportCount > 0
+                          div.mt-1
+                            span.badge.bg-danger.fs-11
+                              i.fa-solid.fa-flag.me-1
+                              | #{item.reportCount} report#{item.reportCount > 1 ? 's' : ''}
+                      td.text-center
+                        if (item.status == "rejected")
+                          span.badge.bg-warning.text-dark Hidden
+                        else
+                          span.badge.bg-success Visible
+                      td.text-nowrap.fs-12 #{item.createdAt ? item.createdAt.toLocaleString("vi-VN") : ''}
+                      td.text-end.text-nowrap
+                        if item.reportCount > 0
+                          a.tbl-action(
+                            href="javascript:;"
+                            button-api
+                            data-method="PATCH"
+                            data-api=`/${pathAdmin}/review/clear-reports/${item.id}`
+                            title="Clear all reports"
+                            aria-label="Clear all reports"
+                          )
+                            i.las.la-flag-checkered.text-secondary.fs-20
+                        if (item.status != "rejected")
+                          a.tbl-action.warning(
+                            href="javascript:;"
+                            button-api
+                            data-method="PATCH"
+                            data-api=`/${pathAdmin}/review/change-status/${item.id}/rejected`
+                            title="Hide"
+                            aria-label="Hide"
+                          )
+                            i.las.la-eye-slash.text-secondary.fs-20
+                        else
+                          a.tbl-action(
+                            href="javascript:;"
+                            button-api
+                            data-method="PATCH"
+                            data-api=`/${pathAdmin}/review/change-status/${item.id}/approved`
+                            title="Unhide"
+                            aria-label="Unhide"
+                          )
+                            i.las.la-eye.text-secondary.fs-20
+                        a.tbl-action.danger(
+                          href="javascript:;"
+                          button-api
+                          data-method="DELETE"
+                          data-api=`/${pathAdmin}/review/delete/${item.id}`
+                          title="Delete"
+                          aria-label="Delete"
+                        )
+                          i.las.la-trash-alt.text-secondary.fs-20
+          +pagination()

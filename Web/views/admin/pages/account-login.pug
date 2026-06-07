@@ -1,0 +1,64 @@
+extends ../layouts/blank.pug
+
+block main
+  .container-xxl
+    .row.vh-100.d-flex.justify-content-center
+      .col-12.align-self-center
+        .card-body
+          .row
+            .col-lg-4.mx-auto
+              .card
+                .card-body.p-0.bg-black.auth-header-box.rounded-top
+                  .text-center.p-3
+                    a.logo.logo-admin(href="#")
+                      img.auth-logo(
+                        alt="Logo"
+                        height="50"
+                        src=`${domainCDN + settingGeneral.logo}`
+                        )
+                    h4.mt-3.mb-1.fw-semibold.text-white.fs-18 #{pageTitle}
+                    p.text-muted.fw-medium.mb-0 Login to continue to the administration page.
+                .card-body.pt-0
+                  form.my-4(id="accountLoginForm")
+                    .form-group.mb-2
+                      label.form-label(for="email") Email
+                      input#email.form-control(
+                        placeholder="Enter email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        )
+                    // end form-group
+                    .form-group
+                      label.form-label(for="password") Password
+                      .input-group
+                        input#password.form-control(
+                          placeholder="Enter password"
+                          name="password"
+                          type="password"
+                          autocomplete="current-password"
+                          )
+                        button.btn.btn-outline-secondary.password-toggle(type="button" aria-label="Show or hide password")
+                          i.far.fa-eye(aria-hidden="true")
+                    // end form-group
+                    .form-group.row.mt-3
+                      .col-sm-6
+                        .form-check.form-switch.form-switch-success
+                          input#rememberPassword.form-check-input(type="checkbox" name="rememberPassword")
+                          label.form-check-label(for="rememberPassword") Remember password
+                      // end col
+                      .col-sm-6.text-end
+                        a.text-muted.font-13(href="#")
+                          i.dripicons-lock
+                          | Forgot password?
+                      // end col
+                    // end form-group
+                    .form-group.mb-0.row
+                      .col-12
+                        .d-grid.mt-3
+                          button.btn.btn-primary
+                            | Login
+                            i.fas.fa-sign-in-alt.ms-1(aria-hidden="true")
+                      // end col
+                    // end form-group
+                  // end form

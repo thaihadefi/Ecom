@@ -1,0 +1,98 @@
+extends ../layouts/default.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="couponEditForm")
+        .row
+          .col-md-6.col-lg-6.d-none
+              .mb-3
+                label.form-label(for="id") Id
+                input.form-control(id="id" type="text" name="id" value=couponDetail.id)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="code") Coupon Code *
+              input.form-control(id="code" type="text" name="code" placeholder="e.g. SUMMER2026" value=couponDetail.code)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="name") Coupon Name *
+              input.form-control(id="name" type="text" name="name" placeholder="e.g. Summer Sale 2026" value=couponDetail.name)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="typeDiscount") Discount Type
+              select.form-select(id="typeDiscount" name="typeDiscount")
+                option(
+                  value="percentage"
+                  selected=(couponDetail.typeDiscount == "percentage")
+                ) Percentage
+                option(
+                  value="fixed"
+                  selected=(couponDetail.typeDiscount == "fixed")
+                ) Fixed Amount
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="value") Discount Value
+              input.form-control(id="value" type="number" name="value" value=couponDetail.value)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="minOrderValue") Minimum Order Value
+              input.form-control(id="minOrderValue" type="number" name="minOrderValue" value=couponDetail.minOrderValue)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="maxDiscountValue") Maximum Discount Value (for %)
+              input.form-control(id="maxDiscountValue" type="number" name="maxDiscountValue" value=couponDetail.maxDiscountValue)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="usageLimit") Usage Limit
+              input.form-control(id="usageLimit" type="number" name="usageLimit" value=couponDetail.usageLimit)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="typeDisplay") Display Type
+              select.form-select(id="typeDisplay" name="typeDisplay")
+                option(
+                  value="public"
+                  selected=(couponDetail.typeDisplay == "fixed")
+                ) Public
+                option(
+                  value="private"
+                  selected=(couponDetail.typeDisplay == "fixed")
+                ) Private
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="status") Status
+              select.form-select(id="status" name="status")
+                option(
+                  value="active"
+                  selected=(couponDetail.status == "active")
+                ) Active
+                option(
+                  value="inactive"
+                  selected=(couponDetail.status == "inactive")
+                ) Inactive
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label Validity Period
+              .input-group(date-range)
+                input.form-control(
+                  name="startDate"
+                  placeholder="Start Date" 
+                  type="text"
+                  value=couponDetail.startDateFormat
+                  )
+                span.input-group-text to
+                input.form-control.rounded-end(
+                  name="endDate"
+                  placeholder="End Date" 
+                  type="text"
+                  value=couponDetail.endDateFormat
+                  )
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="description") Description
+              textarea(id="description" name="description" textarea-mce) #{couponDetail.description}
+        button.btn.btn-primary(type="submit") Update
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/coupon/list`) Cancel

@@ -1,0 +1,271 @@
+//- ============================================
+//- Admin Mixins (centralized)
+//- ============================================
+
+//- --- box-option ---
+mixin box-option(name, options = [])
+  div(class="box-option" box-option=name)
+    div(class="option-list")
+      if (options.length > 0)
+        each option in options
+          div(class="option-item")
+            span(class="btn btn-secondary option-move")
+              <i class="fa-solid fa-up-down-left-right"></i>
+            input(type="text" class="form-control option-label" placeholder="Label" value=option.label)
+            input(type="text" class="form-control option-value" placeholder="Value" value=option.value)
+            span(class="btn btn-danger option-remove") Delete
+      else
+        div(class="option-item")
+          span(class="btn btn-secondary option-move")
+            <i class="fa-solid fa-up-down-left-right"></i>
+          input(type="text" class="form-control option-label" placeholder="Label")
+          input(type="text" class="form-control option-value" placeholder="Value")
+          span(class="btn btn-danger option-remove") Delete
+    span(class="btn btn-outline-info mt-2 option-create") Add Option
+
+//- --- checkbox ---
+mixin checkbox-list(list = [], level = 0, listChecked = [])
+  each item in list
+    - const marginLeft = `${level * 20}px`;
+    div(class="checkbox-item" style=`margin-left: ${marginLeft}`)
+      input(
+        type="checkbox" 
+        id=`checkbox-${item.id}`
+        value=item.id
+        checked=(listChecked.includes(item.id))
+        )
+      label(for=`checkbox-${item.id}`) #{item.name}
+    if (item.children && item.children.length > 0)
+      +checkbox-list(item.children, level + 1, listChecked)
+
+//- --- form-group-file ---
+mixin form-group-file(label="", name="", id="", value="", placeholder="File path...")
+  div(form-group-file)
+    label.form-label(for=id) #{label}
+    .input-group
+      span.btn.btn-outline-info(
+        data-bs-toggle="modal" 
+        data-bs-target="#modalFileManager"
+        ) Select File
+      input.form-control(id=id type="text" name=name value=value placeholder=placeholder input-file)
+    .preview-file(preview-file)
+      img
+
+//- --- form-search ---
+mixin form-search()
+  form.input-group.mb-3(form-search)
+    input.form-control(
+      placeholder="Keyword..."
+      type="text"
+      name="keyword"
+      )
+    button.btn.btn-secondary Search
+
+//- --- options ---
+mixin options(list, level = 0, parentId = "")
+  each item in list
+    - const prefix = "--".repeat(level);
+    option(
+      value=item.id
+      selected=(item.id == parentId ? true : false)
+      ) #{prefix} #{item.name}
+    if(item.children && item.children.length > 0)
+      +options(item.children, level + 1, parentId)
+
+//- --- pagination ---
+mixin empty-state(title = "No records found", sub = "")
+  tr
+    td.text-center(colspan="100")
+      .tbl-empty
+        i.fas.fa-inbox.tbl-empty-icon
+        p.tbl-empty-title #{title}
+        if sub
+          p.tbl-empty-sub #{sub}
+
+mixin pagination()
+  if pagination && pagination.totalPage > 1
+    .d-flex.justify-content-between.align-items-center.flex-wrap.gap-2.mt-3
+      small.text-muted
+        | Page #{pagination.currentPage} of #{pagination.totalPage} &nbsp;·&nbsp; #{pagination.totalRecord} records total
+      nav
+        ul.pagination.mb-0
+          //- Prev Button
+          li.page-item(class=pagination.currentPage <= 1 ? 'disabled' : '')
+            a.page-link(href="javascript:;" data-page=pagination.currentPage - 1 paginate) ‹ Prev
+
+          - var maxVisible = 5;
+          if pagination.totalPage <= maxVisible
+            - for (var i = 1; i <= pagination.totalPage; i++)
+              li.page-item(class=pagination.currentPage == i ? 'active' : '')
+                a.page-link(href="javascript:;" data-page=i paginate) #{i}
+          else
+            //- We have more than maxVisible pages
+            if pagination.currentPage <= 3
+              //- Near the start
+              - for (var i = 1; i <= 4; i++)
+                li.page-item(class=pagination.currentPage == i ? 'active' : '')
+                  a.page-link(href="javascript:;" data-page=i paginate) #{i}
+              li.page-item.disabled
+                span.page-link …
+              li.page-item
+                a.page-link(href="javascript:;" data-page=pagination.totalPage paginate) #{pagination.totalPage}
+            else if pagination.currentPage >= pagination.totalPage - 2
+              //- Near the end
+              li.page-item
+                a.page-link(href="javascript:;" data-page=1 paginate) 1
+              li.page-item.disabled
+                span.page-link …
+              - for (var i = pagination.totalPage - 3; i <= pagination.totalPage; i++)
+                li.page-item(class=pagination.currentPage == i ? 'active' : '')
+                  a.page-link(href="javascript:;" data-page=i paginate) #{i}
+            else
+              //- In the middle
+              li.page-item
+                a.page-link(href="javascript:;" data-page=1 paginate) 1
+              li.page-item.disabled
+                span.page-link …
+              - for (var i = pagination.currentPage - 1; i <= pagination.currentPage + 1; i++)
+                li.page-item(class=pagination.currentPage == i ? 'active' : '')
+                  a.page-link(href="javascript:;" data-page=i paginate) #{i}
+              li.page-item.disabled
+                span.page-link …
+              li.page-item
+                a.page-link(href="javascript:;" data-page=pagination.totalPage paginate) #{pagination.totalPage}
+
+          //- Next Button
+          li.page-item(class=pagination.currentPage >= pagination.totalPage ? 'disabled' : '')
+            a.page-link(href="javascript:;" data-page=pagination.currentPage + 1 paginate) Next ›
+
+//- --- seo ---
+mixin seo-fields(detail)
+  h5.mt-3.mb-2 Basic SEO
+  .row
+    .col-md-12.d-none
+      .mb-3
+        label.form-label(for="id") Id
+        input.form-control(id="id" type="text" name="id" value=detail.id)
+    .col-md-12
+      .mb-3
+        label.form-label(for="seoTitle") SEO Title
+        input.form-control(
+          id="seoTitle"
+          type="text"
+          name="seoTitle"
+          placeholder="Title shown on Google search results"
+          value=detail.seo && detail.seo.title
+        )
+    .col-md-12
+      .mb-3
+        label.form-label(for="seoDescription") SEO Description
+        textarea.form-control(
+          id="seoDescription"
+          name="seoDescription"
+          rows="3"
+          placeholder="Short description shown below title on Google"
+        ) #{detail.seo && detail.seo.description}
+    .col-md-12.col-lg-12
+      .mb-3
+        label.form-label SEO Keywords
+        select(select-tag name="seoKeywords" multiple)
+          each keyword in (detail.seo && detail.seo.keywords || [])
+            option(value=keyword selected) #{keyword}
+  h5.mb-2 Robots
+  .row
+    .col-md-12
+      .mb-3
+        input.form-check-input(
+          id="seoRobotsIndex"
+          type="checkbox"
+          name="seoRobotsIndex"
+          checked=detail.seo && detail.seo.robots && detail.seo.robots.index
+        )
+        label.form-check-label.ms-1(for="seoRobotsIndex")
+          | Allow index (If unchecked, item is hidden from Google)
+    .col-md-12
+      .mb-3
+        input.form-check-input(
+          id="seoRobotsFollow"
+          type="checkbox"
+          name="seoRobotsFollow"
+          checked=detail.seo && detail.seo.robots && detail.seo.robots.follow
+        )
+        label.form-check-label.ms-1(for="seoRobotsFollow")
+          | Allow follow link (If unchecked, Google will not follow links on page)
+  h5.mb-2 Open Graph
+  .row
+    .col-md-12
+      .mb-3
+        label.form-label(for="seoOgTitle") OG Title
+        input.form-control(
+          id="seoOgTitle"
+          type="text"
+          name="seoOgTitle"
+          placeholder="Title shown when sharing link on social media"
+          value=detail.seo && detail.seo.og && detail.seo.og.title
+        )
+    .col-md-12
+      .mb-3
+        +form-group-file(
+          "OG Image",
+          "seoOgImage",
+          "seoOgImage",
+          detail.seo && detail.seo.og && detail.seo.og.image || ""
+        )
+    .col-md-12
+      .mb-3
+        label.form-label(for="seoOgDescription") OG Description
+        textarea.form-control(
+          id="seoOgDescription"
+          name="seoOgDescription"
+          rows="3"
+          placeholder="Description when sharing link on social media"
+        ) #{detail.seo && detail.seo.og && detail.seo.og.description}
+
+//- --- trash ---
+mixin trash-header(listPath)
+  .row.align-items-center
+    .col
+      h4.card-title #{pageTitle}
+    .col-auto
+      a.btn.btn-info(href=listPath)
+        i.las.la-arrow-left.me-1
+        | Back to List
+
+mixin trash-buttons(apiPath)
+  .mb-3.d-flex.gap-2
+    button.btn.btn-success(
+      button-restore-many
+      data-api=apiPath
+      data-value="undo"
+      style="display:none"
+    )
+      i.las.la-undo.me-1
+      | Restore Selected
+    button.btn.btn-danger(
+      button-delete-many
+      data-api=apiPath
+      data-value="destroy"
+      style="display:none"
+    )
+      i.las.la-trash-alt.me-1
+      | Delete Permanently
+
+mixin trash-action-buttons(undoApi, destroyApi)
+  a.tbl-action(
+    href="javascript:;"
+    button-api
+    data-method="PATCH"
+    data-api=undoApi
+    title="Restore"
+    aria-label="Restore"
+  )
+    i.las.la-undo.text-secondary.fs-20
+  a.tbl-action.danger(
+    href="javascript:;"
+    button-api
+    data-method="DELETE"
+    data-api=destroyApi
+    title="Delete permanently"
+    aria-label="Delete permanently"
+  )
+    i.las.la-trash-alt.text-secondary.fs-20

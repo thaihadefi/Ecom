@@ -1,0 +1,107 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+            // end col
+            .col-auto
+              a.btn.btn-outline-danger.me-1(href=`/${pathAdmin}/coupon/trash`)
+                i.fa-solid.fa-trash.me-1
+                | Trash
+              button.btn.btn-danger.me-1(
+                button-soft-delete-many
+                data-api=`/${pathAdmin}/coupon/delete-many`
+                style="display:none"
+              )
+                i.fa-solid.fa-trash.me-1
+                | Move to Trash
+              a.btn.btn-primary(
+                href=`/${pathAdmin}/coupon/create`
+                )
+                i.fa-solid.fa-plus.me-1
+                | Create Coupon
+                // end col
+            // end col
+          // end row
+        // end card-header
+        .card-body.pt-0
+          .row
+            .col-lg-6
+              +form-search()
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th(scope="col")
+                    input.form-check-input.checkbox-all(type="checkbox")
+                  th(scope="col") No.
+                  th(scope="col") Coupon Code
+                  th(scope="col") Coupon Name
+                  th(scope="col") Discount Type
+                  th(scope="col") Value
+                  th(scope="col") Quantity
+                  th(scope="col") Used
+                  th(scope="col") Validity Period
+                  th(scope="col") Display Type
+                  th(scope="col") Status
+                  th.text-end(scope="col") Action
+              tbody
+                if !recordList || !recordList.length
+                  +empty-state()
+                else
+                  each item, index in recordList
+                    tr
+                      td
+                        input.form-check-input.checkbox-input(type="checkbox" value=item.id)
+                      td #{pagination.skip + index + 1}
+                      td #{item.code}
+                      td #{item.name}
+                      td
+                        if (item.typeDiscount == "percentage")
+                          | Percentage
+                        else if (item.typeDiscount == "fixed")
+                          | Fixed Amount
+                      td
+                        if (item.typeDiscount == "percentage")
+                          | #{item.value}%
+                        else if (item.typeDiscount == "fixed")
+                          | #{(item.value || 0).toLocaleString("vi-VN")} VND
+                      td #{item.usageLimit}
+                      td #{item.usedCount}
+                      td
+                        div From: #{item.startDateFormat}
+                        div To: #{item.endDateFormat}
+                      td
+                        if (item.typeDisplay == "public")
+                          | Public
+                        else if (item.typeDisplay == "private")
+                          | Private
+                      td
+                        if (item.status == "active")
+                          span(class="badge bg-success") Active
+                        else if (item.status == "inactive")
+                          span(class="badge bg-danger") Inactive
+                      td.text-end
+                        a.tbl-action(
+                          href=`/${pathAdmin}/coupon/edit/${item.id}`
+                          title="Edit"
+                          aria-label="Edit"
+                        )
+                          i.las.la-pen.text-secondary.fs-20
+                        a.tbl-action.danger(
+                          href="javascript:;"
+                          button-api
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/coupon/delete/${item.id}`
+                          title="Move to trash"
+                          aria-label="Move to trash"
+                        )
+                          i.las.la-trash-alt.text-secondary.fs-20
+          +pagination()
+    // end col

@@ -1,0 +1,178 @@
+extends ../layouts/default.pug
+
+block main
+  if (permissions.includes("dashboard"))
+    - const fmt = n => n.toLocaleString("vi-VN")
+    - const pct = v => (v >= 0 ? `+${v.toFixed(1)}` : v.toFixed(1)) + "%"
+    - const pctClass = v => v >= 0 ? "text-success" : "text-danger"
+
+    //- ── Revenue ────────────────────────────────────────────────────
+    .row
+      .col-12
+        .card
+          .card-header
+            h4.card-title.mb-0 Revenue
+          .card-body.pt-0
+            .row.g-3
+              .col-sm-6.col-lg-4
+                .card.shadow-none.border.h-100.mb-0
+                  .card-body.text-center
+                    p.text-muted.small.mb-1 Total Revenue
+                    .fs-18.fw-semibold #{fmt(totalRevenue)} VND
+              .col-sm-6.col-lg-4
+                .card.shadow-none.border.h-100.mb-0
+                  .card-body.text-center
+                    p.text-muted.small.mb-1 Today
+                    .fs-18.fw-semibold #{fmt(todayRevenue)} VND
+                    small(class=pctClass(todayPercent)) #{pct(todayPercent)} vs yesterday
+              .col-sm-6.col-lg-4
+                .card.shadow-none.border.h-100.mb-0
+                  .card-body.text-center
+                    p.text-muted.small.mb-1 This Month
+                    .fs-18.fw-semibold #{fmt(thisMonthRevenue)} VND
+                    small(class=pctClass(monthPercent)) #{pct(monthPercent)} vs last month
+
+    //- ── Orders ─────────────────────────────────────────────────────
+    .row.mt-3
+      .col-12
+        .card
+          .card-header.d-flex.align-items-center.justify-content-between
+            h4.card-title.mb-0 Orders
+            a(href="/admin/order/list").btn.btn-sm.btn-outline-secondary View All
+          .card-body
+            //- Summary KPI strip
+            .row.g-2.mb-3
+              .col-4
+                .dash-kpi.text-center.rounded.p-2.h-100.d-flex.flex-column.justify-content-center
+                  .text-muted.small Total
+                  .fs-5.fw-semibold #{fmt(totalOrders)}
+              .col-4
+                .dash-kpi.text-center.rounded.p-2.h-100.d-flex.flex-column.justify-content-center
+                  .text-muted.small Today
+                  .fs-5.fw-semibold #{fmt(todayOrders)}
+                  if todayOrderPercent != null
+                    small(class=pctClass(todayOrderPercent)) #{pct(todayOrderPercent)}
+              .col-4
+                .dash-kpi.text-center.rounded.p-2.h-100.d-flex.flex-column.justify-content-center
+                  .text-muted.small This Month
+                  .fs-5.fw-semibold #{fmt(thisMonthOrders)}
+                  if monthOrderPercent != null
+                    small(class=pctClass(monthOrderPercent)) #{pct(monthOrderPercent)}
+
+            //- Status table
+            .table-responsive
+              table.table.table-hover.align-middle.mb-0.dash-status-table
+                thead.table-light
+                  tr
+                    th(scope="col") Status
+                    th.text-end(scope="col") Total
+                    th.text-end(scope="col") Today
+                    th.text-end(scope="col") This Month
+                tbody
+                  //- Pending
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        i.iconoir-clock.fs-16.text-warning
+                        span.badge.rounded-pill.badge-pending Pending
+                    td.text-end.fw-semibold #{fmt(orderStatusStats.pending.total)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.pending.today)}
+                      if orderStatusStats.pending.todayPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.pending.todayPercent)) #{pct(orderStatusStats.pending.todayPercent)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.pending.thisMonth)}
+                      if orderStatusStats.pending.monthPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.pending.monthPercent)) #{pct(orderStatusStats.pending.monthPercent)}
+
+                  //- Confirmed
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        i.iconoir-badge-check.fs-16.text-info
+                        span.badge.rounded-pill.badge-confirmed Confirmed
+                    td.text-end.fw-semibold #{fmt(orderStatusStats.confirmed.total)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.confirmed.today)}
+                      if orderStatusStats.confirmed.todayPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.confirmed.todayPercent)) #{pct(orderStatusStats.confirmed.todayPercent)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.confirmed.thisMonth)}
+                      if orderStatusStats.confirmed.monthPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.confirmed.monthPercent)) #{pct(orderStatusStats.confirmed.monthPercent)}
+
+                  //- Shipping
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        i.iconoir-delivery-truck.fs-16.dash-text-shipping
+                        span.badge.rounded-pill.dash-badge-shipping Shipping
+                    td.text-end.fw-semibold #{fmt(orderStatusStats.shipping.total)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.shipping.today)}
+                      if orderStatusStats.shipping.todayPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.shipping.todayPercent)) #{pct(orderStatusStats.shipping.todayPercent)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.shipping.thisMonth)}
+                      if orderStatusStats.shipping.monthPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.shipping.monthPercent)) #{pct(orderStatusStats.shipping.monthPercent)}
+
+                  //- Completed
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        i.iconoir-check-circle.fs-16.text-success
+                        span.badge.rounded-pill.badge-completed Completed
+                    td.text-end.fw-semibold #{fmt(orderStatusStats.completed.total)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.completed.today)}
+                      if orderStatusStats.completed.todayPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.completed.todayPercent)) #{pct(orderStatusStats.completed.todayPercent)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.completed.thisMonth)}
+                      if orderStatusStats.completed.monthPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.completed.monthPercent)) #{pct(orderStatusStats.completed.monthPercent)}
+
+                  //- Cancelled
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        i.iconoir-xmark.fs-16.text-danger
+                        span.badge.rounded-pill.badge-cancelled Cancelled
+                    td.text-end.fw-semibold #{fmt(orderStatusStats.cancelled.total)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.cancelled.today)}
+                      if orderStatusStats.cancelled.todayPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.cancelled.todayPercent)) #{pct(orderStatusStats.cancelled.todayPercent)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.cancelled.thisMonth)}
+                      if orderStatusStats.cancelled.monthPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.cancelled.monthPercent)) #{pct(orderStatusStats.cancelled.monthPercent)}
+
+                  //- Returned
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        i.iconoir-redo.fs-16.dash-text-returned
+                        span.badge.rounded-pill.dash-badge-returned Returned
+                    td.text-end.fw-semibold #{fmt(orderStatusStats.returned.total)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.returned.today)}
+                      if orderStatusStats.returned.todayPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.returned.todayPercent)) #{pct(orderStatusStats.returned.todayPercent)}
+                    td.text-end
+                      | #{fmt(orderStatusStats.returned.thisMonth)}
+                      if orderStatusStats.returned.monthPercent != null
+                        |
+                        small(class=pctClass(orderStatusStats.returned.monthPercent)) #{pct(orderStatusStats.returned.monthPercent)}

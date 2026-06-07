@@ -1,0 +1,954 @@
+.just-validate-error-label {
+  width: 100%;
+}
+
+.preview-file {
+  width: 150px;
+  height: 150px;
+  border: 1px solid #ddd;
+  margin-top: 10px;
+  border-radius: 5px;
+}
+
+.preview-file img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 10px;
+}
+
+/* checkbox-list */
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  padding: 10px;
+  border-radius: 6.4px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkbox-item input {
+  width: 15px;
+  height: 15px;
+}
+
+.checkbox-item label {
+  font-size: 13px;
+  cursor: pointer;
+}
+/* End checkbox-list */
+
+/* form-multi-file */
+.form-multi-file .inner-list-image {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.form-multi-file .inner-list-image .inner-image {
+  width: 150px;
+  height: 150px;
+  margin-top: 15px;
+  margin-right: 15px;
+  border: 1px solid #ddd;
+  position: relative;
+  cursor: move;
+}
+
+.form-multi-file .inner-list-image .inner-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 10px;
+}
+
+.form-multi-file .inner-list-image .inner-image .inner-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  cursor: pointer;
+}
+/* End form-multi-file */
+
+.checkbox-all, .checkbox-input {
+  width: 16px;
+  height: 16px;
+}
+
+/* option-list */
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-item {
+  display: flex;
+  gap: 10px;
+}
+
+.option-item .option-move {
+  cursor: move;
+}
+
+.option-item input {
+  flex: 1;
+}
+/* End option-list */
+
+/* ── Admin Chat ─────────────────────────────────────────────── */
+.chat-box-right .chat-body {
+  overflow-y: auto;
+}
+
+/* Message rows */
+.chat-detail .d-flex {
+  padding: 2px 16px;
+  align-items: flex-end;
+}
+
+/* Bubble */
+.user-chat {
+  max-width: 68%;
+  padding: 9px 13px;
+  border-radius: 16px 16px 16px 4px;
+  background: #f0f2f5;
+  color: #1e293b;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+
+.chat-box.reverse .user-chat {
+  border-radius: 16px 16px 4px 16px;
+  background: linear-gradient(135deg, #22c5ad 0%, #1aab97 100%);
+  color: #fff;
+}
+
+/* Timestamp + status */
+.msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.chat-box:not(.reverse) .msg-meta { justify-content: flex-start; }
+.chat-box.reverse .msg-meta       { justify-content: flex-end; }
+
+.msg-time {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.chat-box.reverse .msg-time { color: rgba(255,255,255,.65); }
+
+.msg-status {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.msg-status.delivered { color: #94a3b8; }
+.msg-status.seen { color: #22c5ad; font-weight: 600; }
+
+/* ── Avatar initials fallback ───────────────────────────────────── */
+.avatar-initials {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22c5ad 0%, #7367f0 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .5px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Delete button */
+.chat-box {
+  position: relative;
+}
+
+.chat-box .delete-message {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4d56;
+  color: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: transform .15s;
+}
+
+.chat-box:hover .delete-message { display: flex; }
+.chat-box .delete-message:hover  { transform: scale(1.15); }
+
+.chat-date-divider {
+  display: block;
+  text-align: center;
+  margin: 14px auto 8px;
+  background: rgba(15, 23, 42, 0.08);
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  width: fit-content;
+  user-select: none;
+  clear: both;
+}
+
+/* Files */
+.chat-files {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chat-files .chat-image {
+  width: 100%;
+  border-radius: 8px;
+  max-width: 200px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.chat-files a {
+  width: 110px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  font-weight: 600;
+  overflow: hidden;
+  padding: 6px;
+  gap: 4px;
+}
+
+/* File preview strip */
+.chat-preview {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  max-height: 100px;
+  position: absolute;
+  bottom: 68px;
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.preview-item {
+  position: relative;
+  width: 80px;
+}
+
+.preview-item img {
+  width: 100%;
+  border-radius: 8px;
+  max-height: 92px;
+  object-fit: cover;
+}
+
+.preview-item .preview-file-item {
+  background: #f1f5f9;
+  padding: 8px;
+  border-radius: 8px;
+  word-break: break-word;
+  font-size: 11px;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 84px;
+}
+
+.preview-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4d56;
+  color: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* AI suggestion panel */
+.chat-ai-suggest-reply {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  overflow-y: auto;
+  max-height: 300px;
+  position: absolute;
+  bottom: 68px;
+  width: 100%;
+  background: #e9ffea;
+  border-radius: 6px;
+  border-top: 2px solid #22c5ad;
+}
+
+.chat-ai-suggest-reply .inner-content {
+  white-space: pre-wrap;
+  font-size: 13px;
+}
+
+.chat-ai-suggest-reply .inner-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #ef4d56;
+  color: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Chat header status ──────────────────────────────────────── */
+.admin-chat-online-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #94a3b8;
+  display: inline-block;
+  flex-shrink: 0;
+  transition: background .3s, box-shadow .3s;
+}
+
+.admin-chat-online-dot.is-online {
+  background: #22c5ad;
+  box-shadow: 0 0 0 3px rgba(34,197,173,.22);
+}
+
+.admin-chat-status-text {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ── Sidebar – last-seen ─────────────────────────────────────── */
+.user-lastseen {
+  font-size: 11px;
+  color: #94a3b8;
+  display: block;
+  margin-top: 2px;
+}
+
+/* ── Admin custom confirm modal ──────────────────────────────── */
+.admin-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: admFadeIn .2s ease;
+}
+
+@keyframes admFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.admin-confirm-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 32px 24px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(15,23,42,.25);
+  animation: admSlideUp .22s ease;
+}
+
+@keyframes admSlideUp {
+  from { opacity: 0; transform: translateY(16px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.admin-confirm-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(239,77,86,.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+
+.admin-confirm-icon i {
+  font-size: 22px;
+  color: #ef4d56;
+}
+
+.admin-confirm-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.admin-confirm-msg {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+.admin-confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.admin-confirm-btn-cancel {
+  flex: 1;
+  padding: 9px 0;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.admin-confirm-btn-cancel:hover { background: #f1f5f9; }
+
+.admin-confirm-btn-ok {
+  flex: 1;
+  padding: 9px 0;
+  border-radius: 10px;
+  border: none;
+  background: #ef4d56;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.admin-confirm-btn-ok:hover { opacity: .88; }
+/* Password toggle */
+.input-group .password-toggle {
+  border-left: 0;
+  background: transparent;
+  transition: color .2s ease-out, background .2s ease-out;
+}
+
+.input-group .password-toggle:hover {
+  background: rgba(0, 0, 0, .04);
+  color: #4361ee;
+}
+
+.input-group .password-toggle:focus {
+  box-shadow: none;
+  outline: 2px solid rgba(0, 87, 183, .3);
+  outline-offset: -2px;
+}
+
+/* ── Dashboard ── */
+.dash-kpi {
+  background: rgba(0, 0, 0, .04);
+}
+
+
+.dash-text-shipping { color: #7367f0; }
+.dash-text-returned { color: #fd7e14; }
+
+.dash-badge-shipping {
+  background-color: rgba(115, 103, 240, .15);
+  color: #7367f0;
+}
+.dash-badge-returned {
+  background-color: rgba(253, 126, 20, .15);
+  color: #fd7e14;
+}
+
+.dash-status-table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.dash-status-table td {
+  font-size: 13px;
+}
+.dash-status-table td small {
+  font-size: 11px;
+  margin-left: 4px;
+}
+/* ── End Dashboard ── */
+
+/* ── Focus & Accessibility ── */
+:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+/* ── End Focus & Accessibility ── */
+
+/* ── Loading Button State ── */
+.btn[data-loading="true"] {
+  pointer-events: none;
+  opacity: .7;
+}
+/* ── End Loading Button State ── */
+
+/* ── Cursor Helpers ── */
+.table-hover tbody tr,
+.card[onclick],
+[data-href],
+label[for] {
+  cursor: pointer;
+}
+/* ── End Cursor Helpers ── */
+
+/* ── Status Badge Color System ── */
+.badge-pending   { background-color: rgba(255, 159, 67,  .15); color: #66401b; }
+.badge-confirmed { background-color: rgba(65,  203, 216, .15); color: #1a5156; }
+.badge-shipping  { background-color: rgba(115, 103, 240, .15); color: #7367f0; }
+.badge-completed { background-color: rgba(34,  197, 173, .15); color: #0e4f45; }
+.badge-cancelled { background-color: rgba(239, 77,  86,  .15); color: #601f22; }
+.badge-returned  { background-color: rgba(253, 126, 20,  .15); color: #974a0a; }
+/* ── End Status Badge Color System ── */
+
+:root {
+  --primary-blue: #0057B7;
+  --primary-yellow: #FFD700;
+  --primary-blue-dark: #003F88;
+}
+
+/* Primary buttons override */
+.btn-primary {
+  background-color: var(--primary-blue) !important;
+  border-color: var(--primary-blue) !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: var(--primary-blue-dark) !important;
+  border-color: var(--primary-blue-dark) !important;
+}
+
+/* Form switch controls / Checkboxes / Radio buttons override */
+.form-check-input:checked {
+  background-color: var(--primary-blue) !important;
+  border-color: var(--primary-blue) !important;
+}
+
+/* Text primary override */
+.text-primary {
+  color: var(--primary-blue) !important;
+}
+
+/* Badge primary override */
+.bg-primary {
+  background-color: var(--primary-blue) !important;
+}
+
+/* Active links / sidebar items */
+.startbar-menu .nav-item .nav-link.active,
+.startbar-menu .nav-item .nav-link:hover {
+  color: var(--primary-blue) !important;
+}
+.startbar-menu .nav-item .nav-link.active i,
+.startbar-menu .nav-item .nav-link:hover i {
+  color: var(--primary-blue) !important;
+}
+
+/* User dropdown items hover */
+.dropdown-item:hover, .dropdown-item:active {
+  background-color: rgba(0, 87, 183, 0.08) !important;
+  color: var(--primary-blue) !important;
+}
+
+/* Sidebar brand logo size constraints override and perfect vertical centering */
+.brand {
+  height: 70px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.brand .logo {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.brand .logo span {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.brand .logo img {
+  max-height: 38px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.brand .logo img.logo-sm {
+  max-height: 28px !important;
+}
+
+
+/* 1. Parent collapse triggers — flex + rotating chevron */
+.startbar-menu .nav-link[data-bs-toggle="collapse"] {
+  display: flex !important;
+  align-items: center;
+}
+
+.startbar-menu .nav-link[data-bs-toggle="collapse"] > span {
+  flex: 1;
+}
+
+/* Chevron via FA6 (already loaded in admin layout) */
+.startbar-menu .nav-link[data-bs-toggle="collapse"]::after {
+  content: "\f078";                 /* fa-chevron-down */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 10px;
+  opacity: 0.4;
+  transition: transform 0.22s ease, opacity 0.18s ease, color 0.18s ease;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+/* Rotate chevron + tint when section is expanded */
+.startbar-menu .nav-link[data-bs-toggle="collapse"][aria-expanded="true"]::after {
+  transform: rotate(-180deg);
+  opacity: 1;
+  color: var(--primary-blue);
+}
+
+/* Parent link highlight when expanded */
+.startbar-menu .nav-link[data-bs-toggle="collapse"][aria-expanded="true"] {
+  color: var(--primary-blue) !important;
+  font-weight: 600;
+  background: rgba(0, 87, 183, 0.06) !important;
+  border-radius: 8px;
+}
+
+.startbar-menu .nav-link[data-bs-toggle="collapse"][aria-expanded="true"] i.menu-icon {
+  color: var(--primary-blue) !important;
+}
+
+/* 2. Expanded panel — left accent bar creates visual tree */
+.startbar-menu .collapse.show {
+  border-left: 2px solid rgba(0, 87, 183, 0.22);
+  margin-left: 26px;
+  padding-left: 0;
+}
+
+/* 3. Sub-items — clear size/color/weight hierarchy vs parent */
+.startbar-menu .collapse .nav .nav-item .nav-link,
+.startbar-menu .collapsing .nav .nav-item .nav-link {
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: #64748b !important;
+  padding: 6px 10px 6px 12px !important;
+  border-radius: 6px;
+  margin: 1px 6px 1px 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+  position: relative;
+}
+
+/* Leading dot indicator per sub-item */
+.startbar-menu .collapse .nav .nav-item .nav-link::before {
+  content: "" !important;
+  display: block !important;
+  position: static !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: #cbd5e1 !important;
+  margin-right: 12px !important;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+/* Sub-item hover */
+.startbar-menu .collapse .nav .nav-item .nav-link:hover {
+  color: var(--primary-blue) !important;
+  background: rgba(0, 87, 183, 0.07) !important;
+}
+
+.startbar-menu .collapse .nav .nav-item .nav-link:hover::before {
+  background: var(--primary-blue) !important;
+  transform: scale(1.4);
+}
+
+/* Sub-item active */
+.startbar-menu .collapse .nav .nav-item .nav-link.active {
+  color: var(--primary-blue) !important;
+  background: rgba(0, 87, 183, 0.11) !important;
+  font-weight: 600 !important;
+}
+
+.startbar-menu .collapse .nav .nav-item .nav-link.active::before {
+  background: var(--primary-blue) !important;
+}
+
+/* 4. Top-level nav-link base refinement — consistent radius + spacing */
+.startbar-menu .navbar-nav > .nav-item > .nav-link {
+  border-radius: 8px;
+  margin: 2px 8px;
+  padding: 8px 10px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* ═══════════════════════════════════════════════════════
+   END ADMIN SIDEBAR NAVIGATION POLISH
+   ═══════════════════════════════════════════════════════ */
+
+
+/* 1. Table row hover feedback (hover-states) */
+.table-striped > tbody > tr {
+  transition: background-color 0.12s ease;
+}
+.table-striped > tbody > tr:hover > td {
+  background-color: rgba(0, 87, 183, 0.04) !important;
+}
+
+/* 2. thead scan-ability (weight-hierarchy + whitespace-balance) */
+.table > thead > tr > th {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: #64748b !important;
+  white-space: nowrap;
+  vertical-align: middle !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+/* 3. btn-warning contrast fix — white on yellow = 1.8:1, FAILS 4.5:1 (color-contrast) */
+.btn-warning,
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-warning:active {
+  color: #1e293b !important;
+}
+
+/* 4. Empty state component (empty-states rule) */
+.tbl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 48px 0 40px;
+  color: #94a3b8;
+}
+.tbl-empty-icon {
+  font-size: 40px;
+  opacity: 0.35;
+  margin-bottom: 4px;
+}
+.tbl-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin: 0;
+}
+.tbl-empty-sub {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* 5. Icon-only action links: clear touch target + hover (touch-target-size, hover-states) */
+.tbl-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: #64748b;
+  text-decoration: none;
+  transition: background 0.14s ease, color 0.14s ease;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+.tbl-action:hover {
+  background: rgba(0, 87, 183, 0.08);
+  color: var(--primary-blue);
+}
+.tbl-action.danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+.tbl-action.warning:hover {
+  background: rgba(245, 158, 11, 0.10);
+  color: #b45309;
+}
+
+/* 6. button-api loading visual (loading-buttons rule) */
+[button-api].is-loading,
+[button-soft-delete-many].is-loading,
+[button-delete-many].is-loading {
+  pointer-events: none;
+  opacity: 0.65;
+}
+[button-api].is-loading::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 7. Table thumbnail: consistent size + alt fallback bg (alt-text) */
+.thumb-md {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  background: #f1f5f9;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* 8. Required field asterisk (required-indicators rule) */
+label .req { color: #ef4444; font-weight: 700; }
+
+/* 9. Card header — consistent spacing + subtle bottom line */
+.card > .card-header {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+/* 10. Status badge: min readable size + semantic colors */
+.badge {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 8px !important;
+  letter-spacing: 0.02em;
+}
+/* bg-warning in order status badges — make readable (contrast fix) */
+.badge.bg-warning {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #92400e !important;
+}
+.badge.bg-dark {
+  background-color: #334155 !important;
+}
+
+/* 11. Table action column: proper gap between buttons */
+td.text-end > *,
+td.text-end > a,
+td.text-end > button {
+  margin-left: 4px !important;
+}
+td.text-end > *:first-child { margin-left: 0 !important; }
+
+/* 12. Focus ring on table rows for keyboard navigation (focus-states) */
+.table > tbody > tr:focus-within > td:first-child {
+  border-left: 3px solid var(--primary-blue);
+}
+
+/* 13. touch-action: manipulation — removes 300ms tap delay (tap-delay rule) */
+button, a, [button-api], [button-soft-delete-many], [button-delete-many], .btn, .tbl-action, .page-link {
+  touch-action: manipulation;
+}
+
+/* 14. Tabular figures for price/number columns (number-tabular rule) */
+.table td.text-end,
+.table td:has(b.text-danger),
+.table td:has(> b) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 15. Smooth hover/active state transitions on interactive table elements (state-transition rule) */
+.table > tbody > tr {
+  transition: background-color 0.12s ease;
+}
+.btn {
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+/* 16. Reduced motion — disable all animations when user prefers (reduced-motion rule) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

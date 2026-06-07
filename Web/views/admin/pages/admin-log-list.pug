@@ -1,0 +1,45 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+        .card-body.pt-0
+          .row
+            .col-lg-6
+              +form-search()
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th(scope="col") No.
+                  th(scope="col") Admin
+                  th(scope="col") Method
+                  th(scope="col") Route
+                  th(scope="col") Action
+                  th(scope="col") Date
+              tbody
+                if !recordList || !recordList.length
+                  +empty-state()
+                else
+                  each item, index in recordList
+                    tr
+                      td #{pagination.skip + index + 1}
+                      td
+                        div #{item.adminName || "Unknown"}
+                        small.text-muted #{item.adminEmail}
+                      td
+                        span(class=`badge ${item.method === 'POST' ? 'bg-success' : item.method === 'DELETE' ? 'bg-danger' : item.method === 'PATCH' ? 'bg-warning text-dark' : 'bg-secondary'}`)
+                          | #{item.method}
+                      td
+                        small.text-muted #{item.route}
+                      td #{item.title}
+                      td
+                        small #{formatDateTime(item.createdAt)}
+          +pagination()
+    // end col

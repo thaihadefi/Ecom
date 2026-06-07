@@ -1,0 +1,74 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="accountAdminEditForm")
+        .row
+          .col-md-6.col-lg-6.d-none
+            .mb-3
+              label.form-label(for="id") Id *
+              input.form-control(id="id" type="text" name="id" value=accountDetail.id)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="fullName") Full Name *
+              input.form-control(id="fullName" type="text" name="fullName" value=accountDetail.fullName)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="email") Email *
+              input.form-control(id="email" type="email" name="email" value=accountDetail.email)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="status") Status
+              select.form-select(id="status" name="status")
+                option(
+                  value="initial"
+                  selected=(accountDetail.status == "initial")
+                  ) Initial
+                option(
+                  value="active"
+                  selected=(accountDetail.status == "active")
+                  ) Active
+                option(
+                  value="inactive"
+                  selected=(accountDetail.status == "inactive")
+                  ) Inactive
+          .col-md-6.col-lg-6
+            .mb-3
+              +form-group-file(
+                "Avatar",
+                "avatar",
+                "avatar",
+                accountDetail.avatar
+              )
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label Permissions
+              div(class="checkbox-list" checkbox-list="roles")
+                +checkbox-list(roleList, 0, accountDetail.roles)
+        button.btn.btn-primary(type="submit") Update Info
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/account-admin/list`) Cancel
+
+  .card.mt-4(id="change-password")
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title Change Password
+    .card-body.pt-0
+      form(id="accountAdminChangePasswordForm")
+        .row
+          .col-md-6.col-lg-6.d-none
+            .mb-3
+              label.form-label(for="id-pwd") Id *
+              input.form-control(id="id-pwd" type="text" name="id" value=accountDetail.id)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="password") New Password *
+              input.form-control(id="password" type="password" name="password" placeholder="••••••••")
+        button.btn.btn-primary(type="submit") Update Password
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/account-admin/list`) Cancel

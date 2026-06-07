@@ -1,0 +1,279 @@
+.startbar.d-print-none
+  - const permissionsSafe = Array.isArray(permissions) ? permissions : []
+  // start brand
+  .brand
+    a.logo(href=`/${pathAdmin}/dashboard`)
+      span
+        img.logo-lg(
+          alt="logo"
+          src=`${settingGeneral && settingGeneral.logo ? domainCDN + settingGeneral.logo : '/images/logo.png'}`
+          )
+  // end brand
+  // start startbar-menu
+  .startbar-menu
+    #startbarCollapse.startbar-collapse(data-simplebar="")
+      .d-flex.align-items-start.flex-column.w-100
+        // Navigation
+        ul.navbar-nav.mb-auto.w-100
+          if (permissionsSafe.includes("dashboard"))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarDashboard" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarDashboard"
+                )
+                i.iconoir-home-simple.menu-icon
+                span Overview
+              #sidebarDashboard.collapse
+                ul.nav.flex-column
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/dashboard`) KPI Overview
+                  // end nav-item
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/dashboard/revenue-by-time`) Revenue Over Time
+                  // end nav-item
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/dashboard/order-statistic`) Order Statistics
+                  // end nav-item
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/dashboard/top-selling-products`) Top Selling Products
+                  // end nav-item
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/dashboard/customer-statistic`) Customer Statistics
+                  // end nav-item
+          // end nav-item
+          if (permissionsSafe.includes("product-create") || permissionsSafe.includes("product-edit") || permissionsSafe.includes("product-delete"))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarProduct"
+                aria-expanded="false"
+                role="button"
+                data-bs-toggle="collapse"
+                href="#sidebarProduct"
+                )
+                i.iconoir-shop.menu-icon
+                span Products
+              #sidebarProduct.collapse
+                ul.nav.flex-column
+                  if (permissionsSafe.includes("product-create"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/product/create`) Create Product
+                    // end nav-item
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/product/list`) Product List
+                  // end nav-item
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/product/category`) Product Category
+                  // end nav-item
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/product/attribute`) Product Attributes
+                  // end nav-item
+          if (permissionsSafe.includes("article-create") || permissionsSafe.includes("article-list") || permissionsSafe.includes("article-category"))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarArticle" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarArticle"
+                )
+                i.iconoir-journal-page.menu-icon
+                span Articles
+              #sidebarArticle.collapse
+                ul.nav.flex-column
+                  if (permissionsSafe.includes("article-create"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/article/create`) Create Article
+                    // end nav-item
+                  if (permissionsSafe.includes("article-list"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/article/list`) Article List
+                    // end nav-item
+                  if (permissionsSafe.includes("article-category"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/article/category`) Article Category
+                    // end nav-item
+                // end nav
+              // end sidebarArticle
+            // end nav-item
+          if (permissionsSafe.includes("role-create") || permissionsSafe.includes("role-list"))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarRole" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarRole"
+                )
+                i.iconoir-user-badge-check.menu-icon
+                span Permissions
+              #sidebarRole.collapse
+                ul.nav.flex-column
+                  if (permissionsSafe.includes("role-create"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/role/create`) Create Role
+                    // end nav-item
+                  if (permissionsSafe.includes("role-list"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/role/list`) Role List
+                    // end nav-item
+          if (permissionsSafe.includes("account-admin-create") || permissionsSafe.includes("account-admin-list"))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarAccountAdmin" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarAccountAdmin"
+                )
+                i.iconoir-user-crown.menu-icon
+                span Admin Accounts
+              #sidebarAccountAdmin.collapse
+                ul.nav.flex-column
+                  if (permissionsSafe.includes("account-admin-create"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/account-admin/create`) Create Account
+                    // end nav-item
+                  if (permissionsSafe.includes("account-admin-list"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/account-admin/list`) Account List
+                    // end nav-item
+          if (permissionsSafe.includes("account-user-list") || permissionsSafe.includes("account-user-edit") || permissionsSafe.includes("account-user-delete"))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarAccountUser" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarAccountUser"
+                )
+                i.iconoir-user-crown.menu-icon
+                span User Accounts
+              #sidebarAccountUser.collapse
+                ul.nav.flex-column
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/account-user/list`) Account List
+                  // end nav-item
+          if (permissionsSafe.includes("coupon-create") || permissionsSafe.includes("coupon-edit") || permissionsSafe.includes("coupon-delete"))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarCoupon"
+                aria-expanded="false"
+                role="button"
+                data-bs-toggle="collapse"
+                href="#sidebarCoupon"
+                )
+                i.iconoir-percentage-circle.menu-icon
+                span Coupon Code
+              #sidebarCoupon.collapse
+                ul.nav.flex-column
+                  if (permissionsSafe.includes("coupon-create"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/coupon/create`) Create Coupon
+                    // end nav-item
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/coupon/list`) Coupon List
+                  // end nav-item
+          if (permissionsSafe.includes("order-edit") || permissionsSafe.includes("order-delete"))
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/order/list`
+                )
+                i.iconoir-bag.menu-icon
+                span Order Management
+          if (permissionsSafe.includes("review-edit") || permissionsSafe.includes("review-delete"))
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/review/list`
+                )
+                i.iconoir-star.menu-icon
+                span Review Management
+          if (permissionsSafe.includes("contact-inquiry-list") || permissionsSafe.includes("contact-inquiry-edit") || permissionsSafe.includes("contact-inquiry-delete"))
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/contact-inquiry/list`
+                )
+                i.iconoir-mail.menu-icon
+                span Contact Inquiries
+          if (permissionsSafe.includes("file-manager"))
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/file-manager/iframe`
+                )
+                i.iconoir-page-star.menu-icon
+                span File Management
+          if (permissionsSafe.includes("block-list") || permissionsSafe.includes("block-create") || permissionsSafe.includes("block-edit") || permissionsSafe.includes("block-delete"))
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/block/list`
+                )
+                i.iconoir-orthogonal-view.menu-icon
+                span Block Management
+          if (permissionsSafe.includes("template-list") || permissionsSafe.includes("template-create") || permissionsSafe.includes("template-edit") || permissionsSafe.includes("template-delete"))
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/template/list`
+                )
+                i.iconoir-orthogonal-view.menu-icon
+                span Template Management
+          if (permissionsSafe.includes("chat-list") || permissionsSafe.includes("chat-reply"))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarChat" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarChat"
+                )
+                i.iconoir-chat-bubble.menu-icon
+                span Messages
+              #sidebarChat.collapse
+                ul.nav.flex-column
+                  li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/chat/list/my-chat`) Yours
+                  // end nav-item
+          if (permissionsSafe.includes("setting-view") || permissionsSafe.includes("setting-edit"))
+            li.nav-item
+              a.nav-link(
+                aria-controls="sidebarSetting" 
+                aria-expanded="false" 
+                role="button" 
+                data-bs-toggle="collapse" 
+                href="#sidebarSetting"
+                )
+                i.iconoir-settings.menu-icon
+                span Settings
+              #sidebarSetting.collapse
+                ul.nav.flex-column
+                  if (permissionsSafe.includes("setting-view"))
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/setting/api-shipping`) Shipping API
+                    // end nav-item
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/setting/api-payment`) Payment Gateway API
+                    // end nav-item
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/setting/api-login-social`) Social Login API
+                    // end nav-item
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/setting/api-app-password`) App API Password
+                    // end nav-item
+                    li.nav-item
+                      a.nav-link(href=`/${pathAdmin}/setting/general`) General Settings
+                    // end nav-item
+                  if (permissionsSafe.includes("setting-edit"))
+                    li.nav-item
+                      a.nav-link(
+                        href="javascript:;"
+                        button-api
+                        data-method="PATCH"
+                        data-api=`/${pathAdmin}/setting/remove-cache`
+                      )
+                        | Clear Cache
+                    // end nav-item
+    // end startbar-collapse
+  // end startbar-menu
+// end startbar
+.startbar-overlay.d-print-none

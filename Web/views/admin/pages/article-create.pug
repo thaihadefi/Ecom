@@ -1,0 +1,56 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  if (permissions.includes("article-create"))
+    .card
+      .card-header
+        .row.align-items-center
+          .col
+            h4.card-title #{pageTitle}
+      .card-body.pt-0
+        form(id="articleCreateForm")
+          .row
+            .col-md-6.col-lg-6
+              .mb-3
+                label.form-label(for="name") Article Title *
+                input.form-control(id="name" type="text" name="name")
+            .col-md-6.col-lg-6
+              .mb-3
+                label.form-label(for="slug") Slug *
+                .input-group
+                  span.btn.btn-outline-info(
+                    btn-generate-slug="Blog" 
+                    from="name"
+                    to="slug"
+                  ) Automatic
+                  input.form-control(id="slug" type="text" name="slug")
+            .col-md-6.col-lg-6
+              .mb-3
+                label.form-label Category
+                div(class="checkbox-list" checkbox-list="category")
+                  +checkbox-list(categoryList)
+            .col-md-6.col-lg-6
+              .mb-3
+                label.form-label(for="status") Status
+                select.form-select(id="status" name="status")
+                  option(value="draft") Draft
+                  option(value="published") Published
+                  option(value="archived") Archived
+            .col-md-6.col-lg-6
+              .mb-3
+                +form-group-file(
+                  "Avatar",
+                  "avatar",
+                  "avatar"
+                )
+            .col-md-12.col-lg-12
+              .mb-3
+                label.form-label(for="description") Short Description
+                textarea(id="description" name="description" textarea-mce)
+            .col-md-12.col-lg-12
+              .mb-3
+                label.form-label(for="content") Detailed Content
+                textarea(id="content" name="content" textarea-mce)
+          button.btn.btn-primary(type="submit") Create New
+          a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/list`) Cancel

@@ -1,0 +1,41 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          +trash-header(`/${pathAdmin}/account-user/list`)
+        .card-body.pt-0
+          +trash-buttons(`/${pathAdmin}/account-user/change-multi`)
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th(scope="col")
+                    input.checkbox-all(type="checkbox")
+                  th(scope="col") No.
+                  th(scope="col") Full Name
+                  th(scope="col") Email
+                  th(scope="col") Deleted At
+                  th.text-end(scope="col") Action
+              tbody
+                if !recordList || !recordList.length
+                  +empty-state("Trash is empty")
+                else
+                  each item, index in recordList
+                    tr
+                      td
+                        input.checkbox-input(type="checkbox" value=item.id)
+                      td #{index + 1}
+                      td #{item.fullName}
+                      td #{item.email}
+                      td
+                        small #{formatDateTime(item.deletedAt)}
+                      td.text-end
+                        +trash-action-buttons(
+                          `/${pathAdmin}/account-user/undo/${item.id}`,
+                          `/${pathAdmin}/account-user/destroy/${item.id}`
+                        )
+

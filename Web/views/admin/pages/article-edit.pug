@@ -1,0 +1,70 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  if (permissions.includes("article-edit"))
+    .card
+      .card-header
+        .row.align-items-center
+          .col
+            h4.card-title #{pageTitle}
+      .card-body.pt-0
+        form(id="articleEditForm")
+          .row
+            .col-md-6.col-lg-6.d-none
+              .mb-3
+                label.form-label(for="id") Id *
+                input.form-control(id="id" type="text" name="id" value=articleDetail.id)
+            .col-md-6.col-lg-6
+              .mb-3
+                label.form-label(for="name") Article Title *
+                input.form-control(id="name" type="text" name="name" value=articleDetail.name)
+            .col-md-6.col-lg-6
+              .mb-3
+                label.form-label(for="slug") Slug *
+                .input-group
+                  span.btn.btn-outline-info(
+                    btn-generate-slug="Blog" 
+                    from="name"
+                    to="slug"
+                  ) Automatic
+                  input.form-control(id="slug" type="text" name="slug" value=articleDetail.slug)
+            .col-md-6.col-lg-6
+              .mb-3
+                label.form-label Category
+                div(class="checkbox-list" checkbox-list="category")
+                  +checkbox-list(categoryList, 0, articleDetail.category)
+            .col-md-6.col-lg-6
+              .mb-3
+                label.form-label(for="status") Status
+                select.form-select(id="status" name="status")
+                  option(
+                    value="draft"
+                    selected=(articleDetail.status == "draft")
+                    ) Draft
+                  option(
+                    value="published"
+                    selected=(articleDetail.status == "published")
+                    ) Published
+                  option(
+                    value="archived"
+                    selected=(articleDetail.status == "archived")
+                    ) Archived
+            .col-md-6.col-lg-6
+              .mb-3
+                +form-group-file(
+                  "Avatar",
+                  "avatar",
+                  "avatar",
+                  articleDetail.avatar
+                )
+            .col-md-12.col-lg-12
+              .mb-3
+                label.form-label(for="description") Short Description
+                textarea(id="description" name="description" textarea-mce) #{articleDetail.description}
+            .col-md-12.col-lg-12
+              .mb-3
+                label.form-label(for="content") Detailed Content
+                textarea(id="content" name="content" textarea-mce) #{articleDetail.content}
+          button.btn.btn-primary(type="submit") Update
+          a.btn.btn-danger.ms-1(href=`/${pathAdmin}/article/list`) Cancel

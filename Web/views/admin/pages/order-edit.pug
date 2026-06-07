@@ -1,0 +1,158 @@
+extends ../layouts/default.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle} - #{orderDetail.code}
+    .card-body.pt-0
+      form(id="orderEditForm")
+        input(type="hidden" name="id" value=orderDetail.id)
+        // =====================
+        // Customer Information
+        // =====================
+        h5.mt-3 Customer Information
+        .row
+          .col-md-6
+            .mb-3
+              label.form-label Full Name
+              input.form-control(disabled value=orderDetail.fullName)
+          .col-md-6
+            .mb-3
+              label.form-label Phone Number
+              input.form-control(disabled value=orderDetail.phone)
+          .col-md-12
+            .mb-3
+              label.form-label Address
+              textarea.form-control(rows="2" disabled)= orderDetail.address
+        // =====================
+        // Product List
+        // =====================
+        h5.mt-4 Products in Order
+        .table-responsive
+          table.table.table-bordered
+            thead.table-light
+              tr
+                th(scope="col") Products
+                th(scope="col") Attributes
+                th(scope="col") Qty
+                th(scope="col") Price
+                th(scope="col") Total
+            tbody
+              each p in orderDetail.items
+                tr
+                  td
+                    .d-flex.align-items-center
+                      img(src=`${domainCDN}${p.image}` width="50" class="me-2 rounded" alt="" loading="lazy")
+                      span #{p.name}
+                  td
+                    each v in p.variant
+                      div.small.text-muted #{v}
+                  td #{p.quantity}
+                  td #{(p.price || 0).toLocaleString('vi-VN')} VND
+                  td.text-danger
+                    b #{((p.price || 0) * p.quantity).toLocaleString('vi-VN')} VND
+        // =====================
+        // Payment & Shipping
+        // =====================
+        h5.mt-4 Payment & Shipping
+        .row
+          .col-md-4
+            .mb-3
+              label.form-label Payment Method
+              input.form-control(
+                disabled
+                value=
+                  orderDetail.paymentMethod == 'money' ? 'Cash' :
+                  orderDetail.paymentMethod == 'vnpay' ? 'VNPay' :
+                  orderDetail.paymentMethod == 'zalopay' ? 'ZaloPay' :
+                  ''
+              )
+          .col-md-4
+            .mb-3
+              label.form-label Payment Status
+              select.form-select(name="paymentStatus")
+                option(
+                  value="unpaid"
+                  selected=(orderDetail.paymentStatus == "unpaid")
+                ) Unpaid
+                option(
+                  value="paid"
+                  selected=(orderDetail.paymentStatus == "paid")
+                ) Paid
+                option(
+                  value="refunded"
+                  selected=(orderDetail.paymentStatus == "refunded")
+                ) Refunded
+          .col-md-4
+            .mb-3
+              label.form-label Shipping Partner
+              input.form-control(
+                disabled
+                value=orderDetail.shipping ? orderDetail.shipping.carrierName : ''
+              )
+        .row
+          .col-md-3
+            .mb-3
+              label.form-label Subtotal
+              input.form-control(disabled value=(orderDetail.subTotal || 0).toLocaleString('vi-VN') + ' VND')
+          .col-md-3
+            .mb-3
+              label.form-label Coupon Code
+              input.form-control(disabled value=orderDetail.coupon || '—')
+          .col-md-3
+            .mb-3
+              label.form-label Discount
+              input.form-control(disabled value=(orderDetail.discount || 0).toLocaleString('vi-VN') + ' VND')
+          .col-md-3
+            .mb-3
+              label.form-label Shipping Fee
+              input.form-control(
+                disabled 
+                value=
+                  orderDetail.shipping && orderDetail.shipping.fee
+                    ? orderDetail.shipping.fee.toLocaleString('vi-VN') + ' VND'
+                    : '0 VND'
+                )
+        .row
+          .col-md-4
+            .mb-3
+              label.form-label Points Used
+              input.form-control(disabled value=orderDetail.usedPoint)
+          .col-md-4
+            .mb-3
+              label.form-label Points Discount
+              input.form-control(disabled value=(orderDetail.pointDiscount || 0).toLocaleString('vi-VN') + ' VND')
+          .col-md-4
+            .mb-3
+              label.form-label Total Payment
+              input.form-control.text-danger(
+                disabled
+                value=(orderDetail.total || 0).toLocaleString('vi-VN') + ' VND'
+              )
+        // =====================
+        // Order Status
+        // =====================
+        h5.mt-4 Order Status
+        .row
+          .col-md-6
+            .mb-3
+              label.form-label Status
+              select.form-select(name="orderStatus")
+                option(value="pending" selected=(orderDetail.orderStatus=="pending")) Pending
+                option(value="confirmed" selected=(orderDetail.orderStatus=="confirmed")) Confirmed
+                option(value="shipping" selected=(orderDetail.orderStatus=="shipping")) Shipping
+                option(value="completed" selected=(orderDetail.orderStatus=="completed")) Completed
+                option(value="returned" selected=(orderDetail.orderStatus=="returned")) Returned
+                option(value="cancelled" selected=(orderDetail.orderStatus=="cancelled")) Cancel
+          .col-md-6
+            .mb-3
+              label.form-label Note
+              textarea.form-control(name="note" rows="2")= orderDetail.note
+        // =====================
+        // Action
+        // =====================
+        .mt-4
+          button.btn.btn-primary(type="submit") Update Order
+          a.btn.btn-danger.ms-2(href=`/${pathAdmin}/order/list`) Back
