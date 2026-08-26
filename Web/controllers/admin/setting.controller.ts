@@ -14,10 +14,11 @@ export const apiShipping = async (_req: Request, res: Response) => {
 };
 
 export const apiShippingPatch = async (req: RequestAccount, res: Response) => {
-  const { tokenGoShip } = req.body;
+  const { tokenGoShip, goshipApiUrl } = req.body;
   const key = "apiShipping";
   const data = {
-    tokenGoShip: tokenGoShip
+    tokenGoShip: tokenGoShip,
+    goshipApiUrl: goshipApiUrl
   };
 
   await settingService.updateSettingByKey(key, data, req.adminId);

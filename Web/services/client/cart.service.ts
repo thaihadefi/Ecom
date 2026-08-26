@@ -3,7 +3,7 @@ import AttributeProduct from '../../models/attribute-product.model';
 import axios from 'axios';
 import { getInfoAddress } from '../../helpers/location.helper';
 import { pointConfig } from '../../configs/variable.config';
-import { getApiShipping } from '../../configs/setting.config';
+import { getApiShipping, getGeneral } from '../../configs/setting.config';
 import { IProduct } from '../../interfaces/models/product.interface';
 import { IAttributeProduct } from '../../interfaces/models/attribute-product.interface';
 
@@ -66,9 +66,10 @@ export const getCartDetailAndShipping = async (
 
   let shippingOptions = null;
   if (userAddress) {
+    const general = await getGeneral();
     const shopLocation = {
-      lat: parseFloat(process.env.SHOP_LAT || "10.8700089"),
-      lng: parseFloat(process.env.SHOP_LNG || "106.8030541")
+      lat: parseFloat(String(general.shopLat || "10.8700089")),
+      lng: parseFloat(String(general.shopLng || "106.8030541"))
     };
 
     const [shopInfoAddress, userInfoAddress] = await Promise.all([
@@ -102,7 +103,8 @@ export const getCartDetailAndShipping = async (
     };
 
     const apiShipping = await getApiShipping();
-    const goshipRes = await axios.post(`${process.env.GOSHIP_API_URL || "https://sandbox.goship.io/api/v2"}/rates`, dataGoShip, {
+    const goshipBase = String(apiShipping.goshipApiUrl || "https://sandbox.goship.io/api/v2");
+    const goshipRes = await axios.post(`${goshipBase}/rates`, dataGoShip, {
       headers: {
         Authorization: `Bearer ${apiShipping.tokenGoShip}`,
         "Content-Type": "application/json"

@@ -32,7 +32,7 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 ### Admin Moderation
 - **Role-Based Access Control (RBAC):** Permission-matrix administration protecting core management routes across staff roles.
 - **Account & Content Moderation:** User account status management, product review moderation, and administrative audit logs (`admin-log.model.ts`).
-- **System Integration Settings:** Centralized configuration management for Payment Gateways (ZaloPay, VNPay), Shipping Providers (GoShip), Social Auth API Keys, and App Passwords.
+- **System & Store Configuration Settings:** Centralized in-app administration for store info & brand identity (website name, domain, logo/favicon, warehouse coordinates, sender contact), Payment Gateways (ZaloPay, VNPay), Shipping Providers (GoShip API), Social Auth Keys, and App Passwords.
 - **Token Rotation & Theft Detection:** Refresh Token Rotation with a 15-second grace period for concurrent requests and instant global token revocation upon token reuse attempt (`token-rotation.helper.ts`).
 - **Media Microservice & Cascading Sync:** Standalone media storage service (`FileManager`) with streamed multi-file batch upload, temp staging, UTF-8 sanitization, and automated cross-collection media rename/delete propagation (`media-propagate.helper.ts`).
 

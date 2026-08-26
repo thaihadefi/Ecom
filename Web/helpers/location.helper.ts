@@ -9,7 +9,7 @@ interface GoShipLocation {
 const normalizeAddress = async (city: string, district: string, ward: string) => {
   const apiShipping = await getApiShipping();
 
-  const goshipBase = process.env.GOSHIP_API_URL || "https://sandbox.goship.io/api/v2";
+  const goshipBase = String(apiShipping.goshipApiUrl || "https://sandbox.goship.io/api/v2");
   const cityRes = await axios.get(`${goshipBase}/cities`, {
     headers: {
       Authorization: `Bearer ${apiShipping.tokenGoShip}`

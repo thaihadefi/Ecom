@@ -10,7 +10,11 @@ block main
     .card-body.pt-0
       form(id="settingGeneralForm")
         .row
-          .col-md-12.col-lg-12
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="websiteName") Website Name
+              input(id="websiteName" name="websiteName" class="form-control" value=`${record ? record.data.websiteName : ''}`)
+          .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="domainWebsite") Website Domain
               input(id="domainWebsite" name="domainWebsite" class="form-control" value=`${record ? record.data.domainWebsite : ''}`)
@@ -30,4 +34,29 @@ block main
                 "favicon",
                 record ? record.data.favicon : ''
               )
+
+        hr.my-4
+        h5.mb-3 Shop Sender Info
+        .row
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="shopSenderName") Sender Name
+              input(id="shopSenderName" name="shopSenderName" class="form-control" value=`${record ? record.data.shopSenderName : ''}`)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="shopSenderPhone") Sender Phone
+              input(id="shopSenderPhone" name="shopSenderPhone" class="form-control" value=`${record ? record.data.shopSenderPhone : ''}`)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="shopSenderAddress") Sender Address
+              input(id="shopSenderAddress" name="shopSenderAddress" class="form-control" value=`${record ? record.data.shopSenderAddress : ''}`)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="shopLat") Latitude
+              input(id="shopLat" name="shopLat" type="number" step="any" class="form-control" value=`${record ? record.data.shopLat : ''}`)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="shopLng") Longitude
+              input(id="shopLng" name="shopLng" type="number" step="any" class="form-control" value=`${record ? record.data.shopLng : ''}`)
+
         button.btn.btn-primary(type="submit") Update

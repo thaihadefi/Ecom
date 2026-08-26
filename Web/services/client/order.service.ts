@@ -211,9 +211,10 @@ export const createOrder = async (
     dataFinal._couponId = String(couponDetail._id);
   }
 
+  const general = await getGeneral();
   const shopLocation = {
-    lat: parseFloat(process.env.SHOP_LAT || "10.8700089"),
-    lng: parseFloat(process.env.SHOP_LNG || "106.8030541")
+    lat: parseFloat(String(general.shopLat || "10.8700089")),
+    lng: parseFloat(String(general.shopLng || "106.8030541"))
   };
 
   const [shopInfoAddress, userInfoAddress] = await Promise.all([
@@ -239,9 +240,9 @@ export const createOrder = async (
       rate: payload.shippingMethod,
       payer: 0,
       address_from: {
-        name: process.env.SHOP_SENDER_NAME || "",
-        phone: process.env.SHOP_SENDER_PHONE || "",
-        street: process.env.SHOP_SENDER_ADDRESS || "",
+        name: String(general.shopSenderName || "Ecom"),
+        phone: String(general.shopSenderPhone || "02837252002"),
+        street: String(general.shopSenderAddress || "Quarter 34, Linh Xuan Ward, Ho Chi Minh City"),
         city: shopInfoAddress.city,
         district: shopInfoAddress.district,
         ward: shopInfoAddress.ward
@@ -267,8 +268,9 @@ export const createOrder = async (
   };
 
   const apiShipping = await getApiShipping();
+  const goshipBase = String(apiShipping.goshipApiUrl || "https://sandbox.goship.io/api/v2");
 
-  const goshipRes = await axios.post(`${process.env.GOSHIP_API_URL || "https://sandbox.goship.io/api/v2"}/shipments`, dataGoShip, {
+  const goshipRes = await axios.post(`${goshipBase}/shipments`, dataGoShip, {
     headers: {
       Authorization: `Bearer ${apiShipping.tokenGoShip}`,
       "Content-Type": "application/json"
@@ -389,7 +391,7 @@ export const createZaloPayPaymentUrl = async (orderCode: string, phone: string) 
     app_id: `${apiPayment.zaloPayAppId}`,
     key1: `${apiPayment.zaloPayKey1}`,
     key2: `${apiPayment.zaloPayKey2}`,
-    endpoint: `${apiPayment.zaloPayEndpoint}`
+    endpoint: `${apiPayment.zaloPayDomain || apiPayment.zaloPayEndpoint || "https://sb-openapi.zalopay.vn/v2/create"}`
   };
 
   const embed_data = {

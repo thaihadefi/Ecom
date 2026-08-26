@@ -117,5 +117,18 @@ block main
                             b #{(orderDetail.total || 0).toLocaleString("vi-VN")} VND
                 div(class="dashboard_invoice_footer")
                   h4 Note
-                  div #{orderDetail.note}
-                  button.common_btn(type="button" onclick="window.print()") Download Invoice
+                  div #{orderDetail.note || 'No note'}
+                  div(class="d-flex flex-wrap gap-3 align-items-center mt-4")
+                    button.common_btn(type="button" onclick="window.print()") Download Invoice
+                    if (orderDetail.orderStatus === "completed")
+                      button.btn.btn-outline-danger.py-2.px-4(
+                        type="button"
+                        onclick=`window.openSupportChat && window.openSupportChat("Hello Support, I would like to request a Return & Refund for my completed order #${orderDetail.code}. Please assist me with the process.")`
+                        style="border-radius: 30px; font-weight: 600; font-size: 14px;"
+                      )
+                        i.fas.fa-undo.me-2
+                        | Request Return & Refund
+                    else if (orderDetail.orderStatus === "returned")
+                      span.badge.bg-warning.text-dark.p-2.fs-6
+                        i.fas.fa-info-circle.me-1
+                        | This order has been processed for return / refund.

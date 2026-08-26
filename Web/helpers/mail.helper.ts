@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { getApiAppPassword } from "../configs/setting.config";
+import { getApiAppPassword, getGeneral } from "../configs/setting.config";
 
 const BRAND_BLUE = "#0057B7";
 const BRAND_YELLOW = "#FFD700";
@@ -12,8 +12,9 @@ function htmlEscape(str: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function getStoreName(): string {
-  return process.env.WEBSITE_NAME || "Store";
+async function getStoreName(): Promise<string> {
+  const general = await getGeneral();
+  return String(general.websiteName || "Store");
 }
 
 function formatVND(amount: number): string {
@@ -83,7 +84,7 @@ function warningBlock(message: string): string {
 export const emailTemplates = {
 
   forgotPasswordOtp: async (otp: string) => {
-    const storeName = getStoreName();
+    const storeName = await getStoreName();
     return {
       subject: `Password Recovery OTP - ${storeName}`,
       html: buildEmailHtml(
@@ -98,7 +99,7 @@ export const emailTemplates = {
   },
 
   emailChangeOtp: async (otp: string, newEmail: string) => {
-    const storeName = getStoreName();
+    const storeName = await getStoreName();
     return {
       subject: `Email Change Verification - ${storeName}`,
       html: buildEmailHtml(
@@ -114,7 +115,7 @@ export const emailTemplates = {
   },
 
   emailChangeSecurityAlert: async (newEmail: string) => {
-    const storeName = getStoreName();
+    const storeName = await getStoreName();
     return {
       subject: `Security Alert: Email Change Requested - ${storeName}`,
       html: buildEmailHtml(
@@ -132,7 +133,7 @@ export const emailTemplates = {
   },
 
   emailChanged: async (oldEmail: string, newEmail: string) => {
-    const storeName = getStoreName();
+    const storeName = await getStoreName();
     return {
       subject: `Your Email Address Has Been Changed - ${storeName}`,
       html: buildEmailHtml(
@@ -163,7 +164,7 @@ export const emailTemplates = {
     paymentMethod: string;
     coupon?: string;
   }) => {
-    const storeName = getStoreName();
+    const storeName = await getStoreName();
     const itemRows = order.items.map(item => `
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
@@ -205,7 +206,7 @@ export const emailTemplates = {
   },
 
   orderStatusUpdate: async (order: { code: string; fullName: string }, newStatus: string) => {
-    const storeName = getStoreName();
+    const storeName = await getStoreName();
     const label = ORDER_STATUS_LABEL[newStatus] || newStatus;
     const statusColor: Record<string, string> = {
       confirmed: "#16a34a",
@@ -231,7 +232,7 @@ export const emailTemplates = {
   },
 
   passwordChanged: async (email: string) => {
-    const storeName = getStoreName();
+    const storeName = await getStoreName();
     return {
       subject: `Security Alert: Your Password Was Changed - ${storeName}`,
       html: buildEmailHtml(
@@ -253,7 +254,7 @@ export const buildOtpEmail = async (options: {
   expireMinutes?: number;
 }): Promise<string> => {
   const { heading, subtext, otp, expireMinutes = 5 } = options;
-  const storeName = getStoreName();
+  const storeName = await getStoreName();
   return buildEmailHtml(
     storeName,
     heading,

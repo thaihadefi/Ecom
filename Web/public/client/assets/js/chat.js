@@ -165,6 +165,19 @@ if (chatButton) {
     emitChatOpenState(false);
   });
 
+  window.openSupportChat = (prefillMsg) => {
+    if (chatPopup && chatPopup.classList.contains("hidden")) {
+      chatPopup.classList.remove("hidden");
+      chatBody.scrollTop = chatBody.scrollHeight;
+      updateChatBadge(0);
+      emitChatOpenState(isChatVisible());
+    }
+    if (chatInput && prefillMsg) {
+      chatInput.value = prefillMsg;
+      chatInput.focus();
+    }
+  };
+
   const sendMessage = async () => {
     let fileUrls = [];
     if (selectedFiles.length > 0) {
