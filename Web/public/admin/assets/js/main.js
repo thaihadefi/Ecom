@@ -1,4 +1,3 @@
-// Initialize TinyMCE
 const initialTinyMCE = () => {
   tinymce.init({
     selector: '[textarea-mce]',
@@ -29,9 +28,7 @@ const initialTinyMCE = () => {
   });
 }
 initialTinyMCE();
-// End of TinyMCE Initialization
 
-// Create an instance of Notyf
 var notyf = new Notyf({
   duration: 3000,
   position: {
@@ -59,16 +56,14 @@ const drawNotify = (type, message) => {
   }));
 }
 
-// Form submit loading state — disables submit button during async validation/fetch (submit-feedback rule)
 document.addEventListener('submit', function(e) {
   const form = e.target;
   const btn = form.querySelector('[type="submit"]');
   if (!btn) return;
   requestAnimationFrame(() => {
-    if (form.querySelector('.just-validate-error-label')) return; // validation failed, skip
+    if (form.querySelector('.just-validate-error-label')) return;
     btn.classList.add('is-loading');
     btn.setAttribute('disabled', '');
-    // Safety fallback: re-enable after 15s if page hasn't navigated
     setTimeout(() => {
       btn.classList.remove('is-loading');
       btn.removeAttribute('disabled');
@@ -76,7 +71,6 @@ document.addEventListener('submit', function(e) {
   });
 }, true);
 
-// Dashboard date range filter — JustValidate + AJAX
 document.querySelectorAll('[data-date-filter]').forEach(function(form) {
   function isValidDate(val) {
     var m = /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.exec(val);
@@ -114,7 +108,6 @@ document.querySelectorAll('[data-date-filter]').forEach(function(form) {
     });
 });
 
-// Custom confirm modal (replaces window.confirm)
 const showConfirm = ({ title = "Delete", message = "This action cannot be undone.", okText = "Delete", okClass = "btn-danger", onOk }) => {
   const modal = document.querySelector("#modalConfirm");
   if(!modal) { if(confirm(message)) onOk(); return; }
@@ -134,7 +127,6 @@ const showConfirm = ({ title = "Delete", message = "This action cannot be undone
   bsModal.show();
 }
 
-// Initialize JSON Editor
 const jsonEditor = document.querySelector("[json-editor]");
 if(jsonEditor) {
   const editor = new JSONEditor(jsonEditor, {
@@ -142,16 +134,12 @@ if(jsonEditor) {
     modes: ["text", "tree"],
   })
 
-  // Default data
   const data = jsonEditor.getAttribute("data");
   editor.set(data ? JSON.parse(data) : {});
 
-  // Save editor to window object for submit
   window.blockJsonEditor = editor;
 }
-// End of JSON Editor Initialization
 
-// articleCreateCategoryForm
 const articleCreateCategoryForm = document.querySelector("#articleCreateCategoryForm");
 if(articleCreateCategoryForm) {
   const validator = new JustValidate('#articleCreateCategoryForm');
@@ -177,7 +165,6 @@ if(articleCreateCategoryForm) {
       const avatar = event.target.avatar.value;
       const description = tinymce.get("description").getContent();
 
-      // Create formData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("slug", slug);
@@ -203,9 +190,7 @@ if(articleCreateCategoryForm) {
         })
     });
 }
-// End articleCreateCategoryForm
 
-// articleEditCategoryForm
 const articleEditCategoryForm = document.querySelector("#articleEditCategoryForm");
 if(articleEditCategoryForm) {
   const validator = new JustValidate('#articleEditCategoryForm');
@@ -232,7 +217,6 @@ if(articleEditCategoryForm) {
       const avatar = event.target.avatar.value;
       const description = tinymce.get("description").getContent();
 
-      // Create formData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("slug", slug);
@@ -257,9 +241,7 @@ if(articleEditCategoryForm) {
         })
     });
 }
-// End articleEditCategoryForm
 
-// btn-generate-slug
 const buttonGenerateSlug = document.querySelector("[btn-generate-slug]");
 if(buttonGenerateSlug) {
   buttonGenerateSlug.addEventListener("click", () => {
@@ -267,7 +249,7 @@ if(buttonGenerateSlug) {
     const from = buttonGenerateSlug.getAttribute("from");
     const to = buttonGenerateSlug.getAttribute("to");
     const string = document.querySelector(`[name="${from}"]`).value;
-    
+
     const dataFinal = {
       string: string,
       modalName: modalName
@@ -292,9 +274,7 @@ if(buttonGenerateSlug) {
       })
   })
 }
-// End btn-generate-slug
 
-// button-api
 const listButtonApi = document.querySelectorAll("[button-api]");
 if(listButtonApi.length > 0) {
   listButtonApi.forEach(button => {
@@ -343,9 +323,7 @@ if(listButtonApi.length > 0) {
     })
   })
 }
-// End button-api
 
-// form-search
 const formSearch = document.querySelector("[form-search]");
 if(formSearch) {
   const url = new URL(window.location.href);
@@ -361,15 +339,12 @@ if(formSearch) {
     window.location.href = url.href;
   })
 
-  // Display default values
   const valueCurrent = url.searchParams.get("keyword");
   if(valueCurrent) {
     formSearch.keyword.value = valueCurrent;
   }
 }
-// End form-search
 
-// pagination
 document.querySelectorAll("[paginate]").forEach(el => {
   el.addEventListener("click", () => {
     const page = parseInt(el.getAttribute("data-page"));
@@ -379,9 +354,7 @@ document.querySelectorAll("[paginate]").forEach(el => {
     window.location.href = url.href;
   });
 });
-// End pagination
 
-// button-select-file (send file path to parent window when inside modal iframe)
 const listButtonSelectFile = document.querySelectorAll("[button-select-file]");
 if(listButtonSelectFile.length > 0) {
   listButtonSelectFile.forEach(button => {
@@ -391,9 +364,7 @@ if(listButtonSelectFile.length > 0) {
     })
   })
 }
-// End button-select-file
 
-// button-copy
 const listButtonCopy = document.querySelectorAll("[button-copy]");
 if(listButtonCopy.length > 0) {
   listButtonCopy.forEach(button => {
@@ -404,14 +375,11 @@ if(listButtonCopy.length > 0) {
     })
   })
 }
-// End button-copy
 
-// Modal Preview File
 const modalPreviewFile = document.querySelector("#modalPreviewFile");
 if(modalPreviewFile) {
   const innerPreview = modalPreviewFile.querySelector(".inner-preview");
 
-  // Button click event
   let buttonClicked = null;
 
   const listButtonPreviewFile = document.querySelectorAll("[button-preview-file]");
@@ -421,18 +389,15 @@ if(modalPreviewFile) {
     })
   })
 
-  // Modal close event
   modalPreviewFile.addEventListener('hidden.bs.modal', event => {
     buttonClicked = null;
     innerPreview.innerHTML = "";
   })
 
-  // Modal open event
   modalPreviewFile.addEventListener('shown.bs.modal', event => {
     const file = buttonClicked.getAttribute("data-file");
     const mimetype = buttonClicked.getAttribute("data-mimetype");
 
-    // If image file
     if(mimetype.includes("image")) {
       innerPreview.innerHTML = `
         <img src="${file}" width="100%" />
@@ -459,9 +424,7 @@ if(modalPreviewFile) {
     }
   })
 }
-// End Modal Preview File
 
-// Modal Change File Name
 const modalChangeFileName = document.querySelector("#modalChangeFileName");
 if(modalChangeFileName) {
   const form = modalChangeFileName.querySelector("form");
@@ -526,9 +489,7 @@ if(modalChangeFileName) {
     changeFileNameValidator.refresh();
   });
 }
-// End Modal Change File Name
 
-// Button Delete File
 const listButtonDeleteFile = document.querySelectorAll("[button-delete-file]");
 if(listButtonDeleteFile.length > 0) {
   listButtonDeleteFile.forEach(button => {
@@ -553,9 +514,7 @@ if(listButtonDeleteFile.length > 0) {
     })
   })
 }
-// End Button Delete File
 
-// Form Create Folder
 const formCreateFolder = document.querySelector("#formCreateFolder");
 if(formCreateFolder) {
   const INVALID_FOLDER_CHARS = /[/\\:*?"<>|]|\.\./;
@@ -587,9 +546,7 @@ if(formCreateFolder) {
         });
     });
 }
-// End Form Create Folder
 
-// Button To Folder
 const listButtonToFolder = document.querySelectorAll("[button-to-folder]");
 if(listButtonToFolder.length > 0) {
   const url = new URL(window.location.href);
@@ -611,9 +568,7 @@ if(listButtonToFolder.length > 0) {
     })
   })
 }
-// End Button To Folder
 
-// Breadcrumb Folder
 const breadcumbFolder = document.querySelector("[breadcumb-folder]");
 if(breadcumbFolder) {
   const urlParams = new URLSearchParams(window.location.search);
@@ -645,9 +600,7 @@ if(breadcumbFolder) {
   });
   breadcumbFolder.innerHTML = htmls;
 }
-// End Breadcrumb Folder
 
-// Button Delete Folder
 const listButtonDeleteFolder = document.querySelectorAll("[button-delete-folder]");
 if(listButtonDeleteFolder.length > 0) {
   listButtonDeleteFolder.forEach(button => {
@@ -685,9 +638,7 @@ if(listButtonDeleteFolder.length > 0) {
     })
   })
 }
-// End Button Delete Folder
 
-// Rename Folder
 const modalRenameFolder = document.querySelector("#modalRenamefolder");
 const formRenameFolder = document.querySelector("#formRenameFolder");
 if (modalRenameFolder && formRenameFolder) {
@@ -750,9 +701,7 @@ if (modalRenameFolder && formRenameFolder) {
     formRenameFolder.newFolderName.select();
   });
 }
-// End Rename Folder
 
-// Cut & Paste (Files + Folders)
 const pasteContainer = document.querySelector("#paste-container");
 const cuttingItemName = document.querySelector("#cutting-item-name");
 const cuttingItemType = document.querySelector("#cutting-item-type");
@@ -774,7 +723,6 @@ function showCutBanner(name, type) {
 }
 
 if (pasteContainer) {
-  // Restore cut state on page load
   const savedFileFolder = sessionStorage.getItem("cutFileFolder");
   const savedFileName = sessionStorage.getItem("cutFileName");
   const savedFolderPath = sessionStorage.getItem("cutFolderPath");
@@ -786,7 +734,6 @@ if (pasteContainer) {
     showCutBanner(name, "folder");
   }
 
-  // Cut file
   document.querySelectorAll("[button-cut-file]").forEach(button => {
     button.addEventListener("click", () => {
       const folder = button.getAttribute("data-file-folder");
@@ -800,7 +747,6 @@ if (pasteContainer) {
     });
   });
 
-  // Cut folder
   document.querySelectorAll("[button-cut-folder]").forEach(button => {
     button.addEventListener("click", () => {
       const folderName = button.getAttribute("data-folder-name");
@@ -815,7 +761,6 @@ if (pasteContainer) {
     });
   });
 
-  // Cancel
   const buttonCancelCut = document.querySelector("[button-cancel-cut]");
   if (buttonCancelCut) {
     buttonCancelCut.addEventListener("click", () => {
@@ -824,7 +769,6 @@ if (pasteContainer) {
     });
   }
 
-  // Paste
   if (buttonPasteItem) {
     buttonPasteItem.addEventListener("click", () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -833,7 +777,6 @@ if (pasteContainer) {
 
       const cutFolderPath = sessionStorage.getItem("cutFolderPath");
       if (cutFolderPath) {
-        // Paste folder
         const formData = new FormData();
         formData.append("folderPath", cutFolderPath);
         formData.append("targetFolder", targetFolderFull);
@@ -857,7 +800,6 @@ if (pasteContainer) {
       const fileName = sessionStorage.getItem("cutFileName");
       if (!folder || !fileName) { notyf.error("Nothing selected to move."); return; }
 
-      // Paste file
       const formData = new FormData();
       formData.append("folder", folder);
       formData.append("fileName", fileName);
@@ -878,10 +820,7 @@ if (pasteContainer) {
     });
   }
 }
-// End Cut & Paste (Files + Folders)
 
-
-// Form Group File
 let activeInputFile = null;
 let activeMultiFileList = null;
 
@@ -897,7 +836,6 @@ if(listFormGroupFile.length > 0) {
       previewFile.querySelector("img").src = `${domainCDN}${value}`;
     })
 
-    // Track which input is active when modal is opened
     if(selectButton) {
       selectButton.addEventListener("click", () => {
         activeInputFile = inputFile;
@@ -905,7 +843,6 @@ if(listFormGroupFile.length > 0) {
       })
     }
 
-    // Display defaults
     if(inputFile.value) {
       const value = inputFile.value;
       previewFile.querySelector("img").src = `${domainCDN}${value}`;
@@ -913,7 +850,6 @@ if(listFormGroupFile.length > 0) {
   })
 }
 
-// Track multi-file select buttons
 const listFormMultiFile = document.querySelectorAll(".form-multi-file");
 if(listFormMultiFile.length > 0) {
   listFormMultiFile.forEach(formMultiFile => {
@@ -928,7 +864,6 @@ if(listFormMultiFile.length > 0) {
   })
 }
 
-// Listen for file selection from file manager iframe
 window.addEventListener("message", (event) => {
   if(!event.data || !event.data.fileLink) return;
 
@@ -962,9 +897,7 @@ window.addEventListener("message", (event) => {
     activeMultiFileList = null;
   }
 })
-// End Form Group File
 
-// Checkbox List
 const getCheckboxList = (name) => {
   const checkboxList = document.querySelector(`[checkbox-list="${name}"]`);
   const inputList = checkboxList.querySelectorAll(`input[type="checkbox"]:checked`);
@@ -977,9 +910,7 @@ const getCheckboxList = (name) => {
   })
   return idList;
 }
-// End Checkbox List
 
-// Get Multi File
 const getMultiFile = (name) => {
   const boxMultiFile = document.querySelector(`[multi-file="${name}"]`);
   const listImage = boxMultiFile.querySelectorAll(`img[src-relative]`);
@@ -992,9 +923,7 @@ const getMultiFile = (name) => {
   })
   return listLink;
 }
-// End Get Multi File
 
-// Option List
 const getOptionList = (name) => {
   const optionList = document.querySelectorAll(`[box-option="${name}"] .option-list .option-item`);
   const dataFinal = [];
@@ -1009,12 +938,10 @@ const getOptionList = (name) => {
       });
     }
   })
-  
+
   return dataFinal;
 }
-// End Option List
 
-// Article Create Form
 const articleCreateForm = document.querySelector("#articleCreateForm");
 if(articleCreateForm) {
   const validation = new JustValidate('#articleCreateForm');
@@ -1041,7 +968,6 @@ if(articleCreateForm) {
       const description = tinymce.get("description").getContent();
       const content = tinymce.get("content").getContent();
 
-      // Create FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("slug", slug);
@@ -1050,7 +976,7 @@ if(articleCreateForm) {
       formData.append("avatar", avatar);
       formData.append("description", description);
       formData.append("content", content);
-      
+
       fetch(`/${pathAdmin}/article/create`, {
         method: "POST",
         body: formData
@@ -1069,9 +995,7 @@ if(articleCreateForm) {
     })
   ;
 }
-// End Article Create Form
 
-// Article Edit Form
 const articleEditForm = document.querySelector("#articleEditForm");
 if(articleEditForm) {
   const validation = new JustValidate('#articleEditForm');
@@ -1099,7 +1023,6 @@ if(articleEditForm) {
       const description = tinymce.get("description").getContent();
       const content = tinymce.get("content").getContent();
 
-      // Create FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("slug", slug);
@@ -1108,7 +1031,7 @@ if(articleEditForm) {
       formData.append("avatar", avatar);
       formData.append("description", description);
       formData.append("content", content);
-      
+
       fetch(`/${pathAdmin}/article/edit/${id}`, {
         method: "PATCH",
         body: formData
@@ -1126,9 +1049,7 @@ if(articleEditForm) {
     })
   ;
 }
-// End Article Edit Form
 
-// Role Create Form
 const roleCreateForm = document.querySelector("#roleCreateForm");
 if(roleCreateForm) {
   const validation = new JustValidate('#roleCreateForm');
@@ -1146,13 +1067,12 @@ if(roleCreateForm) {
       const permissions = getCheckboxList("permissions");
       const status = event.target.status.value;
 
-      // Create FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("description", description);
       formData.append("permissions", JSON.stringify(permissions));
       formData.append("status", status);
-      
+
       fetch(`/${pathAdmin}/role/create`, {
         method: "POST",
         body: formData
@@ -1171,9 +1091,7 @@ if(roleCreateForm) {
     })
   ;
 }
-// End Role Create Form
 
-// Role Edit Form
 const roleEditForm = document.querySelector("#roleEditForm");
 if(roleEditForm) {
   const validation = new JustValidate('#roleEditForm');
@@ -1192,13 +1110,12 @@ if(roleEditForm) {
       const permissions = getCheckboxList("permissions");
       const status = event.target.status.value;
 
-      // Create FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("description", description);
       formData.append("permissions", JSON.stringify(permissions));
       formData.append("status", status);
-      
+
       fetch(`/${pathAdmin}/role/edit/${id}`, {
         method: "PATCH",
         body: formData
@@ -1216,9 +1133,7 @@ if(roleEditForm) {
     })
   ;
 }
-// End Role Edit Form
 
-// Account Admin Create Form
 const accountAdminCreateForm = document.querySelector("#accountAdminCreateForm");
 if(accountAdminCreateForm) {
   const validation = new JustValidate('#accountAdminCreateForm');
@@ -1284,7 +1199,6 @@ if(accountAdminCreateForm) {
       const avatar = event.target.avatar.value;
       const roles = getCheckboxList("roles");
 
-      // Create FormData
       const formData = new FormData();
       formData.append("fullName", fullName);
       formData.append("email", email);
@@ -1292,7 +1206,7 @@ if(accountAdminCreateForm) {
       formData.append("status", status);
       formData.append("avatar", avatar);
       formData.append("roles", JSON.stringify(roles));
-      
+
       fetch(`/${pathAdmin}/account-admin/create`, {
         method: "POST",
         body: formData
@@ -1311,9 +1225,7 @@ if(accountAdminCreateForm) {
     })
   ;
 }
-// End Account Admin Create Form
 
-// Account Admin Edit Form
 const accountAdminEditForm = document.querySelector("#accountAdminEditForm");
 if(accountAdminEditForm) {
   const validation = new JustValidate('#accountAdminEditForm');
@@ -1353,14 +1265,13 @@ if(accountAdminEditForm) {
       const avatar = event.target.avatar.value;
       const roles = getCheckboxList("roles");
 
-      // Create FormData
       const formData = new FormData();
       formData.append("fullName", fullName);
       formData.append("email", email);
       formData.append("status", status);
       formData.append("avatar", avatar);
       formData.append("roles", JSON.stringify(roles));
-      
+
       fetch(`/${pathAdmin}/account-admin/edit/${id}`, {
         method: "PATCH",
         body: formData
@@ -1378,9 +1289,7 @@ if(accountAdminEditForm) {
     })
   ;
 }
-// End Account Admin Edit Form
 
-// Account Admin Change Password Form
 const accountAdminChangePasswordForm = document.querySelector("#accountAdminChangePasswordForm");
 if(accountAdminChangePasswordForm) {
   const validation = new JustValidate('#accountAdminChangePasswordForm');
@@ -1416,10 +1325,9 @@ if(accountAdminChangePasswordForm) {
       const id = event.target.id.value;
       const password = event.target.password.value;
 
-      // Create FormData
       const formData = new FormData();
       formData.append("password", password);
-      
+
       fetch(`/${pathAdmin}/account-admin/change-password/${id}`, {
         method: "PATCH",
         body: formData
@@ -1437,9 +1345,7 @@ if(accountAdminChangePasswordForm) {
     })
   ;
 }
-// End Account Admin Change Password Form
 
-// Account Login Form
 const accountLoginForm = document.querySelector("#accountLoginForm");
 if(accountLoginForm) {
   const validation = new JustValidate('#accountLoginForm');
@@ -1466,12 +1372,11 @@ if(accountLoginForm) {
       const password = event.target.password.value;
       const rememberPassword = event.target.rememberPassword.checked;
 
-      // Create FormData
       const formData = new FormData();
       formData.append("email", email);
       formData.append("password", password);
       formData.append("rememberPassword", rememberPassword);
-      
+
       fetch(`/${pathAdmin}/account/login`, {
         method: "POST",
         body: formData
@@ -1490,9 +1395,7 @@ if(accountLoginForm) {
     })
   ;
 }
-// End Account Login Form
 
-// Product Create Category Form
 const productCreateCategoryForm = document.querySelector("#productCreateCategoryForm");
 if(productCreateCategoryForm) {
   const validation = new JustValidate('#productCreateCategoryForm');
@@ -1518,7 +1421,6 @@ if(productCreateCategoryForm) {
       const avatar = event.target.avatar.value;
       const description = tinymce.get("description").getContent();
 
-      // Create FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("slug", slug);
@@ -1526,7 +1428,7 @@ if(productCreateCategoryForm) {
       formData.append("status", status);
       formData.append("avatar", avatar);
       formData.append("description", description);
-      
+
       fetch(`/${pathAdmin}/product/category/create`, {
         method: "POST",
         body: formData
@@ -1545,9 +1447,7 @@ if(productCreateCategoryForm) {
     })
   ;
 }
-// End Product Create Category Form
 
-// productEditCategoryForm
 const productEditCategoryForm = document.querySelector("#productEditCategoryForm");
 if(productEditCategoryForm) {
   const validator = new JustValidate('#productEditCategoryForm');
@@ -1574,7 +1474,6 @@ if(productEditCategoryForm) {
       const avatar = event.target.avatar.value;
       const description = tinymce.get("description").getContent();
 
-      // Create formData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("slug", slug);
@@ -1599,9 +1498,7 @@ if(productEditCategoryForm) {
         })
     });
 }
-// End productEditCategoryForm
 
-// Product Create Form
 const productCreateForm = document.querySelector("#productCreateForm");
 if(productCreateForm) {
   const validation = new JustValidate('#productCreateForm');
@@ -1633,7 +1530,6 @@ if(productCreateForm) {
       const stock = event.target.stock.value;
       const attributes = getCheckboxList("attributes");
 
-      // variants
       const variants = [];
       const listTr = document.querySelectorAll("[variant-table] tbody tr");
       listTr.forEach(tr => {
@@ -1663,19 +1559,13 @@ if(productCreateForm) {
           stock: stock,
         });
       })
-      // End variants
 
-      // tags
       const selectTag = document.querySelector(`select[name="tags"]`);
       const tags = Array.from(selectTag.selectedOptions).map(option => option.value);
-      // End tags
 
-      // boughtTogether
       const selectBoughtTogether = document.querySelector(`select[name="boughtTogether"]`);
       const boughtTogether = Array.from(selectBoughtTogether.selectedOptions).map(option => option.value);
-      // End boughtTogether
 
-      // Create FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("slug", slug);
@@ -1692,7 +1582,7 @@ if(productCreateForm) {
       formData.append("variants", JSON.stringify(variants));
       formData.append("tags", JSON.stringify(tags));
       formData.append("boughtTogether", JSON.stringify(boughtTogether));
-      
+
       fetch(`/${pathAdmin}/product/create`, {
         method: "POST",
         body: formData
@@ -1711,9 +1601,7 @@ if(productCreateForm) {
     })
   ;
 }
-// End Product Create Form
 
-// Product Edit Form
 const productEditForm = document.querySelector("#productEditForm");
 if(productEditForm) {
   const validation = new JustValidate('#productEditForm');
@@ -1746,7 +1634,6 @@ if(productEditForm) {
       const stock = event.target.stock.value;
       const attributes = getCheckboxList("attributes");
 
-      // variants
       const variants = [];
       const listTr = document.querySelectorAll("[variant-table] tbody tr");
       listTr.forEach(tr => {
@@ -1776,19 +1663,13 @@ if(productEditForm) {
           stock: stock,
         });
       })
-      // End variants
 
-      // tags
       const selectTag = document.querySelector(`select[name="tags"]`);
       const tags = Array.from(selectTag.selectedOptions).map(option => option.value);
-      // End tags
 
-      // boughtTogether
       const selectBoughtTogether = document.querySelector(`select[name="boughtTogether"]`);
       const boughtTogether = Array.from(selectBoughtTogether.selectedOptions).map(option => option.value);
-      // End boughtTogether
 
-      // Create FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("slug", slug);
@@ -1805,7 +1686,7 @@ if(productEditForm) {
       formData.append("variants", JSON.stringify(variants));
       formData.append("tags", JSON.stringify(tags));
       formData.append("boughtTogether", JSON.stringify(boughtTogether));
-      
+
       fetch(`/${pathAdmin}/product/edit/${id}`, {
         method: "PATCH",
         body: formData
@@ -1823,9 +1704,7 @@ if(productEditForm) {
     })
   ;
 }
-// End Product Edit Form
 
-// Checkbox Multi
 const listCheckboxInput = document.querySelectorAll(".checkbox-input");
 if(listCheckboxInput.length > 0) {
   const inputCheckboxAll = document.querySelector(".checkbox-all");
@@ -1855,10 +1734,7 @@ if(listCheckboxInput.length > 0) {
     });
   });
 }
-// End Checkbox Multi
 
-// Helper: bulk fetch
-// If button has data-value, always uses PATCH and sends { value, ids } to support change-multi endpoints
 const bulkFetch = (button, method, confirmTitle, confirmMsg, okText = "Delete", okClass = "btn-danger") => {
   if(!button) return;
   button.addEventListener("click", () => {
@@ -1889,7 +1765,6 @@ const bulkFetch = (button, method, confirmTitle, confirmMsg, okText = "Delete", 
   });
 };
 
-// Button Delete Many (permanent — trash page)
 bulkFetch(
   document.querySelector("[button-delete-many]"),
   "DELETE",
@@ -1899,7 +1774,6 @@ bulkFetch(
   "btn-danger"
 );
 
-// Button Soft Delete Many (move to trash — list page)
 bulkFetch(
   document.querySelector("[button-soft-delete-many]"),
   "PATCH",
@@ -1909,7 +1783,6 @@ bulkFetch(
   "btn-danger"
 );
 
-// Button Restore Many (trash page)
 bulkFetch(
   document.querySelector("[button-restore-many]"),
   "PATCH",
@@ -1919,7 +1792,6 @@ bulkFetch(
   "btn-success"
 );
 
-// Button Copy Multi
 const buttonCopyMulti = document.querySelector("[button-copy-multi]");
 if(buttonCopyMulti) {
   buttonCopyMulti.addEventListener("click", () => {
@@ -1932,9 +1804,7 @@ if(buttonCopyMulti) {
     notyf.success("Copied!");
   })
 }
-// End Button Copy Multi
 
-// Button Paste
 const listButtonPaste = document.querySelectorAll("[button-paste]");
 if(listButtonPaste) {
   listButtonPaste.forEach(buttonPaste => {
@@ -1958,9 +1828,7 @@ if(listButtonPaste) {
     });
   })
 }
-// End Button Paste
 
-// Button Remove Image
 const listElementListImage = document.querySelectorAll(".form-multi-file .inner-list-image");
 if(listElementListImage.length > 0) {
   listElementListImage.forEach(elementListImage => {
@@ -1974,15 +1842,12 @@ if(listElementListImage.length > 0) {
     })
   })
 }
-// End Button Remove Image
 
-// box-option
 const boxOption = document.querySelector("[box-option]");
 if(boxOption) {
   const optionList = boxOption.querySelector(".option-list");
   const optionCreate = boxOption.querySelector(".option-create");
 
-  // Create option
   optionCreate.addEventListener("click", () => {
     const newItem = `
       <div class="option-item">
@@ -1997,7 +1862,6 @@ if(boxOption) {
     optionList.insertAdjacentHTML("beforeend", newItem);
   })
 
-  // Delete option
   optionList.addEventListener("click", (event) => {
     if(event.target.closest(".option-remove")) {
       const parentItem = event.target.closest(".option-item");
@@ -2007,15 +1871,12 @@ if(boxOption) {
     }
   })
 
-  // Sort
   new Sortable(optionList, {
     animation: 150,
     handle: '.option-move',
   });
 }
-// End box-option
 
-// Product Create Attribute Form
 const productCreateAttributeForm = document.querySelector("#productCreateAttributeForm");
 if(productCreateAttributeForm) {
   const validation = new JustValidate('#productCreateAttributeForm');
@@ -2032,12 +1893,11 @@ if(productCreateAttributeForm) {
       const type = event.target.type.value;
       const options = getOptionList("options");
 
-      // Create FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("type", type);
       formData.append("options", JSON.stringify(options));
-      
+
       fetch(`/${pathAdmin}/product/attribute/create`, {
         method: "POST",
         body: formData
@@ -2056,9 +1916,7 @@ if(productCreateAttributeForm) {
     })
   ;
 }
-// End Product Create Attribute Form
 
-// Product Edit Attribute Form
 const productEditAttributeForm = document.querySelector("#productEditAttributeForm");
 if(productEditAttributeForm) {
   const validation = new JustValidate('#productEditAttributeForm');
@@ -2076,12 +1934,11 @@ if(productEditAttributeForm) {
       const type = event.target.type.value;
       const options = getOptionList("options");
 
-      // Create FormData
       const formData = new FormData();
       formData.append("name", name);
       formData.append("type", type);
       formData.append("options", JSON.stringify(options));
-      
+
       fetch(`/${pathAdmin}/product/attribute/edit/${id}`, {
         method: "PATCH",
         body: formData
@@ -2099,11 +1956,8 @@ if(productEditAttributeForm) {
     })
   ;
 }
-// End Product Edit Attribute Form
 
-// button-render-variant
 const generateVariants = (attributes) => {
-  // Step 1: Get list of options for each attribute
   const optionList = attributes.map(attribute =>
     attribute.options.map(option => ({
       attrId: attribute._id,
@@ -2113,7 +1967,6 @@ const generateVariants = (attributes) => {
     }))
   )
 
-  // Step 2: Generate combination of variants
   const variantList = optionList.reduce((a, b) => a.flatMap(x => b.map(y => [...x, y])), [[]]);
 
   return variantList;
@@ -2127,10 +1980,8 @@ if(buttonRenderVariant) {
     const attributeListChecked = attributeList.filter(item => idList.includes(item._id));
     const variantList = generateVariants(attributeListChecked);
 
-    // Get table
     const variantTable = document.querySelector("[variant-table]");
 
-    // Display column header
     const variantHead = variantTable.querySelector("thead tr");
     let variantHeadHTML = "";
     variantHeadHTML += `
@@ -2148,7 +1999,6 @@ if(buttonRenderVariant) {
     `;
     variantHead.innerHTML = variantHeadHTML;
 
-    // Display rows
     const variantBody = variantTable.querySelector("tbody");
     const priceOld = document.querySelector(`[name="priceOld"]`).value;
     const priceNew = document.querySelector(`[name="priceNew"]`).value;
@@ -2186,9 +2036,7 @@ if(buttonRenderVariant) {
     variantBody.innerHTML = variantBodyHTML;
   })
 }
-// End button-render-variant
 
-// select-tag
 const listSelectTag = document.querySelectorAll("[select-tag]");
 if(listSelectTag.length > 0) {
   listSelectTag.forEach(selectTag => {
@@ -2198,7 +2046,6 @@ if(listSelectTag.length > 0) {
       taggable: taggable == "false" ? false : true
     });
 
-    // Prevent form submit event
     const inputTag = selectTag.closest(".selectr-container").querySelector(".selectr-tag-input");
     if(inputTag) {
       inputTag.addEventListener("keydown", (event) => {
@@ -2209,9 +2056,7 @@ if(listSelectTag.length > 0) {
     }
   })
 }
-// End select-tag
 
-// formImportExcel
 const formImportExcel = document.querySelector("#formImportExcel");
 if(formImportExcel) {
   const validation = new JustValidate('#formImportExcel');
@@ -2236,13 +2081,12 @@ if(formImportExcel) {
     ])
     .onSuccess((event) => {
       const fileInput = event.target.querySelector("#file");
-      const file = fileInput.files[0]; // only get the first file
+      const file = fileInput.files[0];
       const api = formImportExcel.getAttribute("data-api");
 
-      // Create FormData
       const formData = new FormData();
       formData.append("file", file);
-      
+
       fetch(api, {
         method: "POST",
         body: formData
@@ -2261,18 +2105,14 @@ if(formImportExcel) {
     })
   ;
 }
-// End formImportExcel
 
-// date-range
 const dateRange = document.querySelector("[date-range]");
 if(dateRange) {
   new DateRangePicker(dateRange, {
     format: 'dd/mm/yyyy'
   });
 }
-// End date-range
 
-// Coupon Create Form
 const couponCreateForm = document.querySelector("#couponCreateForm");
 if(couponCreateForm) {
   const validation = new JustValidate('#couponCreateForm');
@@ -2304,7 +2144,6 @@ if(couponCreateForm) {
       const endDate = event.target.endDate.value;
       const description = tinymce.get("description").getContent();
 
-      // Create FormData
       const formData = new FormData();
       formData.append("code", code);
       formData.append("name", name);
@@ -2318,7 +2157,7 @@ if(couponCreateForm) {
       formData.append("startDate", startDate);
       formData.append("endDate", endDate);
       formData.append("description", description);
-      
+
       fetch(`/${pathAdmin}/coupon/create`, {
         method: "POST",
         body: formData
@@ -2337,9 +2176,7 @@ if(couponCreateForm) {
     })
   ;
 }
-// End Coupon Create Form
 
-// Coupon Edit Form
 const couponEditForm = document.querySelector("#couponEditForm");
 if(couponEditForm) {
   const validation = new JustValidate('#couponEditForm');
@@ -2372,7 +2209,6 @@ if(couponEditForm) {
       const endDate = event.target.endDate.value;
       const description = tinymce.get("description").getContent();
 
-      // Create FormData
       const formData = new FormData();
       formData.append("code", code);
       formData.append("name", name);
@@ -2386,7 +2222,7 @@ if(couponEditForm) {
       formData.append("startDate", startDate);
       formData.append("endDate", endDate);
       formData.append("description", description);
-      
+
       fetch(`/${pathAdmin}/coupon/edit/${id}`, {
         method: "PATCH",
         body: formData
@@ -2404,9 +2240,7 @@ if(couponEditForm) {
     })
   ;
 }
-// End Coupon Edit Form
 
-// format-money
 const listFormatMoney = document.querySelectorAll("[format-money]");
 if(listFormatMoney.length > 0) {
   listFormatMoney.forEach(input => {
@@ -2419,9 +2253,7 @@ if(listFormatMoney.length > 0) {
     })
   })
 }
-// End format-money
 
-// Setting Api Shipping Form
 const settingApiShippingForm = document.querySelector("#settingApiShippingForm");
 if(settingApiShippingForm) {
   const validation = new JustValidate('#settingApiShippingForm');
@@ -2430,11 +2262,10 @@ if(settingApiShippingForm) {
     .onSuccess((event) => {
       const tokenGoShip = event.target.tokenGoShip.value;
 
-      // Create FormData
       const dataFinal = {
         tokenGoShip: tokenGoShip
       };
-      
+
       fetch(`/${pathAdmin}/setting/api-shipping`, {
         method: "PATCH",
         headers: {
@@ -2455,9 +2286,7 @@ if(settingApiShippingForm) {
     })
   ;
 }
-// End Setting Api Shipping Form
 
-// Setting Api Payment Form
 const settingApiPaymentForm = document.querySelector("#settingApiPaymentForm");
 if(settingApiPaymentForm) {
   const validation = new JustValidate('#settingApiPaymentForm');
@@ -2472,7 +2301,6 @@ if(settingApiPaymentForm) {
       const vnPayHashSecret = event.target.vnPayHashSecret.value;
       const vnPayURL = event.target.vnPayURL.value;
 
-      // Create dataFinal
       const dataFinal = {
         zaloPayAppId: zaloPayAppId,
         zaloPayKey1: zaloPayKey1,
@@ -2482,7 +2310,7 @@ if(settingApiPaymentForm) {
         vnPayHashSecret: vnPayHashSecret,
         vnPayURL: vnPayURL,
       };
-      
+
       fetch(`/${pathAdmin}/setting/api-payment`, {
         method: "PATCH",
         headers: {
@@ -2503,9 +2331,7 @@ if(settingApiPaymentForm) {
     })
   ;
 }
-// End Setting Api Payment Form
 
-// Setting Api Login Social Form
 const settingApiLoginSocialForm = document.querySelector("#settingApiLoginSocialForm");
 if(settingApiLoginSocialForm) {
   const validation = new JustValidate('#settingApiLoginSocialForm');
@@ -2519,7 +2345,6 @@ if(settingApiLoginSocialForm) {
       const facebookAppSecret = event.target.facebookAppSecret.value;
       const facebookCallbackUrl = event.target.facebookCallbackUrl.value;
 
-      // Create dataFinal
       const dataFinal = {
         googleClientId: googleClientId,
         googleClientSecret: googleClientSecret,
@@ -2528,7 +2353,7 @@ if(settingApiLoginSocialForm) {
         facebookAppSecret: facebookAppSecret,
         facebookCallbackUrl: facebookCallbackUrl,
       };
-      
+
       fetch(`/${pathAdmin}/setting/api-login-social`, {
         method: "PATCH",
         headers: {
@@ -2549,9 +2374,7 @@ if(settingApiLoginSocialForm) {
     })
   ;
 }
-// End Setting Api Login Social Form
 
-// Setting Api App Password Form
 const settingApiAppPasswordForm = document.querySelector("#settingApiAppPasswordForm");
 if(settingApiAppPasswordForm) {
   const validation = new JustValidate('#settingApiAppPasswordForm');
@@ -2561,12 +2384,11 @@ if(settingApiAppPasswordForm) {
       const gmailUser = event.target.gmailUser.value;
       const gmailPassword = event.target.gmailPassword.value;
 
-      // Create dataFinal
       const dataFinal = {
         gmailUser: gmailUser,
         gmailPassword: gmailPassword,
       };
-      
+
       fetch(`/${pathAdmin}/setting/api-app-password`, {
         method: "PATCH",
         headers: {
@@ -2587,9 +2409,7 @@ if(settingApiAppPasswordForm) {
     })
   ;
 }
-// End Setting Api App Password Form
 
-// Setting General Form
 const settingGeneralForm = document.querySelector("#settingGeneralForm");
 if(settingGeneralForm) {
   const validation = new JustValidate('#settingGeneralForm');
@@ -2600,13 +2420,12 @@ if(settingGeneralForm) {
       const logo = event.target.logo.value;
       const favicon = event.target.favicon.value;
 
-      // Create dataFinal
       const dataFinal = {
         domainWebsite: domainWebsite,
         logo: logo,
         favicon: favicon,
       };
-      
+
       fetch(`/${pathAdmin}/setting/general`, {
         method: "PATCH",
         headers: {
@@ -2627,9 +2446,7 @@ if(settingGeneralForm) {
     })
   ;
 }
-// End Setting General Form
 
-// Order Edit Form
 const orderEditForm = document.querySelector("#orderEditForm");
 if (orderEditForm) {
   const validation = new JustValidate('#orderEditForm');
@@ -2669,13 +2486,11 @@ if (orderEditForm) {
         });
     });
 }
-// End Order Edit Form
 
-// Product Edit SEO Form
 const productEditSeoForm = document.querySelector("#productEditSeoForm");
 if (productEditSeoForm) {
   const validation = new JustValidate("#productEditSeoForm");
-  
+
   validation
     .addField("#seoTitle", [
       {
@@ -2707,22 +2522,18 @@ if (productEditSeoForm) {
     ])
     .onSuccess((event) => {
       const id = event.target.id.value;
-      // Basic SEO
       const seoTitle = event.target.seoTitle.value;
       const seoDescription = event.target.seoDescription.value;
-      const selectSeoKeywords = document.querySelector("select[name='seoKeywords']"); // Get SEO Keywords
+      const selectSeoKeywords = document.querySelector("select[name='seoKeywords']");
       const seoKeywords = Array.from(selectSeoKeywords.selectedOptions).map(opt => opt.value);
 
-      // Robots
       const seoRobotsIndex = event.target.seoRobotsIndex.checked;
       const seoRobotsFollow = event.target.seoRobotsFollow.checked;
-      
-      // Open Graph
+
       const seoOgTitle = event.target.seoOgTitle.value;
       const seoOgImage = event.target.seoOgImage.value;
       const seoOgDescription = event.target.seoOgDescription.value;
-      
-      // Create FormData
+
       const formData = new FormData();
       formData.append("seoTitle", seoTitle);
       formData.append("seoDescription", seoDescription);
@@ -2753,9 +2564,7 @@ if (productEditSeoForm) {
         });
     });
 }
-// End Product Edit SEO Form
 
-// Block Create Form
 const blockCreateForm = document.querySelector("#blockCreateForm");
 if(blockCreateForm) {
   const validation = new JustValidate('#blockCreateForm');
@@ -2778,7 +2587,6 @@ if(blockCreateForm) {
       const fileName = event.target.fileName.value;
       const status = event.target.status.value;
 
-      // Data field
       let dataObject = {};
       try {
         dataObject = window.blockJsonEditor.get();
@@ -2786,7 +2594,6 @@ if(blockCreateForm) {
         notyf.error("Invalid JSON data!");
         return;
       }
-      // End of data fields
 
       const dataFinal = {
         name: name,
@@ -2794,7 +2601,7 @@ if(blockCreateForm) {
         status: status,
         data: dataObject
       };
-      
+
       fetch(`/${pathAdmin}/block/create`, {
         method: "POST",
         headers: {
@@ -2816,9 +2623,7 @@ if(blockCreateForm) {
     })
   ;
 }
-// End Block Create Form
 
-// Block Edit Form
 const blockEditForm = document.querySelector("#blockEditForm");
 if(blockEditForm) {
   const validation = new JustValidate('#blockEditForm');
@@ -2842,7 +2647,6 @@ if(blockEditForm) {
       const fileName = event.target.fileName.value;
       const status = event.target.status.value;
 
-      // Data field
       let dataObject = {};
       try {
         dataObject = window.blockJsonEditor.get();
@@ -2850,7 +2654,6 @@ if(blockEditForm) {
         notyf.error("Invalid JSON data!");
         return;
       }
-      // End of data fields
 
       const dataFinal = {
         name: name,
@@ -2858,7 +2661,7 @@ if(blockEditForm) {
         status: status,
         data: dataObject
       };
-      
+
       fetch(`/${pathAdmin}/block/edit/${id}`, {
         method: "PATCH",
         headers: {
@@ -2879,9 +2682,7 @@ if(blockEditForm) {
     })
   ;
 }
-// End Block Edit Form
 
-// Block Drag and Drop
 const blockSource = document.querySelector("#blockSource");
 const blockTarget = document.querySelector("#blockTarget");
 if(blockSource && blockTarget) {
@@ -2904,12 +2705,11 @@ if(blockSource && blockTarget) {
       const buttonRemove = item.querySelector(".button-remove");
       buttonRemove.classList.remove("d-none");
       buttonRemove.addEventListener("click", () => {
-        item.remove(); // Delete element
+        item.remove();
       })
     }
   });
 
-  // Can delete default items
   document.querySelectorAll("#blockTarget .list-group-item").forEach(item => {
     const buttonRemove = item.querySelector(".button-remove");
     buttonRemove.addEventListener("click", () => {
@@ -2917,9 +2717,7 @@ if(blockSource && blockTarget) {
     })
   });
 }
-// End Block Drag and Drop
 
-// Template Create Form
 const templateCreateForm = document.querySelector("#templateCreateForm");
 if(templateCreateForm) {
   const validation = new JustValidate('#templateCreateForm');
@@ -2958,7 +2756,7 @@ if(templateCreateForm) {
         blocks: blocks,
         status: status
       };
-      
+
       fetch(`/${pathAdmin}/template/create`, {
         method: "POST",
         headers: {
@@ -2980,9 +2778,7 @@ if(templateCreateForm) {
     })
   ;
 }
-// End Template Create Form
 
-// Template Edit Form
 const templateEditForm = document.querySelector("#templateEditForm");
 if(templateEditForm) {
   const validation = new JustValidate('#templateEditForm');
@@ -3022,7 +2818,7 @@ if(templateEditForm) {
         blocks: blocks,
         status: status
       };
-      
+
       fetch(`/${pathAdmin}/template/edit/${id}`, {
         method: "PATCH",
         headers: {
@@ -3043,8 +2839,6 @@ if(templateEditForm) {
     })
   ;
 }
-// End Template Edit Form
-// Password toggle
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('.password-toggle');
   if (!btn) return;
@@ -3059,9 +2853,7 @@ document.addEventListener('click', function(e) {
     icon.classList.replace('fa-eye-slash', 'fa-eye');
   }
 });
-// End Password toggle
 
-// Check All (check-all / check-item pattern for trash pages)
 const checkAllEl = document.querySelector("[check-all]");
 if(checkAllEl) {
   checkAllEl.addEventListener("change", () => {
@@ -3077,9 +2869,7 @@ if(checkAllEl) {
     });
   });
 }
-// End Check All
 
-// Change Multi (trash pages — undo / destroy via single PATCH endpoint)
 const changeMultiEl = document.querySelector("[change-multi]");
 if(changeMultiEl) {
   const select = changeMultiEl.querySelector("select");
@@ -3119,4 +2909,3 @@ if(changeMultiEl) {
     });
   });
 }
-// End Change Multi

@@ -6,28 +6,37 @@ import { formatDateTime, formatVND } from "./format.helper";
 import Template from "../models/template.model";
 import Block from "../models/block.model";
 import { getBlogByCategory, getProductByCategory } from "./product.helper";
+import { ITemplateBlock } from "../interfaces/models/template.interface";
 
-export const renderHTML = async (req: Request, res: Response, blockList: any) => {
+type BlockData = Record<string, unknown>;
+
+interface BlockDataWithCategory extends BlockData {
+  getByCategory?: { type?: string; category?: string[]; limit?: number; sort?: { by: string; type: string } };
+  tabs?: Array<BlockData & { getByCategory?: { type?: string } }>;
+}
+
+export const renderHTML = async (_req: Request, res: Response, blockList: Array<{ fileName?: string | null; data?: unknown }>) => {
   if (!blockList || blockList.length === 0) return [];
-  
-  const blocksPromises = blockList.map(async (block: any) => {
-    if (!block) return null;
+
+  const blocksPromises = blockList.map(async (block) => {
+    if (!block || !block.fileName) return null;
     const blockPath = path.join(process.cwd(), "views", "client", "blocks", `${block.fileName}`);
+    const blockData = block.data as BlockDataWithCategory | undefined;
     try {
-      // Parallelize productList, tabList, and blogList fetching for THIS block
-      let productListPromise = Promise.resolve([] as any[]);
-      if (block.data?.getByCategory?.type === "product") {
-        productListPromise = getProductByCategory(block.data.getByCategory);
+      let productListPromise = Promise.resolve([] as unknown[]);
+      if (blockData?.getByCategory?.type === "product") {
+        productListPromise = getProductByCategory(blockData.getByCategory);
       }
 
-      let blogListPromise = Promise.resolve([] as any[]);
-      if (block.data?.getByCategory?.type === "blog") {
-        blogListPromise = getBlogByCategory(block.data.getByCategory);
+      let blogListPromise = Promise.resolve([] as unknown[]);
+      if (blockData?.getByCategory?.type === "blog") {
+        blogListPromise = getBlogByCategory(blockData.getByCategory);
       }
 
-      let tabListPromise = Promise.resolve([] as any[]);
-      if (block.data?.tabs?.length > 0) {
-        const tabPromises = block.data.tabs.map(async (tab: any) => {
+      let tabListPromise: Promise<unknown[]> = Promise.resolve([]);
+      const tabs = blockData?.tabs;
+      if (tabs && tabs.length > 0) {
+        const tabPromises = tabs.map(async (tab) => {
           if (tab.getByCategory?.type === "product") {
             const productListByTab = await getProductByCategory(tab.getByCategory);
             return {
@@ -46,10 +55,9 @@ export const renderHTML = async (req: Request, res: Response, blockList: any) =>
         tabListPromise
       ]);
 
-      // For flash sale block, config file overrides DB endTime
-      const blockData = block.fileName === "flash-sale.pug" && block.data
-        ? { ...block.data, endTime: flashSaleConfig.endTime }
-        : block.data;
+      const renderedBlockData = block.fileName === "flash-sale.pug" && blockData
+        ? { ...blockData, endTime: flashSaleConfig.endTime }
+        : blockData;
 
       const html = pug.renderFile(blockPath, {
         categoryProductList: res.locals.categoryProductList,
@@ -63,7 +71,7 @@ export const renderHTML = async (req: Request, res: Response, blockList: any) =>
           if (url.startsWith("/images/") || url.startsWith("images/")) return url;
           return `${domainCDN}${url.startsWith("/") ? "" : "/"}${url}`;
         },
-        blockData: blockData,
+        blockData: renderedBlockData,
         blockProductList: productList,
         blockTabList: tabList,
         blockBlogList: blogList
@@ -77,21 +85,23 @@ export const renderHTML = async (req: Request, res: Response, blockList: any) =>
 
   const renderedHtmls = await Promise.all(blocksPromises);
   return renderedHtmls.filter((html) => html !== null) as string[];
-}
+};
 
 export const getBlockListByTemplate = async (slug: string) => {
-  const template: any = await Template.findOne({
+  const template = await Template.findOne({
     slug: slug,
     deleted: false,
     status: "active"
-  }).select("blocks")
+  }).select("blocks");
 
   if (!template || !template.blocks) {
     console.warn(`Warning: Template with slug "${slug}" not found in database. Returning empty block list.`);
     return [];
   }
 
-  const blockIds = template.blocks.map((item: any) => item.blockId);
+  const blockIds = template.blocks
+    .map((item: ITemplateBlock) => String(item.blockId))
+    .filter((id): id is string => Boolean(id) && id !== "undefined");
 
   const blockList = await Block.find({
     _id: { $in: blockIds },
@@ -99,9 +109,9 @@ export const getBlockListByTemplate = async (slug: string) => {
     status: "active"
   }).select("_id fileName data");
 
-  const sortedBlocks = blockIds.map((blockId: string) => {
-    return blockList.find((block: any) => block && block.id == blockId);
-  }).filter((block: any) => block !== undefined);
+  const sortedBlocks = blockIds
+    .map((blockId) => blockList.find((block) => block && String(block._id) == blockId))
+    .filter((block): block is NonNullable<typeof block> => block !== undefined);
 
   return sortedBlocks;
-}
+};

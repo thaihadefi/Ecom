@@ -2,25 +2,13 @@ extends ../layouts/default.pug
 include ../mixins/index.pug
 
 block main
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
   +page-banner(
     {
       name: pageTitle,
     },
     `/dashboard/order/detail/${orderDetail.id}`
   )
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
 
-  //
-    ============================
-    DSHBOARD START
-    =============================
   section.dashboard(class="mb_100")
     .container
       .row
@@ -31,7 +19,7 @@ block main
             h3(class="dashboard_title")
               | #{pageTitle}
               a(
-                href="/dashboard/order/list" 
+                href="/dashboard/order/list"
                 class="back_btn common_btn"
                 ) Back
             div(class="dashboard_order_invoice_area")
@@ -98,13 +86,13 @@ block main
                         each item in orderDetail.items
                           tr
                             td
-                              | #{item.name} 
+                              | #{item.name}
                               if (item.variant && item.variant.length > 0)
                                 | (
                                 each v, index in item.variant
                                   | #{v}
                                   if (index < item.variant.length - 1)
-                                    | , 
+                                    | ,
                                 | )
                             td #{(item.price || 0).toLocaleString("vi-VN")} VND
                             td #{item.quantity}

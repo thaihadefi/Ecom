@@ -5,7 +5,7 @@
  * Author Email: sazal1912@gmail.com
  */
 
- 
+
 /* ------------------------------------------ */
 /* Margin All */
 /* ------------------------------------------ */
@@ -60,8 +60,6 @@
 .m_240 {margin: 240px !important;}
 .m_245 {margin: 245px !important;}
 .m_250 {margin: 250px !important;}
-
-
 
 /* ------------------------------------------ */
 /* Margin Top */
@@ -118,8 +116,6 @@
 .mt_245 {margin-top: 245px !important;}
 .mt_250 {margin-top: 250px !important;}
 
-
-
 /* ------------------------------------------ */
 /* Margin Bottom */
 /* ------------------------------------------ */
@@ -174,8 +170,6 @@
 .mb_240 {margin-bottom: 240px !important;}
 .mb_245 {margin-bottom: 245px !important;}
 .mb_250 {margin-bottom: 250px !important;}
-
-
 
 /* ------------------------------------------ */
 /* Margin Left */
@@ -232,7 +226,6 @@
 .ml_245 {margin-left: 245px !important;}
 .ml_250 {margin-left: 250px !important;}
 
-
 /* ------------------------------------------ */
 /* Margin Right */
 /* ------------------------------------------ */
@@ -287,10 +280,6 @@
 .mr_240 {margin-right: 240px !important;}
 .mr_245 {margin-right: 245px !important;}
 .mr_250 {margin-right: 250px !important;}
-
-
-
-
 
 /* ------------------------------------------ */
 /* Padding All */
@@ -347,8 +336,6 @@
 .p_245 {padding: 245px !important;}
 .p_250 {padding: 250px !important;}
 
-
-
 /* ------------------------------------------ */
 /* Padding Top */
 /* ------------------------------------------ */
@@ -403,8 +390,6 @@
 .pt_240 {padding-top: 240px !important;}
 .pt_245 {padding-top: 245px !important;}
 .pt_250 {padding-top: 250px !important;}
-
-
 
 /* ------------------------------------------ */
 /* Padding Bottom */
@@ -461,8 +446,6 @@
 .pb_245 {padding-bottom: 245px !important;}
 .pb_250 {padding-bottom: 250px !important;}
 
-
-
 /* ------------------------------------------ */
 /* Padding Left */
 /* ------------------------------------------ */
@@ -518,7 +501,6 @@
 .pl_245 {padding-left: 245px !important;}
 .pl_250 {padding-left: 250px !important;}
 
-
 /* ------------------------------------------ */
 /* Padding Right */
 /* ------------------------------------------ */
@@ -573,10 +555,6 @@
 .pr_240 {padding-right: 240px !important;}
 .pr_245 {padding-right: 245px !important;}
 .pr_250 {padding-right: 250px !important;}
-
-
-
-
 
 /* ------------------------------------------ */
 /* For Responsive Layouts */
@@ -637,8 +615,6 @@
 	.lg_m_245 {margin: 245px !important;}
 	.lg_m_250 {margin: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Margin Top */
 	/* ------------------------------------------ */
@@ -693,8 +669,6 @@
 	.lg_mt_240 {margin-top: 240px !important;}
 	.lg_mt_245 {margin-top: 245px !important;}
 	.lg_mt_250 {margin-top: 250px !important;}
-
-
 
 	/* ------------------------------------------ */
 	/* Margin Bottom */
@@ -751,8 +725,6 @@
 	.lg_mb_245 {margin-bottom: 245px !important;}
 	.lg_mb_250 {margin-bottom: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Margin Left */
 	/* ------------------------------------------ */
@@ -807,7 +779,6 @@
 	.lg_ml_240 {margin-left: 240px !important;}
 	.lg_ml_245 {margin-left: 245px !important;}
 	.lg_ml_250 {margin-left: 250px !important;}
-
 
 	/* ------------------------------------------ */
 	/* Margin Right */
@@ -864,10 +835,6 @@
 	.lg_mr_245 {margin-right: 245px !important;}
 	.lg_mr_250 {margin-right: 250px !important;}
 
-
-
-
-
 	/* ------------------------------------------ */
 	/* Padding All */
 	/* ------------------------------------------ */
@@ -922,8 +889,6 @@
 	.lg_p_240 {padding: 240px !important;}
 	.lg_p_245 {padding: 245px !important;}
 	.lg_p_250 {padding: 250px !important;}
-
-
 
 	/* ------------------------------------------ */
 	/* Padding Top */
@@ -980,7 +945,6 @@
 	.lg_pt_245 {padding-top: 245px !important;}
 	.lg_pt_250 {padding-top: 250px !important;}
 
-
 	/* ------------------------------------------ */
 	/* Padding Bottom */
 	/* ------------------------------------------ */
@@ -1036,8 +1000,6 @@
 	.lg_pb_245 {padding-bottom: 245px !important;}
 	.lg_pb_250 {padding-bottom: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Padding Left */
 	/* ------------------------------------------ */
@@ -1092,7 +1054,6 @@
 	.lg_pl_240 {padding-left: 240px !important;}
 	.lg_pl_245 {padding-left: 245px !important;}
 	.lg_pl_250 {padding-left: 250px !important;}
-
 
 	/* ------------------------------------------ */
 	/* Padding Right */
@@ -1206,8 +1167,6 @@
 	.md_m_245 {margin: 245px !important;}
 	.md_m_250 {margin: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Margin Top */
 	/* ------------------------------------------ */
@@ -1262,8 +1221,6 @@
 	.md_mt_240 {margin-top: 240px !important;}
 	.md_mt_245 {margin-top: 245px !important;}
 	.md_mt_250 {margin-top: 250px !important;}
-
-
 
 	/* ------------------------------------------ */
 	/* Margin Bottom */
@@ -1320,8 +1277,6 @@
 	.md_mb_245 {margin-bottom: 245px !important;}
 	.md_mb_250 {margin-bottom: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Margin Left */
 	/* ------------------------------------------ */
@@ -1376,7 +1331,6 @@
 	.md_ml_240 {margin-left: 240px !important;}
 	.md_ml_245 {margin-left: 245px !important;}
 	.md_ml_250 {margin-left: 250px !important;}
-
 
 	/* ------------------------------------------ */
 	/* Margin Right */
@@ -1433,10 +1387,6 @@
 	.md_mr_245 {margin-right: 245px !important;}
 	.md_mr_250 {margin-right: 250px !important;}
 
-
-
-
-
 	/* ------------------------------------------ */
 	/* Padding All */
 	/* ------------------------------------------ */
@@ -1491,8 +1441,6 @@
 	.md_p_240 {padding: 240px !important;}
 	.md_p_245 {padding: 245px !important;}
 	.md_p_250 {padding: 250px !important;}
-
-
 
 	/* ------------------------------------------ */
 	/* Padding Top */
@@ -1549,7 +1497,6 @@
 	.md_pt_245 {padding-top: 245px !important;}
 	.md_pt_250 {padding-top: 250px !important;}
 
-
 	/* ------------------------------------------ */
 	/* Padding Bottom */
 	/* ------------------------------------------ */
@@ -1605,8 +1552,6 @@
 	.md_pb_245 {padding-bottom: 245px !important;}
 	.md_pb_250 {padding-bottom: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Padding Left */
 	/* ------------------------------------------ */
@@ -1661,7 +1606,6 @@
 	.md_pl_240 {padding-left: 240px !important;}
 	.md_pl_245 {padding-left: 245px !important;}
 	.md_pl_250 {padding-left: 250px !important;}
-
 
 	/* ------------------------------------------ */
 	/* Padding Right */
@@ -1775,8 +1719,6 @@
 	.sm_m_245 {margin: 245px !important;}
 	.sm_m_250 {margin: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Margin Top */
 	/* ------------------------------------------ */
@@ -1831,8 +1773,6 @@
 	.sm_mt_240 {margin-top: 240px !important;}
 	.sm_mt_245 {margin-top: 245px !important;}
 	.sm_mt_250 {margin-top: 250px !important;}
-
-
 
 	/* ------------------------------------------ */
 	/* Margin Bottom */
@@ -1889,8 +1829,6 @@
 	.sm_mb_245 {margin-bottom: 245px !important;}
 	.sm_mb_250 {margin-bottom: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Margin Left */
 	/* ------------------------------------------ */
@@ -1945,7 +1883,6 @@
 	.sm_ml_240 {margin-left: 240px !important;}
 	.sm_ml_245 {margin-left: 245px !important;}
 	.sm_ml_250 {margin-left: 250px !important;}
-
 
 	/* ------------------------------------------ */
 	/* Margin Right */
@@ -2002,10 +1939,6 @@
 	.sm_mr_245 {margin-right: 245px !important;}
 	.sm_mr_250 {margin-right: 250px !important;}
 
-
-
-
-
 	/* ------------------------------------------ */
 	/* Padding All */
 	/* ------------------------------------------ */
@@ -2060,8 +1993,6 @@
 	.sm_p_240 {padding: 240px !important;}
 	.sm_p_245 {padding: 245px !important;}
 	.sm_p_250 {padding: 250px !important;}
-
-
 
 	/* ------------------------------------------ */
 	/* Padding Top */
@@ -2118,7 +2049,6 @@
 	.sm_pt_245 {padding-top: 245px !important;}
 	.sm_pt_250 {padding-top: 250px !important;}
 
-
 	/* ------------------------------------------ */
 	/* Padding Bottom */
 	/* ------------------------------------------ */
@@ -2174,8 +2104,6 @@
 	.sm_pb_245 {padding-bottom: 245px !important;}
 	.sm_pb_250 {padding-bottom: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Padding Left */
 	/* ------------------------------------------ */
@@ -2230,7 +2158,6 @@
 	.sm_pl_240 {padding-left: 240px !important;}
 	.sm_pl_245 {padding-left: 245px !important;}
 	.sm_pl_250 {padding-left: 250px !important;}
-
 
 	/* ------------------------------------------ */
 	/* Padding Right */
@@ -2288,7 +2215,6 @@
 	.sm_pr_250 {padding-right: 250px !important;}
 }
 
-
 @media only screen and (max-width: 767px) {
 	/* ------------------------------------------ */
 	/* Margin All */
@@ -2345,8 +2271,6 @@
 	.xs_m_245 {margin: 245px !important;}
 	.xs_m_250 {margin: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Margin Top */
 	/* ------------------------------------------ */
@@ -2401,8 +2325,6 @@
 	.xs_mt_240 {margin-top: 240px !important;}
 	.xs_mt_245 {margin-top: 245px !important;}
 	.xs_mt_250 {margin-top: 250px !important;}
-
-
 
 	/* ------------------------------------------ */
 	/* Margin Bottom */
@@ -2459,8 +2381,6 @@
 	.xs_mb_245 {margin-bottom: 245px !important;}
 	.xs_mb_250 {margin-bottom: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Margin Left */
 	/* ------------------------------------------ */
@@ -2515,7 +2435,6 @@
 	.xs_ml_240 {margin-left: 240px !important;}
 	.xs_ml_245 {margin-left: 245px !important;}
 	.xs_ml_250 {margin-left: 250px !important;}
-
 
 	/* ------------------------------------------ */
 	/* Margin Right */
@@ -2572,10 +2491,6 @@
 	.xs_mr_245 {margin-right: 245px !important;}
 	.xs_mr_250 {margin-right: 250px !important;}
 
-
-
-
-
 	/* ------------------------------------------ */
 	/* Padding All */
 	/* ------------------------------------------ */
@@ -2630,8 +2545,6 @@
 	.xs_p_240 {padding: 240px !important;}
 	.xs_p_245 {padding: 245px !important;}
 	.xs_p_250 {padding: 250px !important;}
-
-
 
 	/* ------------------------------------------ */
 	/* Padding Top */
@@ -2688,7 +2601,6 @@
 	.xs_pt_245 {padding-top: 245px !important;}
 	.xs_pt_250 {padding-top: 250px !important;}
 
-
 	/* ------------------------------------------ */
 	/* Padding Bottom */
 	/* ------------------------------------------ */
@@ -2744,8 +2656,6 @@
 	.xs_pb_245 {padding-bottom: 245px !important;}
 	.xs_pb_250 {padding-bottom: 250px !important;}
 
-
-
 	/* ------------------------------------------ */
 	/* Padding Left */
 	/* ------------------------------------------ */
@@ -2800,7 +2710,6 @@
 	.xs_pl_240 {padding-left: 240px !important;}
 	.xs_pl_245 {padding-left: 245px !important;}
 	.xs_pl_250 {padding-left: 250px !important;}
-
 
 	/* ------------------------------------------ */
 	/* Padding Right */

@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/', productController.productByCategory);
 
-router.get('/category', (req, res) => {
+router.get('/category', (_req, res) => {
   res.redirect('/product');
 });
 

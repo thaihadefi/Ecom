@@ -5,7 +5,9 @@
   "license": "MIT",
   "scripts": {
     "start": "node -r ts-node/register index.ts",
-    "dev": "nodemon --exec \"node --inspect -r ts-node/register\" index.ts"
+    "dev": "nodemon --exec \"node --inspect -r ts-node/register\" index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint:any": "bash -c '! grep -rn --include=\"*.ts\" --exclude-dir={node_modules,dist} \": any\\b\" .'"
   },
   "dependencies": {
     "@types/multer": "^2.0.0",

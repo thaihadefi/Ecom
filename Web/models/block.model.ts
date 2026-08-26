@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 
 const schema = new mongoose.Schema(
   {
-    name: String, // Block name
-    fileName: String, // UI template file name
-    data: Object, // UI template data
+    name: String,
+    fileName: String,
+    data: Object,
     status: {
       type: String,
-      enum: ["active", "inactive"], 
+      enum: ["active", "inactive"],
       default: "inactive"
     },
     search: String,
@@ -18,7 +18,7 @@ const schema = new mongoose.Schema(
     deletedAt: Date
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
@@ -27,6 +27,8 @@ schema.index({ status: 1, deleted: 1 });
 
 schema.index({ search: 1 });
 
-const Block = mongoose.model('Block', schema, "blocks");
+import { IBlock } from '../interfaces/models/block.interface';
+
+const Block = mongoose.model<IBlock>('Block', schema, "blocks");
 
 export default Block;

@@ -14,7 +14,7 @@ if(uppuUpload) {
   const folderPath = urlParams.get("folderPath") || "";
 
   uppy.use(XHRUpload, {
-    endpoint: `/${pathAdmin}/file-manager/upload?folderPath=${folderPath}`, // backend will receive files at this endpoint
+    endpoint: `/${pathAdmin}/file-manager/upload?folderPath=${folderPath}`,
     fieldName: "files",
     bundle: true
   })

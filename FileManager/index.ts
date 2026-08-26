@@ -12,15 +12,15 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 app.use("/", routes);
 
-// Error handler for Multer limits and general runtime errors
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       res.status(400).json({ code: "error", message: "File size exceeds the 10MB limit!" });
       return;
     }
   }
-  res.status(500).json({ code: "error", message: err.message || "Internal server error!" });
+  const errorMessage = err instanceof Error ? err.message : "Internal server error!";
+  res.status(500).json({ code: "error", message: errorMessage });
 });
 
 app.listen(port, () => {

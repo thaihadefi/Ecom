@@ -1,4 +1,3 @@
-// ── Helpers ──────────────────────────────────────────────────────────────────
 const fmtTime = (date) => {
   const d = date ? new Date(date) : new Date();
   return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
@@ -11,14 +10,14 @@ const fmtDateDivider = (date) => {
                   d.getMonth() === now.getMonth() &&
                   d.getFullYear() === now.getFullYear();
   if (isToday) return "Today";
-  
+
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   const isYesterday = d.getDate() === yesterday.getDate() &&
                       d.getMonth() === yesterday.getMonth() &&
                       d.getFullYear() === yesterday.getFullYear();
   if (isYesterday) return "Yesterday";
-  
+
   const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const year = d.getFullYear();
@@ -29,17 +28,17 @@ const updateDateDividers = () => {
   const chatDetail = document.querySelector(".chat-detail");
   if (!chatDetail) return;
   chatDetail.querySelectorAll(".chat-date-divider").forEach(el => el.remove());
-  
+
   const messages = chatDetail.querySelectorAll(".d-flex[id]");
   let lastDateVal = null;
-  
+
   messages.forEach(msgEl => {
     const timeAttr = msgEl.getAttribute("data-time");
     if (!timeAttr) return;
-    
+
     const date = new Date(timeAttr);
     const dateStr = fmtDateDivider(date);
-    
+
     if (dateStr !== lastDateVal) {
       const divider = document.createElement("div");
       divider.classList.add("chat-date-divider");
@@ -59,7 +58,6 @@ const fmtLastSeen = (ts) => {
   return `Last seen ${Math.floor(diff / 86400)}d ago`;
 };
 
-// ── Custom confirm modal ──────────────────────────────────────────────────────
 const showAdminConfirm = (msg, onOk) => {
   const overlay   = document.getElementById("admin-confirm-modal");
   const msgEl     = overlay?.querySelector(".admin-confirm-msg");
@@ -79,7 +77,6 @@ const showAdminConfirm = (msg, onOk) => {
   overlay.addEventListener("click", (e) => { if (e.target === overlay) handleCancel(); }, { once: true });
 };
 
-// ── Admin chat logic ──────────────────────────────────────────────────────────
 const formChat = document.querySelector("[form-chat]");
 if (formChat) {
   const inputContent  = formChat.querySelector("[input-content]");
@@ -94,14 +91,14 @@ if (formChat) {
   const statusText    = document.getElementById("admin-chat-status-text");
 
   let selectedFiles = [];
-  let lastAdminMsgId = null; // Track last admin message for "seen" indicator
+  let lastAdminMsgId = null;
   let userUnreadCount = 0;
   let isUserOnline = false;
 
   const updateMessageStatuses = () => {
     const adminMsgStatuses = chatDetail.querySelectorAll(".flex-row-reverse .msg-status[data-status-for]");
     const total = adminMsgStatuses.length;
-    
+
     adminMsgStatuses.forEach((statusEl, index) => {
       const isUnread = index >= (total - userUnreadCount);
       if (isUnread) {
@@ -121,7 +118,6 @@ if (formChat) {
     });
   };
 
-  // ── Initialize socket ───────────────────────────────────────────────────
   const socket = io({ auth: { roomId: chatRoomId } });
 
   const emitAdminOpenState = (isOpen) => {
@@ -146,7 +142,6 @@ if (formChat) {
     emitAdminOpenState(false);
   });
 
-  // ── Status helpers ──────────────────────────────────────────────────────
   const setUserOnline = () => {
     if (statusDot)  statusDot.classList.add("is-online");
     if (statusText) statusText.textContent = "Online";
@@ -157,7 +152,6 @@ if (formChat) {
     if (statusText) statusText.textContent = fmtLastSeen(lastSeenAt) || "Offline";
   };
 
-  // ── Append message ──────────────────────────────────────────────────────
   const appendMessage = (item, isPrepend = false) => {
     const wrap = document.createElement("div");
     wrap.classList.add("d-flex");
@@ -190,7 +184,6 @@ if (formChat) {
       inner += `</div>`;
     }
 
-    // Timestamp + status (status only for admin's own messages)
     if (isAdmin) {
       inner += `<div class="msg-meta"><span class="msg-time">${time}</span><span class="msg-status" data-status-for="${item._id}">✓</span></div>`;
     } else {
@@ -211,7 +204,6 @@ if (formChat) {
     updateDateDividers();
   };
 
-  // ── Send ────────────────────────────────────────────────────────────────
   buttonSend.addEventListener("click", async () => {
     let fileUrls = [];
     if (selectedFiles.length > 0) {
@@ -236,7 +228,6 @@ if (formChat) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); buttonSend.click(); }
   });
 
-  // ── Receive message ─────────────────────────────────────────────────────
   socket.on("SERVER_SEND_MESSAGE", (data) => {
     if (chatRoomId !== data.roomId) return;
     if (data.senderRole === "admin") {
@@ -246,7 +237,6 @@ if (formChat) {
     chatBody.scrollTop = chatBody.scrollHeight;
   });
 
-  // ── Delivered indicator (user is in the room) ──────────────────────────
   socket.on("SERVER_MESSAGE_DELIVERED", ({ messageId }) => {
     const statusEl = chatDetail.querySelector(`[data-status-for="${messageId}"]`);
     if (statusEl && !statusEl.classList.contains("seen")) {
@@ -255,13 +245,11 @@ if (formChat) {
     }
   });
 
-  // ── User opened chat widget → mark admin's last message as seen ────────
   socket.on("SERVER_CLIENT_READ", (data = {}) => {
     userUnreadCount = 0;
     updateMessageStatuses();
   });
 
-  // ── Load initial messages ───────────────────────────────────────────────
   const loadInitialMessages = async () => {
     const res  = await fetch(`/${pathAdmin}/chat/messages?limit=20&roomId=${chatRoomId}`);
     const data = await res.json();
@@ -272,7 +260,6 @@ if (formChat) {
   };
   loadInitialMessages();
 
-  // ── Scroll to load older messages ───────────────────────────────────────
   let isLoading = false, hasMore = true;
   chatBody.addEventListener("scroll", async () => {
     if (chatBody.scrollTop !== 0 || isLoading || !hasMore) return;
@@ -291,9 +278,7 @@ if (formChat) {
     isLoading = false;
   });
 
-  // ── Online status from socket ───────────────────────────────────────────
   socket.on("USER_STATUS_ONLINE", (data) => {
-    // Update chat header if this is the user we're chatting with
     const infoUserId = document.querySelector("[chat-room-id]")?.getAttribute("data-user-id");
     if (infoUserId && data.id === infoUserId) {
       if (data.status === "online") {
@@ -306,26 +291,22 @@ if (formChat) {
       updateMessageStatuses();
     }
 
-    // Update sidebar dot
     const dot = document.querySelector(`.chat-body-left [user-id="${data.id}"] [user-status]`);
     if (dot) {
       if (data.status === "online") dot.classList.remove("d-none");
       else dot.classList.add("d-none");
     }
 
-    // Update sidebar last-seen text
     const lastSeenEl = document.querySelector(`.user-lastseen[data-user-id="${data.id}"]`);
     if (lastSeenEl) {
       lastSeenEl.textContent = data.status === "online" ? "" : fmtLastSeen(data.lastSeenAt);
     }
   });
 
-  // ── List of online users on connect ────────────────────────────────────
   socket.on("LIST_USER_ONLINE", (data) => {
     const { listUserOnline, lastSeenMap = {} } = data;
     const currentUserId = document.querySelector("[chat-room-id]")?.getAttribute("data-user-id");
 
-    // Update chat header for the current room's user
     if (currentUserId) {
       if (listUserOnline.includes(currentUserId)) {
         setUserOnline();
@@ -337,7 +318,6 @@ if (formChat) {
       updateMessageStatuses();
     }
 
-    // Mark online dots + clear last-seen text for online users
     listUserOnline.forEach(id => {
       const dot = document.querySelector(`.chat-body-left [user-id="${id}"] [user-status]`);
       if (dot) dot.classList.remove("d-none");
@@ -345,7 +325,6 @@ if (formChat) {
       if (lastSeenEl) lastSeenEl.textContent = "";
     });
 
-    // Mark offline + last-seen for users not in online list
     document.querySelectorAll(".user-lastseen[data-user-id]").forEach(el => {
       const uid = el.getAttribute("data-user-id");
       if (listUserOnline.includes(uid)) return;
@@ -353,7 +332,6 @@ if (formChat) {
     });
   });
 
-  // ── Typing ──────────────────────────────────────────────────────────────
   let typingTimeout, isTyping = false;
   inputContent.addEventListener("keyup", () => {
     if (!isTyping) { isTyping = true; socket.emit("ADMIN_TYPING", { isTyping: true }); }
@@ -364,7 +342,6 @@ if (formChat) {
     }, 2000);
   });
 
-  // ── File attach ─────────────────────────────────────────────────────────
   chatAttach.addEventListener("click", () => chatFile.click());
   chatFile.addEventListener("change", (e) => {
     Array.from(e.target.files).forEach(file => {
@@ -391,7 +368,6 @@ if (formChat) {
     chatFile.value = "";
   });
 
-  // ── Delete message ──────────────────────────────────────────────────────
   chatBody.addEventListener("click", (e) => {
     if (!e.target.classList.contains("delete-message")) return;
     const messageId = e.target.getAttribute("data-id");
@@ -404,7 +380,6 @@ if (formChat) {
     document.querySelector(`.chat-detail [id="${messageId}"]`)?.remove();
   });
 
-  // ── Lock / unlock room ──────────────────────────────────────────────────
   const buttonLock = document.querySelector("[button-lock]");
   buttonLock?.addEventListener("click", () => {
     const status = buttonLock.getAttribute("button-lock");
@@ -420,7 +395,6 @@ if (formChat) {
       });
   });
 
-  // ── Delete room ─────────────────────────────────────────────────────────
   const buttonDeleteRoom = document.querySelector("[button-delete-room]");
   buttonDeleteRoom?.addEventListener("click", () => {
     showAdminConfirm("This chat room and all messages will be permanently deleted.", () => {
@@ -434,7 +408,6 @@ if (formChat) {
     window.location.href = `/${pathAdmin}/chat/list/my-chat`;
   });
 
-  // ── AI features ─────────────────────────────────────────────────────────
   const chatAiSuggestReply = document.querySelector("#chat-ai-suggest-reply");
   if (chatAiSuggestReply) {
     const boxContent = chatAiSuggestReply.querySelector(".inner-content");

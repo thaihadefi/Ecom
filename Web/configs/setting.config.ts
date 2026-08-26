@@ -1,13 +1,13 @@
 import NodeCache from "node-cache";
 import Setting from "../models/setting.model";
 
-const settingCache = new NodeCache({ stdTTL: 300, checkperiod: 60 }); // 5-min TTL
+const settingCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
-const getSetting = async (key: string) => {
-  const cached = settingCache.get(key);
+const getSetting = async (key: string): Promise<Record<string, unknown>> => {
+  const cached = settingCache.get<Record<string, unknown>>(key);
   if (cached !== undefined) return cached;
   const setting = await Setting.findOne({ key }).select("data");
-  const data = setting ? (setting as any).data : null;
+  const data = (setting?.data as Record<string, unknown>) ?? {};
   settingCache.set(key, data);
   return data;
 };

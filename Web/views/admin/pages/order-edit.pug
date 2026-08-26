@@ -9,9 +9,6 @@ block main
     .card-body.pt-0
       form(id="orderEditForm")
         input(type="hidden" name="id" value=orderDetail.id)
-        // =====================
-        // Customer Information
-        // =====================
         h5.mt-3 Customer Information
         .row
           .col-md-6
@@ -26,9 +23,6 @@ block main
             .mb-3
               label.form-label Address
               textarea.form-control(rows="2" disabled)= orderDetail.address
-        // =====================
-        // Product List
-        // =====================
         h5.mt-4 Products in Order
         .table-responsive
           table.table.table-bordered
@@ -53,9 +47,6 @@ block main
                   td #{(p.price || 0).toLocaleString('vi-VN')} VND
                   td.text-danger
                     b #{((p.price || 0) * p.quantity).toLocaleString('vi-VN')} VND
-        // =====================
-        // Payment & Shipping
-        // =====================
         h5.mt-4 Payment & Shipping
         .row
           .col-md-4
@@ -109,7 +100,7 @@ block main
             .mb-3
               label.form-label Shipping Fee
               input.form-control(
-                disabled 
+                disabled
                 value=
                   orderDetail.shipping && orderDetail.shipping.fee
                     ? orderDetail.shipping.fee.toLocaleString('vi-VN') + ' VND'
@@ -131,9 +122,6 @@ block main
                 disabled
                 value=(orderDetail.total || 0).toLocaleString('vi-VN') + ' VND'
               )
-        // =====================
-        // Order Status
-        // =====================
         h5.mt-4 Order Status
         .row
           .col-md-6
@@ -150,9 +138,6 @@ block main
             .mb-3
               label.form-label Note
               textarea.form-control(name="note" rows="2")= orderDetail.note
-        // =====================
-        // Action
-        // =====================
         .mt-4
           button.btn.btn-primary(type="submit") Update Order
           a.btn.btn-danger.ms-2(href=`/${pathAdmin}/order/list`) Back

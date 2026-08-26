@@ -7,7 +7,6 @@ import AccountUser from "../models/account-user.model";
 import { sendMail, emailTemplates } from "../helpers/mail.helper";
 
 export const autoCancelUnpaidOrders = () => {
-  // Run every 15 minutes — cancel ZaloPay/VNPay orders unpaid for over 30 minutes
   cron.schedule("*/15 * * * *", async () => {
     const threshold = new Date(Date.now() - 30 * 60 * 1000);
 
@@ -27,25 +26,24 @@ export const autoCancelUnpaidOrders = () => {
         let cancelled = false;
         try {
           await session.withTransaction(async () => {
-            // Atomically claim — prevents double processing if job overlaps
             const result = await Order.updateOne(
               { _id: order._id, orderStatus: "pending" },
               { orderStatus: "cancelled" },
               { session }
             );
 
-            if (result.modifiedCount === 0) return; // Already processed
+            if (result.modifiedCount === 0) return;
             cancelled = true;
 
-            const tasks: Promise<any>[] = [];
+            const tasks: Promise<unknown>[] = [];
 
-            if (order.items?.length > 0) {
+            if (order.items && order.items.length > 0) {
               tasks.push(
                 Product.bulkWrite(
-                  (order.items as any[]).map((item: any) => ({
+                  order.items.map((item) => ({
                     updateOne: {
                       filter: { _id: item.productId },
-                      update: { $inc: { stock: item.quantity } }
+                      update: { $inc: { stock: item.quantity || 0 } }
                     }
                   })),
                   { session }
@@ -53,20 +51,20 @@ export const autoCancelUnpaidOrders = () => {
               );
             }
 
-            if ((order as any).usedPoint > 0) {
+            if (order.usedPoint && order.usedPoint > 0) {
               tasks.push(
                 AccountUser.updateOne(
-                  { _id: (order as any).userId },
-                  { $inc: { usedPoint: -(order as any).usedPoint } },
+                  { _id: order.userId },
+                  { $inc: { usedPoint: -order.usedPoint } },
                   { session }
                 )
               );
             }
 
-            if ((order as any).coupon) {
+            if (order.coupon) {
               tasks.push(
                 Coupon.updateOne(
-                  { code: (order as any).coupon, usedCount: { $gt: 0 } },
+                  { code: order.coupon, usedCount: { $gt: 0 } },
                   { $inc: { usedCount: -1 } },
                   { session }
                 )
@@ -79,14 +77,13 @@ export const autoCancelUnpaidOrders = () => {
           session.endSession();
         }
 
-        // Send cancellation email (non-blocking, outside transaction)
-        if (cancelled && (order as any).userId) {
-          AccountUser.findOne({ _id: (order as any).userId }).select("email fullName").then(user => {
-            if (!(user as any)?.email) return;
+        if (cancelled && order.userId) {
+          AccountUser.findOne({ _id: order.userId }).select("email fullName").then((user) => {
+            if (!user?.email) return;
             return emailTemplates.orderStatusUpdate(
-              { code: (order as any).code, fullName: (user as any).fullName || "" },
+              { code: order.code ?? "", fullName: user.fullName ?? "" },
               "cancelled"
-            ).then(tpl => sendMail((user as any).email, tpl.subject, tpl.html));
+            ).then(tpl => sendMail(user.email!, tpl.subject, tpl.html));
           }).catch(console.error);
         }
       } catch (error) {

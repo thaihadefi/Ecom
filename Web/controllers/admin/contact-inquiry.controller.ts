@@ -1,87 +1,46 @@
 import { Request, Response } from 'express';
-import ContactInquiry from '../../models/contact-inquiry.model';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
+import * as contactInquiryService from '../../services/admin/contact-inquiry.service';
 
 export const list = async (req: Request, res: Response) => {
-  // Migrate legacy records to have deleted: false if not set
-  await ContactInquiry.updateMany(
-    { deleted: { $exists: false } },
-    { $set: { deleted: false } }
-  );
+  const data = await contactInquiryService.getContactInquiryList(req.query.keyword, req.query.page);
 
-  const find: any = {
-    deleted: { $ne: true }
-  };
-
-  if(req.query.keyword) {
-    const keyword = `${req.query.keyword}`.trim();
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.$or = [
-      { name: keywordRegex },
-      { email: keywordRegex },
-      { subject: keywordRegex }
-    ];
-  }
-
-  // Pagination
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await ContactInquiry.countDocuments(find);
-  const pagination = getPagination(req.query.page, limitItems, totalRecord);
-  // End Pagination
-  
-  const recordList: any = await ContactInquiry
-    .find(find)
-    .select("_id name email subject message read createdAt")
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort({
-      createdAt: "desc"
-    });
-  
   res.render("admin/pages/contact-inquiry-list", {
     pageTitle: "Manage Contact Inquiries",
-    recordList: recordList,
-    pagination: pagination
+    ...data
   });
-}
+};
 
 export const deletePatch = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    await ContactInquiry.updateOne({ _id: id }, { deleted: true, deletedAt: Date.now() });
-    res.json({ code: "success", message: "Inquiry moved to trash successfully!" });
+    const result = await contactInquiryService.softDeleteContactInquiry(id);
+    res.json({ code: "success", message: result.message });
   } catch (error) {
+    console.error("deletePatch inquiry error:", error);
     res.json({ code: "error", message: "Invalid ID!" });
   }
-}
+};
 
 export const changeStatusPatch = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    const status = req.params.status; // status: "read" or "unread"
+    const status = req.params.status;
     const isRead = status === "read";
 
-    await ContactInquiry.updateOne({
-      _id: id,
-      deleted: { $ne: true }
-    }, {
-      read: isRead
-    });
+    const result = await contactInquiryService.changeContactInquiryReadStatus(id, isRead);
 
     res.json({
       code: "success",
-      message: "Read status updated successfully!"
-    })
+      message: result.message
+    });
   } catch (error) {
-    console.log(error);
+    console.error("changeStatusPatch inquiry error:", error);
     res.json({
       code: "error",
       message: "Invalid ID!"
-    })
+    });
   }
-}
+};
 
 export const deleteManyPatch = async (req: Request, res: Response) => {
   try {
@@ -90,32 +49,35 @@ export const deleteManyPatch = async (req: Request, res: Response) => {
       res.json({ code: "error", message: "No items selected!" });
       return;
     }
-    await ContactInquiry.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date() });
-    res.json({ code: "success", message: `Moved ${ids.length} inquiry(s) to trash!` });
+    const result = await contactInquiryService.softDeleteManyContactInquiries(ids);
+    res.json({ code: "success", message: result.message });
   } catch (error) {
+    console.error("deleteManyPatch inquiry error:", error);
     res.json({ code: "error", message: "Invalid data!" });
   }
 };
 
-export const trash = async (req: Request, res: Response) => {
-  const recordList: any = await ContactInquiry.find({ deleted: true }).select("_id name email subject status deletedAt").sort({ deletedAt: "desc" });
+export const trash = async (_req: Request, res: Response) => {
+  const recordList = await contactInquiryService.getContactInquiryTrash();
   res.render("admin/pages/contact-inquiry-trash", { pageTitle: "Contact Inquiry Trash", recordList });
 };
 
 export const undoPatch = async (req: Request, res: Response) => {
   try {
-    await ContactInquiry.updateOne({ _id: req.params.id }, { deleted: false });
-    res.json({ code: "success", message: "Inquiry restored successfully!" });
+    const result = await contactInquiryService.restoreContactInquiry(req.params.id);
+    res.json({ code: "success", message: result.message });
   } catch (error) {
+    console.error("undoPatch inquiry error:", error);
     res.json({ code: "error", message: "Invalid ID!" });
   }
 };
 
 export const destroyDelete = async (req: Request, res: Response) => {
   try {
-    await ContactInquiry.deleteOne({ _id: req.params.id });
-    res.json({ code: "success", message: "Inquiry permanently deleted!" });
+    const result = await contactInquiryService.permanentlyDeleteContactInquiry(req.params.id);
+    res.json({ code: "success", message: result.message });
   } catch (error) {
+    console.error("destroyDelete inquiry error:", error);
     res.json({ code: "error", message: "Invalid ID!" });
   }
 };
@@ -127,9 +89,10 @@ export const destroyManyDelete = async (req: Request, res: Response) => {
       res.json({ code: "error", message: "No items selected!" });
       return;
     }
-    await ContactInquiry.deleteMany({ _id: { $in: ids } });
-    res.json({ code: "success", message: `Deleted ${ids.length} inquiry(s) permanently!` });
+    const result = await contactInquiryService.permanentlyDeleteManyContactInquiries(ids);
+    res.json({ code: "success", message: result.message });
   } catch (error) {
+    console.error("destroyManyDelete inquiry error:", error);
     res.json({ code: "error", message: "Invalid data!" });
   }
 };
@@ -141,9 +104,10 @@ export const undoManyPatch = async (req: Request, res: Response) => {
       res.json({ code: "error", message: "No items selected!" });
       return;
     }
-    await ContactInquiry.updateMany({ _id: { $in: ids } }, { deleted: false });
-    res.json({ code: "success", message: `Restored ${ids.length} inquiry(s)!` });
+    const result = await contactInquiryService.restoreManyContactInquiries(ids);
+    res.json({ code: "success", message: result.message });
   } catch (error) {
+    console.error("undoManyPatch inquiry error:", error);
     res.json({ code: "error", message: "Invalid data!" });
   }
 };
@@ -156,18 +120,21 @@ export const changeMultiPatch = async (req: Request, res: Response) => {
       return;
     }
     switch (value) {
-      case "undo":
-        await ContactInquiry.updateMany({ _id: { $in: ids } }, { deleted: false });
-        res.json({ code: "success", message: `Restored ${ids.length} inquiry(s)!` });
+      case "undo": {
+        const result = await contactInquiryService.restoreManyContactInquiries(ids);
+        res.json({ code: "success", message: result.message });
         break;
-      case "destroy":
-        await ContactInquiry.deleteMany({ _id: { $in: ids } });
-        res.json({ code: "success", message: `Permanently deleted ${ids.length} inquiry(s)!` });
+      }
+      case "destroy": {
+        const result = await contactInquiryService.permanentlyDeleteManyContactInquiries(ids);
+        res.json({ code: "success", message: result.message });
         break;
+      }
       default:
         res.json({ code: "error", message: "Invalid action!" });
     }
   } catch (error) {
+    console.error("changeMultiPatch inquiry error:", error);
     res.json({ code: "error", message: "Invalid data!" });
   }
 };

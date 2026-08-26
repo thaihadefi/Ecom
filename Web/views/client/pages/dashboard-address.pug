@@ -2,25 +2,13 @@ extends ../layouts/default.pug
 include ../mixins/index.pug
 
 block main
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
   +page-banner(
     {
       name: pageTitle,
     },
     "/dashboard/address"
   )
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
 
-  //
-    ============================
-    DSHBOARD START
-    =============================
   section.dashboard(class="mb_100")
     .container
       .row
@@ -55,7 +43,7 @@ block main
                       .inner-info
                         if (!item.isDefault)
                           a(
-                            class="btn btn-primary" 
+                            class="btn btn-primary"
                             href="javascript:;"
                             button-api
                             data-method="PATCH"
@@ -63,19 +51,15 @@ block main
                             )
                             | Set Default
                         a(
-                          class="btn btn-warning" 
+                          class="btn btn-warning"
                           href=`/dashboard/address/edit/${item.id}`
                           )
                           | Edit
                         a(
-                          class="btn btn-danger" 
+                          class="btn btn-danger"
                           href="javascript:;"
                           button-api
                           data-method="DELETE"
                           data-api=`/dashboard/address/delete/${item.id}`
                           )
                           | Delete
-  //
-    ============================
-    DSHBOARD END
-    =============================

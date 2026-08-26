@@ -3,7 +3,6 @@ import * as orderController from "../../controllers/client/order.controller";
 import * as orderValidate from "../../validates/client/order.validate";
 import * as authMiddleware from "../../middlewares/client/auth.middleware";
 
-
 const router = Router();
 
 router.post('/create', authMiddleware.loggedIn, orderValidate.createPost, orderController.createPost);
@@ -17,6 +16,5 @@ router.post('/payment-zalopay-result', orderController.paymentZalopayResult);
 router.get('/payment-vnpay', orderController.paymentVNPay);
 
 router.get('/payment-vnpay-result', orderController.paymentVNPayResult);
-
 
 export default router;

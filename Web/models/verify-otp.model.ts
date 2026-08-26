@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { IVerifyOTP } from "../interfaces/models/verify-otp.interface";
 
 const schema = new mongoose.Schema({
   email: String,
@@ -14,12 +15,12 @@ const schema = new mongoose.Schema({
     expires: 0
   }
 }, {
-  timestamps: true // Automatically generate createdAt and updatedAt fields
+  timestamps: true
 });
 
 schema.index({ email: 1, type: 1 }, { unique: true });
 schema.index({ userId: 1 });
 
-const VerifyOTP = mongoose.model('VerifyOTP', schema, "verify-otp");
+const VerifyOTP = mongoose.model<IVerifyOTP>('VerifyOTP', schema, "verify-otp");
 
 export default VerifyOTP;

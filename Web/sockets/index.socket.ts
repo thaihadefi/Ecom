@@ -4,25 +4,23 @@ import { authSocket } from "./auth.socket";
 import ChatRoom from "../models/chat-room.model";
 import { warmCache, CK } from "../helpers/chat-cache.helper";
 
-// userId → Set of socketIds (multi-tab/device support)
 const listAdminOnline = new Map<string, Set<string>>();
 const listUserOnline  = new Map<string, Set<string>>();
 
-// Persist lastSeen in warm cache (survives short restarts, falls back gracefully on full restart)
 const setLastSeen = (userId: string, ts: number) => warmCache.set(CK.lastSeen(userId), ts, 86400);
 
 let _io: Server | null = null;
 export const getIO = (): Server | null => _io;
 
 const notifyAdminStatus = async (io: Server, adminId: string, status: "online" | "offline") => {
-  // Find all users whose room is assigned to this admin and notify them
   try {
     const rooms = await ChatRoom.find({ adminId }).select("userId");
     rooms.forEach(room => {
       io.to(room._id.toString()).emit("SERVER_ADMIN_STATUS", { status });
     });
-  } catch (err: any) {
-    console.error("[Socket] notifyAdminStatus failed:", err.message);
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Unknown error";
+    console.error("[Socket] notifyAdminStatus failed:", errorMsg);
   }
 };
 
@@ -37,7 +35,7 @@ export const initSocket = (io: Server) => {
     const { id, role } = account;
     console.log(`[Socket] Connected: ${id} (${role}) | transport: ${socket.conn.transport.name} | sid: ${socket.id}`);
 
-    socket.conn.on("upgrade", (transport: any) => {
+    socket.conn.on("upgrade", (transport: { name: string }) => {
       console.log(`[Socket] Transport upgraded: ${id} → ${transport.name}`);
     });
 
@@ -46,7 +44,6 @@ export const initSocket = (io: Server) => {
       sockets.add(socket.id);
       listAdminOnline.set(id, sockets);
 
-      // Build lastSeenMap from cache for currently offline users
       const LS_PREFIX = "chat:lastseen:";
       const lastSeenMap: Record<string, number> = {};
       warmCache.keys()
@@ -59,13 +56,11 @@ export const initSocket = (io: Server) => {
           }
         });
 
-      // Send all online users + last-seen timestamps to this admin
       socket.emit("LIST_USER_ONLINE", {
         listUserOnline: Array.from(listUserOnline.keys()),
         lastSeenMap,
       });
 
-      // Notify users assigned to this admin that admin is online
       if (sockets.size === 1) notifyAdminStatus(io, id, "online");
 
     } else if (role === "user") {
@@ -75,7 +70,6 @@ export const initSocket = (io: Server) => {
 
       socket.broadcast.emit("USER_STATUS_ONLINE", { id, status: "online" });
 
-      // Check current assigned admin's status and notify the user
       ChatRoom.findOne({ userId: id })
         .select("adminId")
         .then(room => {
@@ -106,7 +100,6 @@ export const initSocket = (io: Server) => {
           sockets.delete(socket.id);
           if (sockets.size === 0) {
             listAdminOnline.delete(id);
-            // Notify users that admin went offline
             notifyAdminStatus(io, id, "offline");
           }
         }

@@ -14,8 +14,8 @@ router.get('/profile', dashboardController.profile);
 router.get('/profile/edit', dashboardController.profileEdit);
 
 router.patch(
-  '/profile/edit', 
-  dashboardValidate.profileEditPatch, 
+  '/profile/edit',
+  dashboardValidate.profileEditPatch,
   dashboardController.profileEditPatch
 );
 
@@ -26,25 +26,25 @@ router.get('/address', dashboardController.address);
 router.get('/address/create', dashboardController.addressCreate);
 
 router.post(
-  '/address/create', 
+  '/address/create',
   dashboardValidate.addressCreatePost,
   dashboardController.addressCreatePost
 );
 
 router.patch(
-  '/address/change-default/:id', 
+  '/address/change-default/:id',
   dashboardController.addressChangeDefaultPatch
 );
 
 router.delete(
-  '/address/delete/:id', 
+  '/address/delete/:id',
   dashboardController.addressDelete
 );
 
 router.get('/address/edit/:id', dashboardController.addressEdit);
 
 router.patch(
-  '/address/edit/:id', 
+  '/address/edit/:id',
   dashboardValidate.addressCreatePost,
   dashboardController.addressEditPatch
 );

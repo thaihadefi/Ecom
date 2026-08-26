@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { IContactInquiry } from "../interfaces/models/contact-inquiry.interface";
 
 const schema = new mongoose.Schema(
   {
@@ -22,6 +23,6 @@ schema.index({ deleted: 1 });
 schema.index({ read: 1, deleted: 1 });
 schema.index({ createdAt: -1 });
 
-const ContactInquiry = mongoose.model('ContactInquiry', schema, "contact-inquiries");
+const ContactInquiry = mongoose.model<IContactInquiry>('ContactInquiry', schema, "contact-inquiries");
 
 export default ContactInquiry;

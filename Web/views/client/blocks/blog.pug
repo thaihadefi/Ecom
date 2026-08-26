@@ -1,15 +1,11 @@
 include ../mixins/index.pug
 
-//
-  =========================
-    BLOG 2 START
-    ==========================
 if blockData && blockBlogList && blockBlogList.length
-  section(class="blog_2 pt_95 pb_95")
+  section(class="blog_area pt_95 pb_95")
     .container
       .row
         .col-xl-6.col-sm-9
-          div(class="section_heading_2 section_heading")
+          div(class="section_heading section_heading")
             h3
               | #{blockData.title.normal1}
               span #{blockData.title.highlight}
@@ -24,7 +20,3 @@ if blockData && blockBlogList && blockBlogList.length
         each item in blockBlogList
           .col-lg-4.col-xxl-3.col-md-6.wow.fadeInUp
             +blog-item(item)
-//
-  =========================
-    BLOG 2 END
-    ==========================

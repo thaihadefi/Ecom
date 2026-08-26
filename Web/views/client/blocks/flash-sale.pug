@@ -1,15 +1,11 @@
 include ../mixins/index.pug
 
-//
-  ============================
-    FLASH SALE START
-    ==============================
 if blockData && blockProductList && blockProductList.length
-  section(class="flash_sell_2 flash_sell mt_95")
+  section(class="flash_sell flash_sell mt_95")
     .container
       .row.align-items-center
         .col-xxl-6.col-md-3.col-xl-4
-          div(class="section_heading_2 section_heading")
+          div(class="section_heading section_heading")
             h3
               span #{blockData.title.highlight}
               |  #{blockData.title.normal}
@@ -22,11 +18,7 @@ if blockData && blockProductList && blockProductList.length
                   href=blockData.linkViewAll
                   class="view_all_btn"
                   ) #{blockData.viewAll}
-      .row(class="mt_25 flash_sell_2_slider")
+      .row(class="mt_25 flash_sell_slider")
         each item in blockProductList
           .col-6.col-md-4.col-lg-3.col-xl-1-5.wow.fadeInUp
             +product-item(item)
-//
-  ============================
-    FLASH SALE END
-    ==============================

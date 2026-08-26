@@ -1,0 +1,128 @@
+import Product from '../../models/product.model';
+import AttributeProduct from '../../models/attribute-product.model';
+import axios from 'axios';
+import { getInfoAddress } from '../../helpers/location.helper';
+import { pointConfig } from '../../configs/variable.config';
+import { getApiShipping } from '../../configs/setting.config';
+import { IProduct } from '../../interfaces/models/product.interface';
+import { IAttributeProduct } from '../../interfaces/models/attribute-product.interface';
+
+export interface CartItemInput {
+  productId: string;
+  quantity: number;
+  [key: string]: unknown;
+}
+
+export interface UserAddressInput {
+  latitude: number;
+  longitude: number;
+}
+
+export const getCartDetailAndShipping = async (
+  cart: CartItemInput[],
+  userAddress?: UserAddressInput,
+  accountUser?: { totalPoint?: number; usedPoint?: number }
+) => {
+  const cartDetail: unknown[] = [];
+
+  const productIds = cart.map((i) => i.productId);
+  const products: IProduct[] = await Product.find({
+    _id: { $in: productIds },
+    deleted: false,
+    status: "active"
+  }).select("_id slug name priceNew priceOld stock images attributes variants");
+  const productMap = new Map(products.map((p) => [String(p._id), p]));
+
+  const allAttrIds = products.flatMap((p) => (p.attributes || []).map(String));
+  const attrList: IAttributeProduct[] = await AttributeProduct.find({ _id: { $in: allAttrIds } }).select("_id name");
+  const attrMap = new Map(attrList.map((a) => [String(a._id), a]));
+
+  for (const item of cart) {
+    const productDetail = productMap.get(String(item.productId));
+    if (productDetail) {
+      const attributeList = (productDetail.attributes || []).map((id) => attrMap.get(String(id))).filter(Boolean);
+
+      let quantity = item.quantity;
+      if (productDetail.stock !== undefined && quantity > productDetail.stock) {
+        quantity = Math.max(0, productDetail.stock);
+      }
+
+      cartDetail.push({
+        ...item,
+        quantity,
+        detail: {
+          images: productDetail.images,
+          slug: productDetail.slug,
+          name: productDetail.name,
+          priceNew: productDetail.priceNew,
+          priceOld: productDetail.priceOld,
+          stock: productDetail.stock,
+          attributeList,
+          variants: productDetail.variants
+        }
+      });
+    }
+  }
+
+  let shippingOptions = null;
+  if (userAddress) {
+    const shopLocation = {
+      lat: parseFloat(process.env.SHOP_LAT || "10.8700089"),
+      lng: parseFloat(process.env.SHOP_LNG || "106.8030541")
+    };
+
+    const [shopInfoAddress, userInfoAddress] = await Promise.all([
+      getInfoAddress(shopLocation.lat, shopLocation.lng),
+      getInfoAddress(userAddress.latitude, userAddress.longitude)
+    ]);
+
+    const totalWeight = cartDetail.reduce((total: number, item) => total + ((item as CartItemInput).quantity || 1) * 500, 0);
+
+    const dataGoShip = {
+      shipment: {
+        address_from: {
+          city: shopInfoAddress.city,
+          district: shopInfoAddress.district,
+          ward: shopInfoAddress.ward
+        },
+        address_to: {
+          city: userInfoAddress.city,
+          district: userInfoAddress.district,
+          ward: userInfoAddress.ward
+        },
+        parcel: {
+          cod: "0",
+          amount: "0",
+          weight: totalWeight,
+          width: "10",
+          height: "10",
+          length: "10"
+        }
+      }
+    };
+
+    const apiShipping = await getApiShipping();
+    const goshipRes = await axios.post(`${process.env.GOSHIP_API_URL || "https://sandbox.goship.io/api/v2"}/rates`, dataGoShip, {
+      headers: {
+        Authorization: `Bearer ${apiShipping.tokenGoShip}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    shippingOptions = goshipRes.data.data;
+  }
+
+  const point = {
+    canUsePoint: 0,
+    POINT_TO_MONEY: pointConfig.POINT_TO_MONEY
+  };
+  if (accountUser) {
+    point.canUsePoint = (accountUser.totalPoint || 0) - (accountUser.usedPoint || 0);
+  }
+
+  return {
+    cart: cartDetail,
+    shippingOptions,
+    point
+  };
+};

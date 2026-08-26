@@ -1,83 +1,31 @@
 import { Request, Response } from "express";
-import Coupon from "../../models/coupon.model";
-import Order from "../../models/order.model";
+import * as couponService from "../../services/client/coupon.service";
 
 export const checkPost = async (req: Request, res: Response) => {
   try {
     const { coupon } = req.body;
+    const userId = res.locals.accountUser?.id;
 
-    // Find the coupon code
-    const couponDetail = await Coupon.findOne({
-      code: coupon.trim(),
-      deleted: false,
-      status: "active"
-    });
+    const result = await couponService.checkCouponValidity(coupon || "", userId);
 
-    if (!couponDetail) {
+    if (!result.valid) {
       res.json({
         code: "error",
-        message: "Coupon does not exist!",
-      });
-      return;
-    }
-
-    // Check if user already used this coupon
-    if (res.locals.accountUser) {
-      const usedCouponCount = await Order.countDocuments({
-        userId: res.locals.accountUser.id,
-        coupon: couponDetail.code,
-        orderStatus: { $nin: ["cancelled", "returned"] },
-        deleted: false
-      });
-      if (usedCouponCount > 0) {
-        res.json({
-          code: "error",
-          message: "You have already used this coupon code!",
-        });
-        return;
-      }
-    }
-
-    // Check validity date
-    const now = new Date();
-    if (couponDetail.startDate && now < couponDetail.startDate) {
-      res.json({
-        code: "error",
-        message: "Coupon has not started yet!",
-      });
-      return;
-    }
-
-    if (couponDetail.endDate && now > couponDetail.endDate) {
-      res.json({
-        code: "error",
-        message: "Coupon has expired!",
-      });
-      return;
-    }
-
-    // Check usage limits
-    if (
-      couponDetail.usageLimit &&
-      couponDetail.usedCount >= couponDetail.usageLimit
-    ) {
-      res.json({
-        code: "error",
-        message: "Coupon has reached its limit!",
+        message: result.message
       });
       return;
     }
 
     res.json({
       code: "success",
-      message: "Coupon applied successfully!",
-      couponDetail: couponDetail
-    })
+      message: result.message,
+      couponDetail: result.couponDetail
+    });
   } catch (error) {
-    console.error(error);
+    console.error("coupon check error:", error);
     res.json({
       code: "error",
       message: "Invalid coupon!"
-    })
+    });
   }
-}
+};

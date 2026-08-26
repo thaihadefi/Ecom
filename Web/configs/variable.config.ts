@@ -210,11 +210,10 @@ export const permissionList = [
 ];
 
 export const pointConfig = {
-  MONEY_PER_POINT: 10000, // 10,000 VND = 1 point
-  POINT_TO_MONEY: 100, // 1 point = 100 VND
+  MONEY_PER_POINT: 10000,
+  POINT_TO_MONEY: 100,
 };
 
-// Flash sale deadline — change this to extend/adjust the countdown timer
 export const flashSaleConfig = {
   endTime: "2026-12-31T23:59:59",
 };

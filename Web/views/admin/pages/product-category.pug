@@ -9,7 +9,6 @@ block main
           .row.align-items-center
             .col
               h4.card-title #{pageTitle}
-            // end col
             .col-auto
               button.btn.btn-danger.me-1(
                 button-soft-delete-many
@@ -26,8 +25,6 @@ block main
                 )
                 i.fa-solid.fa-plus.me-1
                 | Create Category
-          // end row
-        // end card-header
         .card-body.pt-0
           .row
             .col-lg-6
@@ -87,4 +84,3 @@ block main
                         )
                           i.las.la-trash-alt.text-secondary.fs-20
           +pagination()
-    // end col

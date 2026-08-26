@@ -50,7 +50,6 @@ router.use('/chat', authMiddleware.verifyToken, autoAuditLog, chatRoutes);
 router.use('/log', authMiddleware.verifyToken, autoAuditLog, logRoutes);
 router.use('/contact-inquiry', authMiddleware.verifyToken, autoAuditLog, contactInquiryRoutes);
 
-// Admin 404
 router.use(authMiddleware.verifyToken, (_req, res) => {
 	res.status(404).render("admin/pages/404", { pageTitle: "404 | Admin" });
 });

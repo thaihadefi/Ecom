@@ -1,94 +1,48 @@
-import { toSearchText } from '../../helpers/slugify.helper';
 import { Request, Response } from "express";
-import path from "path";
-import fs from "fs";
-import Block from "../../models/block.model";
 import { pathAdmin } from "../../configs/variable.config";
-import { escapeRegex } from '../../helpers/generate.helper';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
+import * as blockService from "../../services/admin/block.service";
 
 export const list = async (req: Request, res: Response) => {
-  const find: {
-    deleted: boolean,
-    search?: RegExp
-  } = {
-    deleted: false
-  };
+  const data = await blockService.getBlockList(req.query.keyword, req.query.page);
 
-  if(req.query.keyword) {
-    const keyword = toSearchText(`${req.query.keyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
-
-  // Pagination
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await Block.countDocuments(find);
-  const pagination = getPagination(req.query.page, limitItems, totalRecord);
-  // End Pagination
-
-  const recordList = await Block
-    .find(find)
-    .select("_id name slug fileName status createdAt")
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort({ createdAt: "desc" })
-  
   res.render("admin/pages/block-list", {
     pageTitle: "Manage Blocks",
-    recordList: recordList,
-    pagination: pagination
+    ...data
   });
-}
+};
 
-export const create = async (req: Request, res: Response) => {
-  // Get path
-  const blocksDir = path.join(process.cwd(), "views", "client", "blocks"); // process.cwd() root directory
-  
-  // Get files list
-  const fileList = fs.readdirSync(blocksDir);
+export const create = async (_req: Request, res: Response) => {
+  const fileList = blockService.getBlockTemplateFiles();
 
   res.render("admin/pages/block-create", {
     pageTitle: "Create Block",
     fileList: fileList
   });
-}
+};
 
 export const createPost = async (req: Request, res: Response) => {
   try {
-    req.body.search = toSearchText(`${req.body.name} ${req.body.fileName}`)
-
-    const newRecord = new Block(req.body);
-    await newRecord.save();
+    await blockService.createBlock(req.body);
 
     res.json({
       code: "success",
       message: "Block created successfully!"
     });
   } catch (error) {
-    console.log(error);
+    console.error("createPost block error:", error);
     res.json({
       code: "error",
       message: "Invalid data!"
-    })
+    });
   }
-}
+};
 
 export const edit = async (req: Request, res: Response) => {
   try {
-    // Get path
-    const blocksDir = path.join(process.cwd(), "views", "client", "blocks"); // process.cwd() root directory
-    
-    // Get files list
-    const fileList = fs.readdirSync(blocksDir);
-    
-    const blockDetail = await Block.findOne({
-      _id: req.params.id,
-      deleted: false
-    });
+    const fileList = blockService.getBlockTemplateFiles();
+    const blockDetail = await blockService.getBlockById(req.params.id);
 
-    if(!blockDetail) {
+    if (!blockDetail) {
       res.redirect(`/${pathAdmin}/block/list`);
       return;
     }
@@ -99,53 +53,35 @@ export const edit = async (req: Request, res: Response) => {
       blockDetail: blockDetail
     });
   } catch (error) {
-    console.log(error);
+    console.error("edit block error:", error);
     res.redirect(`/${pathAdmin}/block/list`);
   }
-}
+};
 
 export const editPatch = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-
-    const blockDetail = await Block.findOne({
-      _id: id,
-      deleted: false
-    });
-
-    if(!blockDetail) {
-      res.json({
-        code: "error",
-        message: "Block does not exist!"
-      })
-      return;
-    }
-    
-    req.body.search = toSearchText(`${req.body.name} ${req.body.fileName}`)
-
-    await Block.updateOne({
-      _id: id,
-      deleted: false
-    }, req.body);
+    const result = await blockService.updateBlock(id, req.body);
 
     res.json({
-      code: "success",
-      message: "Block updated successfully!"
+      code: result.success ? "success" : "error",
+      message: result.message
     });
   } catch (error) {
-    console.log(error);
+    console.error("editPatch block error:", error);
     res.json({
       code: "error",
       message: "Invalid data!"
-    })
+    });
   }
-}
+};
 
 export const deletePatch = async (req: Request, res: Response) => {
   try {
-    await Block.deleteOne({ _id: req.params.id });
-    res.json({ code: "success", message: "Block deleted successfully!" });
+    const result = await blockService.deleteBlock(req.params.id);
+    res.json({ code: "success", message: result.message });
   } catch (error) {
+    console.error("deletePatch block error:", error);
     res.json({ code: "error", message: "Invalid ID!" });
   }
-}
+};

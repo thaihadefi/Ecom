@@ -1,4 +1,3 @@
-// ── Helpers ────────────────────────────────────────────────────────────────
 const fmtTime = (date) => {
   const d = date ? new Date(date) : new Date();
   return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
@@ -11,14 +10,14 @@ const fmtDateDivider = (date) => {
                   d.getMonth() === now.getMonth() &&
                   d.getFullYear() === now.getFullYear();
   if (isToday) return "Today";
-  
+
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   const isYesterday = d.getDate() === yesterday.getDate() &&
                       d.getMonth() === yesterday.getMonth() &&
                       d.getFullYear() === yesterday.getFullYear();
   if (isYesterday) return "Yesterday";
-  
+
   const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const year = d.getFullYear();
@@ -29,17 +28,17 @@ const updateDateDividers = () => {
   const chatBody = document.getElementById("chat-body");
   if (!chatBody) return;
   chatBody.querySelectorAll(".chat-date-divider").forEach(el => el.remove());
-  
+
   const messages = chatBody.querySelectorAll(".message");
   let lastDateVal = null;
-  
+
   messages.forEach(msgEl => {
     const timeAttr = msgEl.getAttribute("data-time");
     if (!timeAttr) return;
-    
+
     const date = new Date(timeAttr);
     const dateStr = fmtDateDivider(date);
-    
+
     if (dateStr !== lastDateVal) {
       const divider = document.createElement("div");
       divider.classList.add("chat-date-divider");
@@ -59,7 +58,6 @@ const fmtLastSeen = (ts) => {
   return `Last seen ${Math.floor(diff / 86400)}d ago`;
 };
 
-// ── Custom Confirm Modal ────────────────────────────────────────────────────
 const showConfirm = (msg, onOk) => {
   const overlay  = document.getElementById("chat-confirm-modal");
   const msgEl    = overlay?.querySelector(".chat-confirm-msg");
@@ -79,17 +77,15 @@ const showConfirm = (msg, onOk) => {
   overlay.addEventListener("click", (e) => { if (e.target === overlay) handleCancel(); }, { once: true });
 };
 
-// ── Socket init ─────────────────────────────────────────────────────────────
 const socket = io({ auth: { role: "user" } });
 
 socket.on("connect_error", (err) => console.error("[Chat] Socket error:", err.message));
 socket.on("disconnect",    (r)   => console.warn("[Chat] Disconnected:", r));
 
-// ── Chat UI ─────────────────────────────────────────────────────────────────
 const chatButton = document.querySelector("#chat-button");
 
 if (chatButton) {
-  const chatPopup    = document.getElementById("chat-popup"); // Ensure chatPopup is correctly referenced
+  const chatPopup    = document.getElementById("chat-popup");
   const chatClose    = document.getElementById("chat-close");
   const chatBody     = document.getElementById("chat-body");
   const chatCount    = document.getElementById("chat-count");
@@ -103,14 +99,14 @@ if (chatButton) {
   const onlineDot    = document.getElementById("chat-online-dot");
 
   let selectedFiles = [];
-  let lastSentId    = null; // Track last user-sent message for status indicator
+  let lastSentId    = null;
   let adminUnreadCount = 0;
   let isAdminOnline = false;
 
   const updateMessageStatuses = () => {
     const userMsgStatuses = chatBody.querySelectorAll(".message.user .msg-status[data-status-for]");
     const total = userMsgStatuses.length;
-    
+
     userMsgStatuses.forEach((statusEl, index) => {
       const isUnread = index >= (total - adminUnreadCount);
       if (isUnread) {
@@ -130,7 +126,6 @@ if (chatButton) {
     });
   };
 
-  // ── Status helpers ──────────────────────────────────────────────────────
   const setOnline = () => {
     if (statusText) statusText.textContent = "Online";
     if (onlineDot)  onlineDot.classList.add("is-online");
@@ -157,7 +152,6 @@ if (chatButton) {
     }
   };
 
-  // ── Open / close ────────────────────────────────────────────────────────
   chatButton.addEventListener("click", () => {
     chatPopup.classList.toggle("hidden");
     if (!chatPopup.classList.contains("hidden")) {
@@ -166,12 +160,11 @@ if (chatButton) {
     }
     emitChatOpenState(isChatVisible());
   });
-  chatClose?.addEventListener("click", () => { // Emit close chat state
+  chatClose?.addEventListener("click", () => {
     chatPopup.classList.add("hidden");
     emitChatOpenState(false);
   });
 
-  // ── Send ────────────────────────────────────────────────────────────────
   const sendMessage = async () => {
     let fileUrls = [];
     if (selectedFiles.length > 0) {
@@ -196,7 +189,6 @@ if (chatButton) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
 
-  // ── Append message ──────────────────────────────────────────────────────
   const appendMessage = (item, isPrepend = false) => {
     const wrap = document.createElement("div");
     wrap.classList.add("message", item.senderRole);
@@ -226,7 +218,6 @@ if (chatButton) {
       html += `</div>`;
     }
 
-    // Timestamp + status
     const time = item.createdAt ? fmtTime(item.createdAt) : fmtTime();
     if (item.senderRole === "user") {
       html += `<div class="msg-meta"><span class="msg-time">${time}</span><span class="msg-status" data-status-for="${item._id}">✓</span></div>`;
@@ -258,7 +249,6 @@ if (chatButton) {
     }
   });
 
-  // ── Delivered indicator (recipient is in room) ──────────────────────────
   socket.on("SERVER_MESSAGE_DELIVERED", ({ messageId }) => {
     const statusEl = chatBody.querySelector(`[data-status-for="${messageId}"]`);
     if (statusEl && !statusEl.classList.contains("seen")) {
@@ -267,13 +257,11 @@ if (chatButton) {
     }
   });
 
-  // ── Admin read indicator ────────────────────────────────────────────────
   socket.on("SERVER_ADMIN_READ", (data = {}) => {
     adminUnreadCount = 0;
     updateMessageStatuses();
   });
 
-  // ── Load initial messages ───────────────────────────────────────────────
   const loadInitialMessages = async () => {
     try {
       const res  = await fetch("/chat/messages?limit=20");
@@ -300,7 +288,7 @@ if (chatButton) {
   });
   let loadTimeout = null;
   const onConnect = () => {
-    chatBody.innerHTML = "";   // clear stale DOM so reconnect doesn't duplicate
+    chatBody.innerHTML = "";
     hasMore   = true;
     isLoading = false;
     clearTimeout(loadTimeout);
@@ -310,7 +298,6 @@ if (chatButton) {
   if (socket.connected) onConnect();
   socket.on("connect", onConnect);
 
-  // ── Scroll to load older messages ───────────────────────────────────────
   let isLoading = false;
   let hasMore   = true;
   chatBody.addEventListener("scroll", async () => {
@@ -332,17 +319,13 @@ if (chatButton) {
     isLoading = false;
   });
 
-  // ── Typing indicator ────────────────────────────────────────────────────
   socket.on("SERVER_SEND_ADMIN_TYPING", ({ isTyping }) => {
     chatTyping?.classList.toggle("is-typing", isTyping);
   });
 
-  // ── Online status ───────────────────────────────────────────────────────
   socket.on("USER_STATUS_ONLINE", () => {
-    // Not relevant for client — used by admin side
   });
 
-  // ── Admin online for client: receive from socket ─────────────────────────
   socket.on("SERVER_ADMIN_STATUS", (data) => {
     if (data.status === "online") {
       setOnline();
@@ -354,7 +337,6 @@ if (chatButton) {
     updateMessageStatuses();
   });
 
-  // ── File attach ─────────────────────────────────────────────────────────
   chatAttach?.addEventListener("click", () => chatFile?.click());
   chatFile?.addEventListener("change", (e) => {
     Array.from(e.target.files).forEach(file => {
@@ -381,7 +363,6 @@ if (chatButton) {
     chatFile.value = "";
   });
 
-  // ── Delete message ──────────────────────────────────────────────────────
   chatBody.addEventListener("click", (e) => {
     if (!e.target.classList.contains("delete-message")) return;
     const messageId = e.target.getAttribute("data-id");
@@ -395,13 +376,11 @@ if (chatButton) {
   });
 }
 
-// ── Status notifications ────────────────────────────────────────────────────
 socket.on("SERVER_SEND_STATUS", ({ code, message }) => {
   if (code === "success") notyf.success(message);
   else if (code === "error")  notyf.error(message);
 });
 
-// ── Rating panel ────────────────────────────────────────────────────────────
 const buttonRate = document.getElementById("button-rate");
 if (buttonRate) {
   const chatRate      = document.getElementById("chat-rate");

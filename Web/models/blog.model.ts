@@ -30,20 +30,20 @@ const schema = new mongoose.Schema(
     seo: SeoSchema,
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
-// Indexes
 schema.index({ slug: 1 }, { unique: true });
 schema.index({ deleted: 1 });
 schema.index({ status: 1 });
 schema.index({ search: 1 });
-// Partial indexes
 schema.index({ createdAt: -1 }, { partialFilterExpression: { deleted: false, status: "published" } });
 schema.index({ category: 1 }, { partialFilterExpression: { deleted: false, status: "published" } });
 schema.index({ deletedAt: -1 }, { partialFilterExpression: { deleted: true } });
 
-const Blog = mongoose.model('Blog', schema, "blogs");
+import { IBlog } from '../interfaces/models/blog.interface';
+
+const Blog = mongoose.model<IBlog>('Blog', schema, "blogs");
 
 export default Blog;

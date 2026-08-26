@@ -21,10 +21,8 @@ export const autoDeleteChatRoom = () => {
       .map(item => item._id)
       .filter(id => id && /^[0-9a-fA-F]{24}$/.test(id.toString()));
 
-    // Fetch all rooms in one query
     const rooms = await ChatRoom.find({ _id: { $in: roomIds } }).select("_id userId");
 
-    // Fire-and-forget CDN folder deletes in parallel
     await Promise.allSettled(rooms.map(room => {
       const formData = new FormData();
       formData.append("folderPath", `/media/chats/${room.userId}`);
@@ -33,7 +31,6 @@ export const autoDeleteChatRoom = () => {
       });
     }));
 
-    // Batch delete messages and rooms atomically
     const session = await mongoose.startSession();
     try {
       await session.withTransaction(async () => {

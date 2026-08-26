@@ -6,15 +6,14 @@ import { warmCache, CK, invalidateRoomList } from "./chat-cache.helper";
 
 export const getChatRoomList = async (adminId: string) => {
   const cacheKey = CK.roomList(adminId);
-  const cached = warmCache.get<any[]>(cacheKey);
+  const cached = warmCache.get<unknown[]>(cacheKey);
   if (cached) return cached;
 
-  const chatRoomList: any[] = await ChatRoom.find({ adminId });
+  const chatRoomList = await ChatRoom.find({ adminId });
 
-  const userIds  = [...new Set(chatRoomList.map(r => r.userId))];
-  const roomIds  = chatRoomList.map(r => r._id.toString());
+  const userIds = [...new Set(chatRoomList.map(r => String(r.userId)).filter((id): id is string => Boolean(id) && id !== "undefined"))];
+  const roomIds = chatRoomList.map(r => r._id.toString());
 
-  // Batch fetch users and last messages (no N+1)
   const [users, lastMessages] = await Promise.all([
     AccountUser.find({ _id: { $in: userIds } }).select("fullName avatar"),
     ChatMessage.aggregate([
@@ -24,12 +23,12 @@ export const getChatRoomList = async (adminId: string) => {
     ])
   ]);
 
-  const userMap        = Object.fromEntries(users.map(u => [u._id.toString(), u]));
+  const userMap = Object.fromEntries(users.map(u => [u._id.toString(), u]));
   const lastMessageMap = Object.fromEntries(lastMessages.map(l => [l._id, l.doc]));
 
   const result = chatRoomList.map(item => {
-    const rid  = item._id.toString();
-    const user = userMap[item.userId];
+    const rid = item._id.toString();
+    const user = item.userId ? userMap[item.userId] : undefined;
     const last = lastMessageMap[rid];
     return {
       ...item.toObject(),

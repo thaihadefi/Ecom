@@ -10,12 +10,10 @@ const router = Router();
 const mediaRoot = path.resolve(__dirname, "../media");
 const tempDir = path.resolve(mediaRoot, "temp");
 
-// Ensure temp directory exists
 if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir, { recursive: true });
 }
 
-// Use diskStorage to store files temporarily to minimize RAM usage
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, tempDir);
@@ -27,46 +25,44 @@ const storage = multer.diskStorage({
   }
 });
 
-// Fix encoding issues for uploaded file names (multer defaults to Latin1)
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 10 * 1024 * 1024
   },
   fileFilter: (_req, file, cb) => {
-    // Cast originalname to UTF-8
     file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
     cb(null, true);
   }
 });
 
 router.post(
-  '/upload', 
-  upload.array("files"), 
+  '/upload',
+  upload.array("files"),
   fileManagerController.upload
 );
 
 router.patch(
-  '/change-file-name', 
-  upload.none(), 
+  '/change-file-name',
+  upload.none(),
   fileManagerController.changeFileNamePatch
 );
 
 router.patch(
-  '/delete-file', 
-  upload.none(), 
+  '/delete-file',
+  upload.none(),
   fileManagerController.deleteFilePatch
 );
 
 router.patch(
-  '/move-file', 
-  upload.none(), 
+  '/move-file',
+  upload.none(),
   fileManagerController.moveFilePatch
 );
 
 router.post(
-  '/folder/create', 
-  upload.none(), 
+  '/folder/create',
+  upload.none(),
   fileManagerController.createFolderPost
 );
 

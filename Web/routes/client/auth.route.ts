@@ -61,9 +61,9 @@ router.post(
 router.get('/reset-password', authController.resetPassword);
 
 router.post(
-  '/reset-password', 
+  '/reset-password',
   authMiddleware.verifyToken,
-  authValidate.resetPasswordPost, 
+  authValidate.resetPasswordPost,
   authController.resetPasswordPost
 );
 

@@ -2,25 +2,13 @@ extends ../layouts/default.pug
 include ../mixins/index.pug
 
 block main
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
   +page-banner(
     {
       name: pageTitle
     },
     `/cart`
   )
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
 
-  //
-    ============================
-    CART PAGE START
-    =============================
   section(class="cart_page mt_100 mb_100")
     .container
       .row
@@ -30,7 +18,3 @@ block main
           div(id="sticky_sidebar")
             include ../partials/cart-page-summary.pug
             include ../partials/cart-summary-btn.pug
-  //
-    ============================
-    CART PAGE END
-    =============================

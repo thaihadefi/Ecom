@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ISetting } from "../interfaces/models/setting.interface";
 
 const schema = new mongoose.Schema(
   {
@@ -10,12 +11,12 @@ const schema = new mongoose.Schema(
     updatedBy: String,
   },
   {
-    timestamps: true // Automatically create createdAt and updatedAt fields
+    timestamps: true
   }
 );
 
 schema.index({ key: 1 }, { unique: true });
 
-const Setting = mongoose.model('Setting', schema, "settings");
+const Setting = mongoose.model<ISetting>('Setting', schema, "settings");
 
 export default Setting;

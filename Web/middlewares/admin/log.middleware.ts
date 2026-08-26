@@ -8,7 +8,7 @@ export const autoAuditLog = (req: RequestAccount, res: Response, next: NextFunct
   }
 
   res.on("finish", () => {
-    if (res.statusCode < 400 && !(req as any)._auditLogged && req.adminId) {
+    if (res.statusCode < 400 && !req._auditLogged && req.adminId) {
       let title = res.locals.auditTitle;
       if (!title) {
         const urlParts = req.originalUrl.split("?")[0].split("/").filter(Boolean);

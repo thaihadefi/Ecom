@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { IUserAddress } from "../interfaces/models/user-address.interface";
 
 const schema = new mongoose.Schema({
   userId: String,
@@ -12,12 +13,12 @@ const schema = new mongoose.Schema({
     default: false,
   }
 }, {
-  timestamps: true // Automatically generate createdAt and updatedAt fields
+  timestamps: true
 });
 
 schema.index({ userId: 1 });
 schema.index({ userId: 1, isDefault: 1 });
 
-const UserAddress = mongoose.model('UserAddress', schema, "user-address");
+const UserAddress = mongoose.model<IUserAddress>('UserAddress', schema, "user-address");
 
 export default UserAddress;

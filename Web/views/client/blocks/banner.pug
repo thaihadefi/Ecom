@@ -2,11 +2,7 @@ include ../mixins/index.pug
 
 - const isVideo = (url) => url && /\.(mp4|webm|ogg|mov)$/i.test(url)
 
-//
-  =========================
-    BANNER 2 START
-    ==========================
-section(class="banner_2")
+section(class="banner_main")
   .container
     .row
       .col-xl-2.d-none.d-xxl-block
@@ -14,7 +10,7 @@ section(class="banner_2")
           +renderCategory(categoryProductList, 0)
       .col-xxl-7.col-lg-8
         div(class="banner_content")
-          .row(class="banner_2_slider")
+          .row(class="banner_slider")
             each slider in blockData.sliders
               .col-xl-12
                 if isVideo(getFullUrl(slider.background))
@@ -58,7 +54,7 @@ section(class="banner_2")
           .col-xl-12
             if isVideo(getFullUrl(blockData.sideBanner.background))
               .wow.fadeInUp(
-                class="banner_2_add position-relative overflow-hidden"
+                class="banner_add position-relative overflow-hidden"
               )
                 video(
                   autoplay
@@ -81,7 +77,7 @@ section(class="banner_2")
             else
               .wow.fadeInUp(
                 style=`background: url(${getFullUrl(blockData.sideBanner.background)});`
-                class="banner_2_add"
+                class="banner_add"
               )
                 .text
                   h4 #{blockData.sideBanner.subtitle}
@@ -92,7 +88,3 @@ section(class="banner_2")
                   )
                     | #{blockData.sideBanner.button.text}
                     i.fas.fa-long-arrow-right(aria-hidden="true")
-//
-  =========================
-    BANNER 2 END
-    ==========================

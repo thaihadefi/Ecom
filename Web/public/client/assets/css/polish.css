@@ -10,7 +10,7 @@
 /* ── 1. DESIGN TOKENS ── */
 :root {
     /* Brand */
-    --themeColoeOne: #0057B7; 
+    --themeColoeOne: #0057B7;
     --themeColoeOneDark: #003F88;
     --themeColorTwo: #FFD700;
     --themeColorTwoDark: #E6B800;
@@ -683,19 +683,19 @@ form button.password-toggle {
 }
 
 /* ── 10. HEADER ── */
-header.header_2 {
+header.header_main {
     background: var(--colorWhite);
     box-shadow: var(--shadow-sm);
     border-bottom: 1px solid var(--borderColor);
 }
 
 /* Header search */
-header.header_2 form {
+header.header_main form {
     width: 100%;
     margin-left: 0;
 }
 
-header.header_2 form .input {
+header.header_main form .input {
     width: 100%;
     flex: 1 1 auto;
 }
@@ -716,7 +716,7 @@ header.header_2 form .input {
 }
 
 .sign_in_img img,
-.footer_2_logo_area img.img-fluid {
+.footer_logo_area img.img-fluid {
     height: auto !important;
     object-fit: contain !important;
 }
@@ -1172,14 +1172,14 @@ header form .input .inner-voice.recording {
 }
 
 /* ── 26. HIGH-FIDELITY PREMIUM DARK FOOTER (INNOVATION STYLE) ── */
-.footer_2 {
+.footer_main {
     background: #0B0F19 !important;
     border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
     position: relative;
     z-index: 2;
 }
 
-.footer_2 .footer_2_logo_area p {
+.footer_main .footer_logo_area p {
     color: #94A3B8 !important;
     font-size: 15px !important;
     line-height: 1.6 !important;
@@ -1187,18 +1187,18 @@ header form .input .inner-voice.recording {
 }
 
 /* Social links styling */
-.footer_2 .footer_2_logo_area ul {
+.footer_main .footer_logo_area ul {
     margin-top: 20px !important;
     gap: 10px !important;
 }
 
-.footer_2 .footer_2_logo_area ul li span {
+.footer_main .footer_logo_area ul li span {
     color: #94A3B8 !important;
     font-weight: 600 !important;
     margin-right: 4px;
 }
 
-.footer_2 .footer_2_logo_area ul li a {
+.footer_main .footer_logo_area ul li a {
     width: 38px !important;
     height: 38px !important;
     line-height: 38px !important;
@@ -1209,34 +1209,34 @@ header form .input .inner-voice.recording {
 }
 
 /* Specific Social Brand Hovers */
-.footer_2 .footer_2_logo_area ul li a:hover {
+.footer_main .footer_logo_area ul li a:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
 }
 
-.footer_2 .footer_2_logo_area ul li a .fa-facebook-f:hover,
-.footer_2 .footer_2_logo_area ul li a:has(.fa-facebook-f):hover {
+.footer_main .footer_logo_area ul li a .fa-facebook-f:hover,
+.footer_main .footer_logo_area ul li a:has(.fa-facebook-f):hover {
     background: #1877F2 !important;
     border-color: #1877F2 !important;
     color: #FFFFFF !important;
 }
 
-.footer_2 .footer_2_logo_area ul li a .fa-twitter:hover,
-.footer_2 .footer_2_logo_area ul li a:has(.fa-twitter):hover {
+.footer_main .footer_logo_area ul li a .fa-twitter:hover,
+.footer_main .footer_logo_area ul li a:has(.fa-twitter):hover {
     background: #1DA1F2 !important;
     border-color: #1DA1F2 !important;
     color: #FFFFFF !important;
 }
 
-.footer_2 .footer_2_logo_area ul li a .fa-google-plus-g:hover,
-.footer_2 .footer_2_logo_area ul li a:has(.fa-google-plus-g):hover {
+.footer_main .footer_logo_area ul li a .fa-google-plus-g:hover,
+.footer_main .footer_logo_area ul li a:has(.fa-google-plus-g):hover {
     background: #DB4437 !important;
     border-color: #DB4437 !important;
     color: #FFFFFF !important;
 }
 
-.footer_2 .footer_2_logo_area ul li a .fa-linkedin-in:hover,
-.footer_2 .footer_2_logo_area ul li a:has(.fa-linkedin-in):hover {
+.footer_main .footer_logo_area ul li a .fa-linkedin-in:hover,
+.footer_main .footer_logo_area ul li a:has(.fa-linkedin-in):hover {
     background: #0A66C2 !important;
     border-color: #0A66C2 !important;
     color: #FFFFFF !important;
@@ -1259,7 +1259,7 @@ header form .input .inner-voice.recording {
     bottom: 0;
     width: 35px;
     height: 2px;
-    background: var(--themeColorTwo) !important; 
+    background: var(--themeColorTwo) !important;
     border-radius: 2px;
 }
 
@@ -1470,7 +1470,6 @@ header form .input .inner-voice.recording {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-
 /* Avatar initials — same style as admin chat */
 .avatar-initials {
     background: linear-gradient(135deg, #22c5ad 0%, #7367f0 100%);
@@ -1509,19 +1508,19 @@ header form .input .inner-voice.recording {
 /* ── 28. CATEGORY 2 — circular images with object-fit:contain ── */
 /* Root cause: global img { object-fit:cover !important } in style.css overrides all inline styles.
    This rule has higher specificity AND !important so it wins. */
-.category_2 .category_item .img {
+.category_area .category_item .img {
     padding: 0 !important;   /* theme sets padding:40px which shrinks image area to 90x90 */
     border-radius: 50% !important;
     overflow: hidden !important;
 }
 
-.category_2 .category_item .img img {
+.category_area .category_item .img img {
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
 }
 
-.category_2 .category_item:hover .img {
+.category_area .category_item:hover .img {
     border-radius: 50% !important;
 }
 
@@ -1543,9 +1542,9 @@ header form .input .inner-voice.recording {
 
 /* ── 29. SECTION HEADINGS — uniform bold + uniform font for all sections ── */
 .section_heading h3,
-.section_heading_2 h3,
+.section_heading h3,
 .section_heading h3 span,
-.section_heading_2 h3 span {
+.section_heading h3 span {
     font-family: var(--headingFont) !important;
     font-weight: 700 !important;
     letter-spacing: -0.02em;
@@ -2020,36 +2019,36 @@ header form .input .inner-voice.recording {
 }
 
 /* Slick sliders (only targeting product sliders to avoid breaking banner/fade sliders) */
-.flash_sell_2_slider .slick-track,
-.favourite_product_2_slider .slick-track {
+.flash_sell_slider .slick-track,
+.favourite_product_slider .slick-track {
     display: flex !important;
     align-items: stretch !important;
 }
 
-.flash_sell_2_slider .slick-slide,
-.favourite_product_2_slider .slick-slide {
+.flash_sell_slider .slick-slide,
+.favourite_product_slider .slick-slide {
     height: auto !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
-.flash_sell_2_slider .slick-slide > div,
-.favourite_product_2_slider .slick-slide > div {
+.flash_sell_slider .slick-slide > div,
+.favourite_product_slider .slick-slide > div {
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
-.flash_sell_2_slider .slick-slide [class*="col-"],
-.favourite_product_2_slider .slick-slide [class*="col-"] {
+.flash_sell_slider .slick-slide [class*="col-"],
+.favourite_product_slider .slick-slide [class*="col-"] {
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
     flex: 1 !important;
 }
 
-.flash_sell_2_slider .slick-slide .product_item_2,
-.favourite_product_2_slider .slick-slide .product_item_2 {
+.flash_sell_slider .slick-slide .product_item_2,
+.favourite_product_slider .slick-slide .product_item_2 {
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
@@ -2070,7 +2069,7 @@ header form .input .inner-voice.recording {
 }
 
 /* ── 33. CATEGORY CIRCLE IMAGES CONTAIN tròn ── */
-.category_2 .category_item .img {
+.category_area .category_item .img {
     width: 170px !important;
     height: 170px !important;
     border-radius: 50% !important;
@@ -2083,7 +2082,7 @@ header form .input .inner-voice.recording {
     justify-content: center !important;
 }
 
-.category_2 .category_item .img img {
+.category_area .category_item .img img {
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important; /* Contain to prevent clipping heads */
@@ -2438,8 +2437,8 @@ button[disabled] {
   .wow { visibility: visible !important; animation-name: none !important; }
 
   /* Hide non-invoice elements — must come AFTER flatten rules to win */
-  .header_2,
-  .footer_2,
+  .header_main,
+  .footer_main,
   .page_banner,
   .progress-wrap,
   #chat-button,
@@ -2457,5 +2456,3 @@ button[disabled] {
   .dashboard_order_invoice { margin-top: 0 !important; border: none !important; border-radius: 0 !important; overflow: visible !important; }
   .dashboard_order_invoice_area { padding: 0 !important; }
 }
-
-

@@ -1,12 +1,9 @@
 if (accountUser)
-  //- Floating action button
   #chat-button(title="Chat with us" aria-label="Open chat")
     i.fas.fa-comment-dots(aria-hidden="true")
     span#chat-count.chat-count(class=`${chatMessageTotal > 0 ? '' : 'd-none'}` aria-live="polite") #{chatMessageTotal || 0}
 
-  //- Chat popup
   #chat-popup.hidden(role="dialog" aria-modal="true" aria-label="Chat support")
-    //- Header
     .chat-popup-header
       .chat-popup-header-info
         .chat-avatar-wrap(style="width: 38px; height: 38px;")
@@ -25,10 +22,8 @@ if (accountUser)
         button#chat-close.chat-icon-btn(aria-label="Close chat")
           i.fas.fa-times(aria-hidden="true")
 
-    //- Chat body
     #chat-body.chat-popup-body
 
-    //- Rating panel
     #chat-rate.chat-rate-panel.d-none
       .chat-rate-header
         span Rate this conversation
@@ -43,16 +38,13 @@ if (accountUser)
       textarea#rate-content(placeholder="Share your feedback (optional)...")
       button#rate-submit.chat-rate-submit Submit
 
-    //- Typing indicator
     #chat-typing.chat-typing-indicator
       span
       span
       span
 
-    //- File preview
     #chat-preview.chat-preview-strip.d-none
 
-    //- Footer
     .chat-popup-footer
       input#chat-file(type="file" multiple hidden)
       button#chat-attach.chat-footer-icon(aria-label="Attach file")
@@ -66,7 +58,6 @@ if (accountUser)
       button#chat-send.chat-send-btn(aria-label="Send message")
         i.fas.fa-paper-plane(aria-hidden="true")
 
-  //- Custom confirm modal (reused by JS)
   #chat-confirm-modal.chat-confirm-overlay.d-none(role="alertdialog" aria-modal="true")
     .chat-confirm-box
       .chat-confirm-icon

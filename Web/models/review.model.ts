@@ -39,7 +39,7 @@ const schema = new mongoose.Schema(
     reportedBy: [String]
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
@@ -49,6 +49,8 @@ schema.index({ createdAt: -1 });
 schema.index({ productId: 1, createdAt: -1 });
 schema.index({ reportCount: -1 });
 
-const Review = mongoose.model('Review', schema, "reviews");
+import { IReview } from "../interfaces/models/review.interface";
+
+const Review = mongoose.model<IReview>('Review', schema, "reviews");
 
 export default Review;

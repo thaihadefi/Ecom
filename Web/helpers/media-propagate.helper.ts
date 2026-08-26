@@ -9,111 +9,83 @@ import Setting from "../models/setting.model";
 import Review from "../models/review.model";
 import ChatMessage from "../models/chat-message.model";
 
-/**
- * Deep replace all occurrences of `oldPath` with `newPath` inside any JS value.
- * Works on strings, arrays, and plain objects (recursive).
- */
-function deepReplace(obj: any, oldPath: string, newPath: string): any {
+function deepReplace(obj: unknown, oldPath: string, newPath: string): unknown {
   if (typeof obj === "string") {
-    // Global replace within any string value
     return obj.split(oldPath).join(newPath);
   }
   if (Array.isArray(obj)) {
     return obj.map((item) => deepReplace(item, oldPath, newPath));
   }
   if (obj && typeof obj === "object") {
-    const result: any = {};
-    for (const key of Object.keys(obj)) {
-      result[key] = deepReplace(obj[key], oldPath, newPath);
+    const result: Record<string, unknown> = {};
+    for (const key of Object.keys(obj as object)) {
+      result[key] = deepReplace((obj as Record<string, unknown>)[key], oldPath, newPath);
     }
     return result;
   }
-  return obj; // numbers, booleans, null, etc.
+  return obj;
 }
 
-/**
- * After a file is renamed or moved, propagate the path change
- * across all collections that may store media references.
- *
- * @param oldPath  e.g. "/media/old-name.jpg"
- * @param newPath  e.g. "/media/new-name.jpg"
- */
 export async function propagateMediaRename(
   oldPath: string,
   newPath: string
 ): Promise<void> {
-  // Fetch JSON-blob collections and simple collections in parallel
   const [blocks, settings] = await Promise.all([
     Block.find({}).select("_id data"),
     Setting.find({}).select("_id data"),
   ]);
 
-  // Build all update promises
-  const updates: Promise<any>[] = [];
+  const updates: Promise<unknown>[] = [];
 
-  // Blocks – deeply nested JSON
   for (const block of blocks) {
-    if (!block.data) continue;
-    if (!JSON.stringify(block.data).includes(oldPath)) continue;
-    const updated = deepReplace(block.data, oldPath, newPath);
-    updates.push(Block.updateOne({ _id: block._id }, { $set: { data: updated } }));
+    if (!block.data || !JSON.stringify(block.data).includes(oldPath)) continue;
+    updates.push(Block.updateOne({ _id: block._id }, { $set: { data: deepReplace(block.data, oldPath, newPath) } }));
   }
 
-  // Settings – deeply nested JSON
   for (const setting of settings) {
-    if (!setting.data) continue;
-    if (!JSON.stringify(setting.data).includes(oldPath)) continue;
-    const updated = deepReplace(setting.data, oldPath, newPath);
-    updates.push(Setting.updateOne({ _id: setting._id }, { $set: { data: updated } }));
+    if (!setting.data || !JSON.stringify(setting.data).includes(oldPath)) continue;
+    updates.push(Setting.updateOne({ _id: setting._id }, { $set: { data: deepReplace(setting.data, oldPath, newPath) } }));
   }
 
-  // Simple updateMany — all independent
+  const rawOld = oldPath.replace(/^\/media\//, "");
+  const rawNew = newPath.replace(/^\/media\//, "");
+
   updates.push(
-    Product.updateMany(
-      { images: oldPath },
-      { $set: { "images.$[elem]": newPath } },
-      { arrayFilters: [{ elem: oldPath }] }
-    ),
+    Product.updateMany({ images: oldPath }, { $set: { "images.$[elem]": newPath } }, { arrayFilters: [{ elem: oldPath }] }),
+    Review.updateMany({ images: oldPath }, { $set: { "images.$[elem]": newPath } }, { arrayFilters: [{ elem: oldPath }] }),
+    ChatMessage.updateMany({ files: oldPath }, { $set: { "files.$[elem]": newPath } }, { arrayFilters: [{ elem: oldPath }] }),
     Blog.updateMany({ avatar: oldPath }, { $set: { avatar: newPath } }),
     CategoryProduct.updateMany({ avatar: oldPath }, { $set: { avatar: newPath } }),
     CategoryBlog.updateMany({ avatar: oldPath }, { $set: { avatar: newPath } }),
     AccountAdmin.updateMany({ avatar: oldPath }, { $set: { avatar: newPath } }),
     AccountUser.updateMany({ avatar: oldPath }, { $set: { avatar: newPath } }),
-    Review.updateMany(
-      { images: oldPath },
-      { $set: { "images.$[elem]": newPath } },
-      { arrayFilters: [{ elem: oldPath }] }
-    ),
-    ChatMessage.updateMany(
-      { files: oldPath },
-      { $set: { "files.$[elem]": newPath } },
-      { arrayFilters: [{ elem: oldPath }] }
-    )
+    Product.updateMany({ images: rawOld }, { $set: { "images.$[elem]": rawNew } }, { arrayFilters: [{ elem: rawOld }] }),
+    Review.updateMany({ images: rawOld }, { $set: { "images.$[elem]": rawNew } }, { arrayFilters: [{ elem: rawOld }] }),
+    ChatMessage.updateMany({ files: rawOld }, { $set: { "files.$[elem]": rawNew } }, { arrayFilters: [{ elem: rawOld }] }),
+    Blog.updateMany({ avatar: rawOld }, { $set: { avatar: rawNew } }),
+    CategoryProduct.updateMany({ avatar: rawOld }, { $set: { avatar: rawNew } }),
+    CategoryBlog.updateMany({ avatar: rawOld }, { $set: { avatar: rawNew } }),
+    AccountAdmin.updateMany({ avatar: rawOld }, { $set: { avatar: rawNew } }),
+    AccountUser.updateMany({ avatar: rawOld }, { $set: { avatar: rawNew } })
   );
 
   await Promise.all(updates);
 }
 
-/**
- * After a file is deleted, remove all references to it across collections.
- * Strings are nulled; array entries are pulled out.
- *
- * @param filePath  e.g. "/media/subfolder/image.jpg"
- */
 export async function propagateMediaDelete(filePath: string): Promise<void> {
   const [blocks, settings] = await Promise.all([
     Block.find({}).select("_id data"),
     Setting.find({}).select("_id data"),
   ]);
 
-  const updates: Promise<any>[] = [];
+  const updates: Promise<unknown>[] = [];
 
-  function deepRemove(obj: any, target: string): any {
+  function deepRemove(obj: unknown, target: string): unknown {
     if (typeof obj === "string") return obj === target ? null : obj;
     if (Array.isArray(obj)) return obj.filter((item) => item !== target).map((item) => deepRemove(item, target));
     if (obj && typeof obj === "object") {
-      const result: any = {};
-      for (const key of Object.keys(obj)) result[key] = deepRemove(obj[key], target);
+      const result: Record<string, unknown> = {};
+      for (const key of Object.keys(obj as object)) result[key] = deepRemove((obj as Record<string, unknown>)[key], target);
       return result;
     }
     return obj;

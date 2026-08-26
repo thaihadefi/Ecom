@@ -1,24 +1,9 @@
-/* global Symbol */
-
 (function (exports) {
     'use strict';
 
-    /*!
-     * Project : simply-countdown
-     * Date : 27/06/2015
-     * License : MIT
-     * Version : 1.6.0
-     * Author : Vincent Loy <vincent.loy1@gmail.com>
-     * Contributors :
-     *  - Justin Beasley <JustinB@harvest.org>
-     *  - Nathan Smith <NathanS@harvest.org>
-     */
+    
 
-    /**
-     * Function that merge user parameters with defaults one.
-     * @param output
-     * @returns {*|{}}
-     */
+    
     let extend = function (output) {
         let obj;
         let out = output || {};
@@ -49,13 +34,7 @@
         return val !== null && Symbol.iterator in Object(val);
     };
 
-    /**
-     * Function that create a countdown section
-     * @param countdown
-     * @param parameters
-     * @param typeClass
-     * @returns {{full: (*|Element), amount: (*|Element), word: (*|Element)}}
-     */
+    
     let createCountdownElt = (countdown, parameters, typeClass) => {
         let sectionTag = document.createElement('div');
         let amountTag = document.createElement('span');
@@ -80,12 +59,7 @@
         };
     };
 
-    /**
-     * Function that create full countdown DOM elements calling createCountdownElt
-     * @param parameters
-     * @param countdown
-     * @returns {{days:(*|Element), hours:(*|Element), minutes:(*|Element), seconds:(*|Element)}}
-     */
+    
     let createElements = (parameters, countdown) => {
         let spanTag;
 
@@ -103,11 +77,7 @@
         return spanTag;
     };
 
-    /**
-     * simplyCountdown, create and display the coundtown.
-     * @param elt
-     * @param args (parameters)
-     */
+    
     exports.simplyCountdown = (elt, args) => {
         const eltProto = Object.getPrototypeOf(elt);
         let parameters = extend({
@@ -148,8 +118,6 @@
         let seconds;
         let cd;
 
-        // console.log(typeof elt);
-        //
         if (eltProto === String.prototype) {
             cd = document.querySelectorAll(elt);
         } else {
@@ -246,7 +214,7 @@
                     secondWord = parameters.words.seconds.singular;
                 }
 
-                /* display an inline countdown into a span tag */
+                
                 if (parameters.inline) {
                     countdown.innerHTML = `${days} ${dayWord}, `
                         + `${hours} ${hourWord}, `
@@ -267,7 +235,6 @@
                 }
             };
 
-            // Refresh immediately to prevent a Flash of Unstyled Content
             refresh();
             interval = window.setInterval(refresh, parameters.refresh);
         };
@@ -282,7 +249,6 @@
     };
 }(window));
 
-/* global jQuery, simplyCountdown */
 if (window.jQuery) {
     (function ($, simplyCountdown) {
         'use strict';

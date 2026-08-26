@@ -9,8 +9,8 @@ const upload = multer();
 router.get('/messages', chatController.messages);
 
 router.post(
-  '/upload', 
-  upload.array("files"), 
+  '/upload',
+  upload.array("files"),
   chatController.uploadPost
 );
 

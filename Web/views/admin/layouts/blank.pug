@@ -1,8 +1,8 @@
 doctype html
 html(
-  data-bs-theme="light" 
-  data-startbar="light" 
-  dir="ltr" 
+  data-bs-theme="light"
+  data-startbar="light"
+  dir="ltr"
   lang="en"
   )
   head
@@ -11,32 +11,30 @@ html(
     meta(charset="utf-8")
     title #{pageTitle}
     meta(
-      content="width=device-width, initial-scale=1, shrink-to-fit=no" 
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
       name="viewport"
       )
     meta(
-      name="description" 
-      content="Premium Multipurpose Admin & Dashboard Template"
+      name="description"
+      content="Ecom - Enterprise Store Administration Panel"
       )
     meta(
-      name="author" 
-      content=""
+      name="author"
+      content="Ecom Platform"
       )
     meta(
-      content="IE=edge" 
+      content="IE=edge"
       http-equiv="X-UA-Compatible"
       )
-    // App favicon
     link(
       href=`${settingGeneral && settingGeneral.favicon ? domainCDN + settingGeneral.favicon : '/images/favicon.ico'}`
       rel="shortcut icon"
       )
-    // App css
     link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css")
     link(href="https://releases.transloadit.com/uppy/v4.18.2/uppy.min.css" rel="stylesheet")
     link(
-      type="text/css" 
-      rel="stylesheet" 
+      type="text/css"
+      rel="stylesheet"
       href="/admin/assets/css/bootstrap.min.css"
       )
     link(
@@ -49,24 +47,20 @@ html(
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
       )
     link(
-      type="text/css" 
-      rel="stylesheet" 
+      type="text/css"
+      rel="stylesheet"
       href="/admin/assets/css/app.min.css"
       )
     link(
-      type="text/css" 
-      rel="stylesheet" 
+      type="text/css"
+      rel="stylesheet"
       href="/admin/assets/css/main.css"
       )
-  // Top Bar Start
   body
-    
     block main
 
     include ../partials/modal-confirm.pug
 
-    // Javascript
-    // vendor js
     script(src="https://unpkg.com/just-validate@latest/dist/just-validate.production.min.js")
     script(src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js")
     script(src=`https://cdn.tiny.cloud/1/${tinymceApiKey}/tinymce/8/tinymce.min.js` referrerpolicy="origin" crossorigin="anonymous")
@@ -76,4 +70,3 @@ html(
     script(src="/admin/assets/js/app.js")
     script(src="/admin/assets/js/main.js")
     script(src="/admin/assets/js/uppy.js" type="module")
-  // end body

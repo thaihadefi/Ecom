@@ -1,4 +1,3 @@
-// Create an instance of Notyf
 var notyf = new Notyf({
   duration: 3000,
   position: {
@@ -8,7 +7,6 @@ var notyf = new Notyf({
   dismissible: true
 });
 
-// Mirror toast messages to aria-live region so screen readers announce them
 (function() {
   var liveRegion = document.getElementById('sr-live-region');
   if (!liveRegion) return;
@@ -40,7 +38,6 @@ const drawNotify = (type, message) => {
   }));
 }
 
-// pagination
 const pagination = document.querySelector(".pagination");
 if(pagination) {
   const url = new URL(window.location.href);
@@ -58,25 +55,21 @@ if(pagination) {
     })
   })
 }
-// End pagination
 
-// button-share
 const listButtonShare = document.querySelectorAll("[button-share]");
 if(listButtonShare.length > 0) {
   listButtonShare.forEach(button => {
     button.href = button.href + window.location.href;
   })
 }
-// End button-share
 
-// filter-product-status
 const listFilterProductStatus = document.querySelectorAll("[filter-product-status]");
 if(listFilterProductStatus.length > 0) {
   const url = new URL(window.location.href);
-  
+
   listFilterProductStatus.forEach(input => {
     const name = input.value;
-    
+
     input.addEventListener("change", () => {
       const value = input.checked;
       if(value) {
@@ -87,20 +80,17 @@ if(listFilterProductStatus.length > 0) {
       window.location.href = url.href;
     })
 
-    // Display default values
     const valueCurrent = url.searchParams.get(name);
     if(valueCurrent) {
       input.checked = true;
     }
   })
 }
-// End filter-product-status
 
-// button-slug
 const listButtonSlug = document.querySelectorAll("[button-slug]");
 if(listButtonSlug.length > 0) {
   const url = new URL(window.location.href);
-  
+
   listButtonSlug.forEach(button => {
     button.addEventListener("click", () => {
       const slug = button.getAttribute("button-slug");
@@ -111,9 +101,7 @@ if(listButtonSlug.length > 0) {
     })
   })
 }
-// End button-slug
 
-// filter-attribute
 const listFilterAttribute = document.querySelectorAll("[filter-attribute]");
 if(listFilterAttribute.length > 0) {
   const url = new URL(window.location.href);
@@ -121,7 +109,7 @@ if(listFilterAttribute.length > 0) {
   listFilterAttribute.forEach(filterAttribute => {
     const id = filterAttribute.getAttribute("filter-attribute");
     const listInput = filterAttribute.querySelectorAll(`input[type="checkbox"]`);
-    
+
     listInput.forEach(input => {
       input.addEventListener("change", () => {
         const listInputChecked = filterAttribute.querySelectorAll(`input[type="checkbox"]:checked`);
@@ -136,7 +124,6 @@ if(listFilterAttribute.length > 0) {
       })
     })
 
-    // Display default values
     const listValueCurrent = url.searchParams.get(`attribute_${id}`);
     if(listValueCurrent) {
       const listValue = listValueCurrent.split(",");
@@ -148,18 +135,15 @@ if(listFilterAttribute.length > 0) {
     }
   })
 }
-// End filter-attribute
 
-// form-search
 const formSearch = document.querySelector("[form-search]");
 if(formSearch) {
   const url = new URL(window.location.href);
 
-  // Display default values safely
   const keywordCurrent = url.searchParams.get("keyword");
   const keywordField = formSearch.querySelector("input[name='keyword']") || formSearch.keyword;
   const categoryField = formSearch.querySelector("select[name='category']") || formSearch.category;
-  
+
   if(categoryField) {
     const categoryCurrent = url.pathname.split("/").pop();
     if(categoryCurrent && categoryCurrent != "category") {
@@ -170,19 +154,18 @@ if(formSearch) {
   if(keywordField && keywordCurrent) {
     keywordField.value = keywordCurrent;
   }
-  
+
   formSearch.addEventListener("submit", (event) => {
     event.preventDefault();
     const keyword = keywordField ? keywordField.value.trim() : "";
     const category = categoryField ? categoryField.value : "";
-    
-    // Redirect to search results page
+
     const targetUrl = new URL("/search", window.location.origin);
-    
+
     if(category) {
       targetUrl.pathname = `/product/category/${category}`;
     }
-    
+
     if(keyword) {
       targetUrl.searchParams.set("keyword", keyword);
     } else {
@@ -192,7 +175,6 @@ if(formSearch) {
     window.location.href = targetUrl.href;
   });
 
-  // button-voice
   const buttonVoice = document.querySelector("[button-voice]");
   if(buttonVoice && keywordField) {
     const originalPlaceholder = keywordField.placeholder;
@@ -215,10 +197,9 @@ if(formSearch) {
         alert("Your browser does not support Speech Recognition. Try using Chrome or Safari.");
         return;
       }
-      
+
       const voice = new SpeechRecognition();
 
-      // 1. Detect current active language from GTranslate cookie or switcher state
       let activeLang = "vi";
       const match = document.cookie.match(/googtrans=([^;]+)/);
       if (match) {
@@ -242,7 +223,6 @@ if(formSearch) {
         }
       }
 
-      // 2. Map target language to standard SpeechRecognition locale tags
       const localeMap = {
         "vi": "vi-VN",
         "en": "en-US",
@@ -258,7 +238,7 @@ if(formSearch) {
       };
 
       voice.lang = localeMap[activeLang] || `${activeLang}-${activeLang.toUpperCase()}`;
-      
+
       voice.onstart = () => {
         buttonVoice.classList.add("recording");
         keywordField.placeholder = listeningTexts[activeLang] || "Listening...";
@@ -283,13 +263,10 @@ if(formSearch) {
         }
       };
 
-      // Start recording
       voice.start();
     });
   }
-  // End button-voice
 
-  // Suggest
   const input = formSearch.querySelector(`input[name="keyword"]`);
   const boxSuggest = formSearch.querySelector(`.inner-suggest`);
   const boxSuggestList = boxSuggest.querySelector(`.inner-list`);
@@ -336,17 +313,13 @@ if(formSearch) {
       }
     }, 500);
   })
-  // End Suggest
 }
-// End form-search
 
-// Currency switcher (best-practice: base currency stored in data, display via Intl)
 const currencyConfig = (() => {
   const defaults = {
     base: "VND",
     defaultCurrency: "VND",
     supported: ["VND", "USD", "EUR", "JPY", "GBP", "CNY"],
-    // Rates are per 1 VND (loaded from live API or injected via window.currencySettings).
     rates: {},
     digits: {
       VND: 0,
@@ -371,10 +344,13 @@ const currencyState = {
   current: localStorage.getItem("currency") || currencyConfig.defaultCurrency
 };
 
+window.currencyConfig = currencyConfig;
+window.currencyState = currencyState;
+
 const CURRENCY_RATES_STORAGE_KEY = "currencyRates";
-const CURRENCY_RATES_TTL = 1000 * 60 * 60 * 6; // 6 hours
-const CURRENCY_RATES_TIMEOUT = 5000; // 5 seconds
-const CURRENCY_RATES_MIN_REFRESH = 1000 * 60; // 1 minute
+const CURRENCY_RATES_TTL = 1000 * 60 * 60 * 6;
+const CURRENCY_RATES_TIMEOUT = 5000;
+const CURRENCY_RATES_MIN_REFRESH = 1000 * 60;
 let lastRatesFetch = 0;
 
 const loadCachedRates = ({ allowStale = false } = {}) => {
@@ -455,7 +431,6 @@ const loadLiveRates = async ({ force = false } = {}) => {
       saveCachedRates(rates);
       return true;
     } catch (error) {
-      // try next endpoint
     }
   }
 
@@ -567,6 +542,9 @@ const initCurrencySwitcher = (ratesReady) => {
     if(ratesReadyNow) {
       refreshCurrencyDisplay(document.body);
     }
+    if(window.initPriceRangeSlider) {
+      window.initPriceRangeSlider();
+    }
   };
 
   switchers.forEach(select => {
@@ -595,19 +573,18 @@ const initCurrencySwitcher = (ratesReady) => {
 const initCurrencyModule = async () => {
   const ratesReady = await loadLiveRates();
   initCurrencySwitcher(Boolean(ratesReady));
+  if(window.initPriceRangeSlider) {
+    window.initPriceRangeSlider();
+  }
 };
 
 initCurrencyModule();
-// End currency switcher
 
-// Create new cart
 const existCart = localStorage.getItem("cart");
 if(!existCart) {
   localStorage.setItem("cart", JSON.stringify([]));
 }
-// End of create new cart
 
-// mini-cart-quantity
 const miniCartQuantity = () => {
   const cart = JSON.parse(localStorage.getItem("cart"));
   const listElementMiniCartQuantity = document.querySelectorAll("[mini-cart-quantity]");
@@ -616,9 +593,7 @@ const miniCartQuantity = () => {
   });
 }
 miniCartQuantity();
-// End mini-cart-quantity
 
-// Delete item in cart
 const eventRemoveItemInCart = () => {
   const listButtonRemoveItem = document.querySelectorAll("[button-remove-item]");
   listButtonRemoveItem.forEach(button => {
@@ -629,29 +604,25 @@ const eventRemoveItemInCart = () => {
       if(variant) {
         variant = JSON.parse(decodeURIComponent(variant));
       }
-      
+
       let cart = JSON.parse(localStorage.getItem("cart"));
       cart = cart.filter(cartItem => {
-        // Compare duplicate productId
         const sameProduct = cartItem.productId == productId;
 
-        // Compare duplicate variant
         const variantItemInCart = cartItem.variant ? JSON.stringify(cartItem.variant) : "[]";
         const variantItemRemove = variant ? JSON.stringify(variant) : "[]";
         const sameVariant = variantItemInCart == variantItemRemove;
 
         return !(sameProduct && sameVariant);
       });
-      
+
       localStorage.setItem("cart", JSON.stringify(cart));
       drawCart();
       miniCartQuantity();
     })
   })
 }
-// End of delete item in cart
 
-// Check item in cart
 const eventCheckItemInCart = () => {
   const listInputCheckItem = document.querySelectorAll("[cart-table] .cart_page_checkbox input");
   listInputCheckItem.forEach(input => {
@@ -663,13 +634,11 @@ const eventCheckItemInCart = () => {
       if(variant) {
         variant = JSON.parse(decodeURIComponent(variant));
       }
-      
+
       const cart = JSON.parse(localStorage.getItem("cart"));
       const itemUpdate = cart.find(cartItem => {
-        // Compare duplicate productId
         const sameProduct = cartItem.productId == productId;
 
-        // Compare duplicate variant
         const variantItemInCart = cartItem.variant ? JSON.stringify(cartItem.variant) : "[]";
         const variantItemRemove = variant ? JSON.stringify(variant) : "[]";
         const sameVariant = variantItemInCart == variantItemRemove;
@@ -683,9 +652,7 @@ const eventCheckItemInCart = () => {
     })
   })
 }
-// End of check item in cart
 
-// Update item quantity in cart
 const eventQuantityItemInCart = () => {
   const listBoxQuantity = document.querySelectorAll("[cart-table] .cart_page_quantity");
   listBoxQuantity.forEach(box => {
@@ -702,10 +669,8 @@ const eventQuantityItemInCart = () => {
 
     const cart = JSON.parse(localStorage.getItem("cart"));
     const itemUpdate = cart.find(cartItem => {
-      // Compare duplicate productId
       const sameProduct = cartItem.productId == productId;
 
-      // Compare duplicate variant
       const variantItemInCart = cartItem.variant ? JSON.stringify(cartItem.variant) : "[]";
       const variantItemRemove = variant ? JSON.stringify(variant) : "[]";
       const sameVariant = variantItemInCart == variantItemRemove;
@@ -714,7 +679,6 @@ const eventQuantityItemInCart = () => {
     })
 
     if(itemUpdate) {
-      // If quantity is insufficient, print warning
       const quantity = parseInt(inputQuantity.value);
       const max = parseInt(inputQuantity.max);
       if(quantity > max) {
@@ -724,8 +688,7 @@ const eventQuantityItemInCart = () => {
         itemAlert.innerHTML = `Only ${max} products!`;
         box.appendChild(itemAlert);
       }
-      
-      // Increase quantity
+
       buttonPlus.addEventListener("click", () => {
         const quantity = parseInt(inputQuantity.value);
         const max = parseInt(inputQuantity.max);
@@ -736,7 +699,6 @@ const eventQuantityItemInCart = () => {
         }
       })
 
-      // Decrease quantity
       buttonMinus.addEventListener("click", () => {
         const quantity = parseInt(inputQuantity.value);
         const min = parseInt(inputQuantity.min);
@@ -749,9 +711,7 @@ const eventQuantityItemInCart = () => {
     }
   })
 }
-// End of update item quantity in cart
 
-// Get selected address information
 const getUserAddress = () => {
   let userAddress = null;
   const inputUserAddressChecked = document.querySelector(`input[name="userAddress"]:checked`);
@@ -774,9 +734,7 @@ const getUserAddress = () => {
   }
   return userAddress;
 }
-// End of get selected address info
 
-// Select shipping partner
 const eventCheckShipping = () => {
   const listInput = document.querySelectorAll(`[shipping-list] input[name="shippingMethod"]`);
   listInput.forEach(input => {
@@ -785,13 +743,11 @@ const eventCheckShipping = () => {
     })
   })
 }
-// End of select shipping partner
 
-// Draw cart
 const drawCart = () => {
   const cart = JSON.parse(localStorage.getItem("cart"));
   const userAddress = getUserAddress();
-  
+
   if(cart.length > 0) {
     fetch(`/cart/list`, {
       method: "POST",
@@ -820,7 +776,6 @@ const drawCart = () => {
           let htmlCartSummary = "";
           let htmlShipping = "";
 
-          // Display products
           data.cart.forEach(item => {
             const { detail } = item;
             let priceOld = 0;
@@ -830,7 +785,6 @@ const drawCart = () => {
             let htmlVariantSummary = "";
 
             if(item.variant) {
-              // Find matching variant in the list
               const variantMatched = detail.variants.find(variantItem => {
                 return (
                   variantItem.attributeValue.every(attr => {
@@ -925,10 +879,10 @@ const drawCart = () => {
                     <button class="minus">
                       <i class="fal fa-minus" aria-hidden="true"></i>
                     </button>
-                    <input 
-                      value="${item.quantity}" 
-                      type="number" 
-                      readonly="" 
+                    <input
+                      value="${item.quantity}"
+                      type="number"
+                      readonly=""
                       min="1"
                       max="${stock}"
                     />
@@ -966,7 +920,6 @@ const drawCart = () => {
             }
           })
 
-          // Display shipping partner
           if(data.shippingOptions) {
             const inputChecked = document.querySelector(`[shipping-list] [name="shippingMethod"]:checked`);
             let idInputChecked = null;
@@ -979,11 +932,11 @@ const drawCart = () => {
 
               htmlShipping += `
                 <div class="form-check">
-                  <input 
+                  <input
                     ${checked}
-                    class="form-check-input" 
-                    id="shippingMethod${index}" 
-                    name="shippingMethod" 
+                    class="form-check-input"
+                    id="shippingMethod${index}"
+                    name="shippingMethod"
                     type="radio"
                     value="${item.id}"
                   >
@@ -1008,12 +961,10 @@ const drawCart = () => {
           if(couponDetail) {
             couponDetail = JSON.parse(couponDetail);
 
-            // Check minimum order value
             if (subTotal >= couponDetail.minOrderValue) {
               if (couponDetail.typeDiscount === "percentage") {
                 discount = (subTotal * couponDetail.value) / 100;
 
-                // Limit maximum discount (if any)
                 if (couponDetail.maxDiscountValue > 0 && discount > couponDetail.maxDiscountValue) {
                   discount = couponDetail.maxDiscountValue;
                 }
@@ -1029,20 +980,17 @@ const drawCart = () => {
                 elementCoupon.innerHTML = couponDetail.code;
               }
             } else {
-              // If conditions for coupon are not met
               notyf.error(`Order has not reached minimum value: ${couponDetail.minOrderValue} VND`);
               sessionStorage.removeItem("couponDetail");
             }
           }
 
-          // Store point info for checkbox toggle
           let pointData = data.point || null;
           let maxPointDiscount = 0;
           if(pointData && pointData.canUsePoint > 0) {
             maxPointDiscount = pointData.canUsePoint * pointData.POINT_TO_MONEY;
           }
 
-          // Point discount starts at 0 (user must opt-in via checkbox)
           let pointDiscount = 0;
 
           let total = Math.max(0, subTotal + shippingFee - discount - pointDiscount);
@@ -1072,7 +1020,6 @@ const drawCart = () => {
             elementDiscount.innerHTML = formatCurrencyAmount(discount, currencyState.current);
           }
 
-          // Show point row only if user has points
           const pointRow = document.querySelector("[point-row]");
           if(pointRow && pointData && pointData.canUsePoint > 0) {
             pointRow.style.display = "";
@@ -1094,7 +1041,6 @@ const drawCart = () => {
             elementTotal.innerHTML = formatCurrencyAmount(total, currencyState.current);
           }
 
-          // Checkbox toggle for using points
           const usePointCheckbox = document.querySelector("[use-point-checkbox]");
           if(usePointCheckbox) {
             usePointCheckbox.addEventListener("change", function() {
@@ -1153,41 +1099,31 @@ const drawCart = () => {
     })
   }
 }
-// End of draw cart
 
-// Create new comparison array
 const existCompareList = localStorage.getItem("compare");
 if(!existCompareList) {
   localStorage.setItem("compare", JSON.stringify([]));
 }
-// End of create new comparison array
 
-// mini-compare-quantity
 const miniCompareQuantity = () => {
   const compareList = JSON.parse(localStorage.getItem("compare"));
   const miniCompareQuantity = document.querySelector("[mini-compare-quantity]");
   miniCompareQuantity.innerHTML = compareList.length;
 }
 miniCompareQuantity();
-// End mini-compare-quantity
 
-// Create new wishlist array
 const existWishlist = localStorage.getItem("wishlist");
 if(!existWishlist) {
   localStorage.setItem("wishlist", JSON.stringify([]));
 }
-// End of create new wishlist array
 
-// mini-wishlist-quantity
 const miniWishlistQuantity = () => {
   const wishlist = JSON.parse(localStorage.getItem("wishlist"));
   const miniWishlistQuantity = document.querySelector("[mini-wishlist-quantity]");
   miniWishlistQuantity.innerHTML = wishlist.length;
 }
 miniWishlistQuantity();
-// End mini-wishlist-quantity
 
-// shop_details_text
 const shopDetailsText = document.querySelector(".shop_details_text");
 if(shopDetailsText) {
   const elementStock = shopDetailsText.querySelector(".stock");
@@ -1200,26 +1136,21 @@ if(shopDetailsText) {
   const buttonAddCart = shopDetailsText.querySelector("[button-add-cart]");
 
   const selected = {};
-  let variantSelected = null; // selected variant
+  let variantSelected = null;
 
   listElementLiVariant.forEach(item => {
     item.addEventListener("click", () => {
       const attributeId = item.getAttribute("attribute-id");
       const variant = item.getAttribute("variant");
 
-      // Remove active class from old item
       item.closest("ul").querySelectorAll("li").forEach(li => li.classList.remove("active"));
 
-      // Add active class to selected li tag
       item.classList.add("active");
-      
-      // Save choices
+
       selected[attributeId] = variant;
 
-      // Check if all attributes are selected
       const selectedValues = Object.values(selected);
       if(selectedValues.length > 0) {
-        // Filter variants with matching attributeValues
         const variantMatched = productVariants.find(variantItem => {
           return variantItem.attributeValue.every(attr => selected[attr.attrId] == attr.value)
         })
@@ -1240,14 +1171,12 @@ if(shopDetailsText) {
             variantSelected = null;
           }
 
-          // Reassign maximum orderable quantity
           inputQuantity.max = variantMatched.stock;
         }
       }
     })
   })
 
-  // Increase quantity
   buttonPlus.addEventListener("click", () => {
     const quantity = parseInt(inputQuantity.value);
     const max = parseInt(inputQuantity.max);
@@ -1256,7 +1185,6 @@ if(shopDetailsText) {
     }
   })
 
-  // Decrease quantity
   buttonMinus.addEventListener("click", () => {
     const quantity = parseInt(inputQuantity.value);
     const min = parseInt(inputQuantity.min);
@@ -1265,7 +1193,6 @@ if(shopDetailsText) {
     }
   })
 
-  // Add to cart
   buttonAddCart.addEventListener("click", () => {
     const productId = buttonAddCart.getAttribute("product-id");
     const quantity = parseInt(inputQuantity.value);
@@ -1280,22 +1207,18 @@ if(shopDetailsText) {
       if(productVariants && productVariants.length > 0 && variantSelected) {
         dataItem.variant = variantSelected.attributeValue;
 
-        // Find if there is a product with duplicate productId and matching attributeValues
         const existItem = cart.find(item => {
           if(item.productId !== dataItem.productId) {
             return false;
           }
 
-          // Compare all attributes in variant
           const oldAttrs = item.variant;
           const newAttrs = dataItem.variant;
 
-          // Number of attributes must match
           if(oldAttrs.length !== newAttrs.length) {
             return false;
           }
 
-          // Check each attrId and value
           return oldAttrs.every(attr => {
             const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
             return match ? true : false;
@@ -1310,7 +1233,6 @@ if(shopDetailsText) {
           notyf.success("Added to cart!");
         }
       } else {
-        // Find if there is a product with duplicate productId
         const existItem = cart.find(item => item.productId === dataItem.productId);
 
         if(existItem) {
@@ -1328,7 +1250,6 @@ if(shopDetailsText) {
     }
   })
 
-  // Add to comparison list
   const buttonAddCompare = shopDetailsText.querySelector("[button-add-compare]");
   buttonAddCompare.addEventListener("click", () => {
     const productId = buttonAddCompare.getAttribute("product-id");
@@ -1342,22 +1263,18 @@ if(shopDetailsText) {
         if(productVariants && productVariants.length > 0 && variantSelected) {
           dataItem.variant = variantSelected.attributeValue;
 
-          // Find if there is a product with duplicate productId and matching attributeValues
           const existItem = compareList.find(item => {
             if(item.productId !== dataItem.productId) {
               return false;
             }
 
-            // Compare all attributes in variant
             const oldAttrs = item.variant;
             const newAttrs = dataItem.variant;
 
-            // Number of attributes must match
             if(oldAttrs.length !== newAttrs.length) {
               return false;
             }
 
-            // Check each attrId and value
             return oldAttrs.every(attr => {
               const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
               return match ? true : false;
@@ -1371,7 +1288,6 @@ if(shopDetailsText) {
             notyf.success("Added to comparison list!");
           }
         } else {
-          // Find if there is a product with duplicate productId
           const existItem = compareList.find(item => item.productId === dataItem.productId);
 
           if(existItem) {
@@ -1390,7 +1306,6 @@ if(shopDetailsText) {
     }
   })
 
-  // Add to wishlist
   const buttonAddWishlist = shopDetailsText.querySelector("[button-add-wishlist]");
   buttonAddWishlist.addEventListener("click", () => {
     const productId = buttonAddWishlist.getAttribute("product-id");
@@ -1405,22 +1320,18 @@ if(shopDetailsText) {
       if(productVariants && productVariants.length > 0 && variantSelected) {
         dataItem.variant = variantSelected.attributeValue;
 
-        // Find if there is a product with duplicate productId and matching attributeValues
         const existItem = wishlist.find(item => {
           if(item.productId !== dataItem.productId) {
             return false;
           }
 
-          // Compare all attributes in variant
           const oldAttrs = item.variant;
           const newAttrs = dataItem.variant;
 
-          // Number of attributes must match
           if(oldAttrs.length !== newAttrs.length) {
             return false;
           }
 
-          // Check each attrId and value
           return oldAttrs.every(attr => {
             const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
             return match ? true : false;
@@ -1434,7 +1345,6 @@ if(shopDetailsText) {
           notyf.success("Added to wishlist!");
         }
       } else {
-        // Find if there is a product with duplicate productId
         const existItem = wishlist.find(item => item.productId === dataItem.productId);
 
         if(existItem) {
@@ -1450,16 +1360,12 @@ if(shopDetailsText) {
     }
   })
 }
-// End shop_details_text
 
-// Cart
 const miniCart = document.querySelector("[mini-cart]");
 if(miniCart) {
   drawCart();
 }
-// End of Cart
 
-// Input Check All
 const inputCartCheckAll = document.querySelector("[input-cart-check-all]");
 if(inputCartCheckAll) {
   inputCartCheckAll.addEventListener("change", () => {
@@ -1470,9 +1376,7 @@ if(inputCartCheckAll) {
     drawCart();
   })
 }
-// End Input Check All
 
-// Add to cart button on Comparison page
 const eventAddItemToCartInCompare = () => {
   const listButtonAdd = document.querySelectorAll("[button-add]");
   listButtonAdd.forEach(button => {
@@ -1491,22 +1395,18 @@ const eventAddItemToCartInCompare = () => {
       if(compareItem.variant) {
         dataItem.variant = compareItem.variant;
 
-        // Find if there is a product with duplicate productId and matching attributeValues
         const existItem = cart.find(item => {
           if(item.productId !== dataItem.productId) {
             return false;
           }
 
-          // Compare all attributes in variant
           const oldAttrs = item.variant;
           const newAttrs = dataItem.variant;
 
-          // Number of attributes must match
           if(oldAttrs.length !== newAttrs.length) {
             return false;
           }
 
-          // Check each attrId and value
           return oldAttrs.every(attr => {
             const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
             return match ? true : false;
@@ -1520,7 +1420,6 @@ const eventAddItemToCartInCompare = () => {
           notyf.success("Added to cart!");
         }
       } else {
-        // Find if there is a product with duplicate productId
         const existItem = cart.find(item => item.productId === dataItem.productId);
 
         if(existItem) {
@@ -1537,9 +1436,7 @@ const eventAddItemToCartInCompare = () => {
     })
   })
 }
-// End of add to cart button on Comparison page
 
-// Remove item button on Comparison page
 const eventRemoveItemInCompare = () => {
   const listButtonRemove = document.querySelectorAll("[button-remove]");
   listButtonRemove.forEach(button => {
@@ -1553,9 +1450,7 @@ const eventRemoveItemInCompare = () => {
     })
   })
 }
-// End of remove item button on Comparison page
 
-// Draw Comparison page
 const drawComparePage = () => {
   const compareList = JSON.parse(localStorage.getItem("compare"));
   if(compareList.length > 0) {
@@ -1590,7 +1485,6 @@ const drawComparePage = () => {
             let htmlVariant = "";
 
             if(item.variant) {
-              // Find matching variant in the list
               const variantMatched = detail.variants.find(variantItem => {
                 return (
                   variantItem.attributeValue.every(attr => {
@@ -1659,9 +1553,9 @@ const drawComparePage = () => {
             html6 += `
               <td>
                 ${
-                  stock > 0 ? 
-                  '<a class="common_btn" href="javascript:;" button-add="'+index+'">Add to Cart</a>' 
-                  : 
+                  stock > 0 ?
+                  '<a class="common_btn" href="javascript:;" button-add="'+index+'">Add to Cart</a>'
+                  :
                   '<div class="text-danger">Out of stock</div>'
                 }
                 <a class="remove common_btn" href="javascript:;" button-remove="${index}">
@@ -1695,16 +1589,12 @@ const drawComparePage = () => {
       })
   }
 }
-// End of draw Comparison page
 
-// Comparison page
 const comparePage = document.querySelector(".compare_page");
 if(comparePage) {
   drawComparePage();
 }
-// End of Comparison page
 
-// Update item quantity in wishlist
 const eventQuantityItemInWishlist = () => {
   const listBoxQuantity = document.querySelectorAll("[wishlist-table] .cart_page_quantity");
   listBoxQuantity.forEach(box => {
@@ -1721,10 +1611,8 @@ const eventQuantityItemInWishlist = () => {
 
     const wishlist = JSON.parse(localStorage.getItem("wishlist"));
     const itemUpdate = wishlist.find(wishItem => {
-      // Compare duplicate productId
       const sameProduct = wishItem.productId == productId;
 
-      // Compare duplicate variant
       const variantItemInCart = wishItem.variant ? JSON.stringify(wishItem.variant) : "[]";
       const variantItemRemove = variant ? JSON.stringify(variant) : "[]";
       const sameVariant = variantItemInCart == variantItemRemove;
@@ -1733,7 +1621,6 @@ const eventQuantityItemInWishlist = () => {
     })
 
     if(itemUpdate) {
-      // If quantity is insufficient, print warning
       const quantity = parseInt(inputQuantity.value);
       const max = parseInt(inputQuantity.max);
       if(quantity > max) {
@@ -1743,8 +1630,7 @@ const eventQuantityItemInWishlist = () => {
         itemAlert.innerHTML = `Only ${max} products!`;
         box.appendChild(itemAlert);
       }
-      
-      // Increase quantity
+
       buttonPlus.addEventListener("click", () => {
         const quantity = parseInt(inputQuantity.value);
         const max = parseInt(inputQuantity.max);
@@ -1757,7 +1643,6 @@ const eventQuantityItemInWishlist = () => {
         }
       })
 
-      // Decrease quantity
       buttonMinus.addEventListener("click", () => {
         const quantity = parseInt(inputQuantity.value);
         const min = parseInt(inputQuantity.min);
@@ -1770,9 +1655,7 @@ const eventQuantityItemInWishlist = () => {
     }
   })
 }
-// End of update item quantity in wishlist
 
-// Add to cart button on Wishlist page
 const eventAddItemToCartInWishlist = () => {
   const listButtonAdd = document.querySelectorAll("[button-add]");
   listButtonAdd.forEach(button => {
@@ -1791,22 +1674,18 @@ const eventAddItemToCartInWishlist = () => {
       if(wishItem.variant) {
         dataItem.variant = wishItem.variant;
 
-        // Find if there is a product with duplicate productId and matching attributeValues
         const existItem = cart.find(item => {
           if(item.productId !== dataItem.productId) {
             return false;
           }
 
-          // Compare all attributes in variant
           const oldAttrs = item.variant;
           const newAttrs = dataItem.variant;
 
-          // Number of attributes must match
           if(oldAttrs.length !== newAttrs.length) {
             return false;
           }
 
-          // Check each attrId and value
           return oldAttrs.every(attr => {
             const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
             return match ? true : false;
@@ -1821,7 +1700,6 @@ const eventAddItemToCartInWishlist = () => {
           notyf.success("Added to cart!");
         }
       } else {
-        // Find if there is a product with duplicate productId
         const existItem = cart.find(item => item.productId === dataItem.productId);
 
         if(existItem) {
@@ -1839,9 +1717,7 @@ const eventAddItemToCartInWishlist = () => {
     })
   })
 }
-// End of add to cart button on Wishlist page
 
-// Remove item button on Wishlist page
 const eventRemoveItemInWishlist = () => {
   const listButtonRemove = document.querySelectorAll("[button-remove]");
   listButtonRemove.forEach(button => {
@@ -1855,9 +1731,7 @@ const eventRemoveItemInWishlist = () => {
     })
   })
 }
-// End of remove item button on Wishlist page
 
-// Draw Wishlist list
 const drawWishlistPage = () => {
   const wishlist = JSON.parse(localStorage.getItem("wishlist"));
   if(wishlist.length > 0) {
@@ -1876,7 +1750,7 @@ const drawWishlistPage = () => {
 
         if(data.code == "success") {
           localStorage.setItem("wishlist", JSON.stringify(data.wishlist));
-          
+
           let htmlWishlistTable = "";
 
           data.wishlist.forEach((item, index) => {
@@ -1887,7 +1761,6 @@ const drawWishlistPage = () => {
             let htmlVariant = "";
 
             if(item.variant) {
-              // Find matching variant in the list
               const variantMatched = detail.variants.find(variantItem => {
                 return (
                   variantItem.attributeValue.every(attr => {
@@ -1899,7 +1772,7 @@ const drawWishlistPage = () => {
               priceOld = variantMatched.priceOld;
               priceNew = variantMatched.priceNew;
               stock = variantMatched.stock;
-              
+
               detail.attributeList.forEach(attr => {
                 const variant = item.variant.find(v => v.attrId === attr._id);
                 htmlVariant += `
@@ -1916,8 +1789,8 @@ const drawWishlistPage = () => {
 
             htmlWishlistTable += `
               <tr
-                cart-item 
-                product-id="${item.productId}" 
+                cart-item
+                product-id="${item.productId}"
                 ${item.variant ? `variant="${encodeURIComponent(JSON.stringify(item.variant))}"` : ''}
               >
                 <td class="cart_page_img">
@@ -1941,12 +1814,12 @@ const drawWishlistPage = () => {
                     <button class="minus">
                       <i class="fal fa-minus" aria-hidden="true"></i>
                     </button>
-                    <input 
-                      value="${item.quantity}" 
-                      type="number" 
-                      readonly="" 
-                      min="1" 
-                      max="${stock}" 
+                    <input
+                      value="${item.quantity}"
+                      type="number"
+                      readonly=""
+                      min="1"
+                      max="${stock}"
                     />
                     <button class="plus">
                       <i class="fal fa-plus" aria-hidden="true"></i>
@@ -1958,9 +1831,9 @@ const drawWishlistPage = () => {
                 </td>
                 <td class="cart_page_action">
                   ${
-                    stock > 0 ? 
-                    '<a class="common_btn" href="javascript:;" button-add="'+index+'">Add to Cart</a>' 
-                    : 
+                    stock > 0 ?
+                    '<a class="common_btn" href="javascript:;" button-add="'+index+'">Add to Cart</a>'
+                    :
                     '<div class="text-danger">Out of stock</div>'
                   }
                   <a class="remove common_btn" href="javascript:;" button-remove="${index}">Delete</a>
@@ -1979,16 +1852,12 @@ const drawWishlistPage = () => {
       })
   }
 }
-// End of draw Wishlist list
 
-// Wishlist page
 const wishlistPage = document.querySelector(".wishlist_page");
 if(wishlistPage) {
   drawWishlistPage();
 }
-// End of Wishlist page
 
-// Register Form
 const registerForm = document.querySelector("#registerForm");
 if(registerForm) {
   const validation = new JustValidate('#registerForm');
@@ -2109,9 +1978,7 @@ if(registerForm) {
     })
   ;
 }
-// End Register Form
 
-// Login Form
 const loginForm = document.querySelector("#loginForm");
 if(loginForm) {
   const validation = new JustValidate('#loginForm');
@@ -2165,9 +2032,7 @@ if(loginForm) {
     })
   ;
 }
-// End Login Form
 
-// Forgot Password Form
 const forgotPasswordForm = document.querySelector("#forgotPasswordForm");
 if(forgotPasswordForm) {
   const validation = new JustValidate('#forgotPasswordForm');
@@ -2211,9 +2076,7 @@ if(forgotPasswordForm) {
     })
   ;
 }
-// End Forgot Password Form
 
-// OTP Password Form
 const otpPasswordForm = document.querySelector("#otpPasswordForm");
 if(otpPasswordForm) {
   const validation = new JustValidate('#otpPasswordForm');
@@ -2255,9 +2118,7 @@ if(otpPasswordForm) {
     })
   ;
 }
-// End OTP Password Form
 
-// Reset Password Form
 const resetPasswordForm = document.querySelector("#resetPasswordForm");
 if(resetPasswordForm) {
   const validation = new JustValidate('#resetPasswordForm');
@@ -2336,9 +2197,7 @@ if(resetPasswordForm) {
     })
   ;
 }
-// End Reset Password Form
 
-// Dashboard Profile Edit Form
 const dashboardProfileEditForm = document.querySelector("#dashboardProfileEditForm");
 if(dashboardProfileEditForm) {
   const validation = new JustValidate('#dashboardProfileEditForm');
@@ -2408,9 +2267,7 @@ if(dashboardProfileEditForm) {
     })
   ;
 }
-// End Dashboard Profile Edit Form
 
-// Dashboard Address Create Form
 const dashboardAddressCreateForm = document.querySelector("#dashboardAddressCreateForm");
 if(dashboardAddressCreateForm) {
   const validation = new JustValidate('#dashboardAddressCreateForm');
@@ -2499,9 +2356,7 @@ if(dashboardAddressCreateForm) {
     })
   ;
 }
-// End Dashboard Address Create Form
 
-// button-api
 const listButtonApi = document.querySelectorAll("[button-api]");
 if(listButtonApi.length > 0) {
   listButtonApi.forEach(button => {
@@ -2526,13 +2381,11 @@ if(listButtonApi.length > 0) {
     })
   })
 }
-// End button-api
 
-// Map
 const boxMap = document.querySelector("#boxMap");
 let map = null;
 if(boxMap) {
-  // Initialize map
+
   map = new ol.Map({
     target: 'boxMap',
     layers: [
@@ -2546,47 +2399,41 @@ if(boxMap) {
     })
   });
 
-  // Layer to contain map marker
   const markerLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
   map.addLayer(markerLayer);
 
-  // Function to add map marker
   const setMarker = (lon, lat) => {
     markerLayer.getSource().clear();
     const marker = new ol.Feature({
       geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
     });
-    
+
     marker.setStyle(new ol.style.Style({
       image: new ol.style.Icon({
         anchor: [0.5, 1],
-        src: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png', // icon location
-        scale: 0.5 // scale down to fit the map
+        src: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        scale: 0.5
       })
     }));
 
     markerLayer.getSource().addFeature(marker);
   }
 
-  // Display default location
   const inputLon = document.querySelector(`[name="longitude"]`);
   const inputLat = document.querySelector(`[name="latitude"]`);
   if(inputLon.value && inputLat.value) {
     const lon = parseFloat(inputLon.value);
     const lat = parseFloat(inputLat.value);
     setMarker(lon, lat);
-    // Move map to correct location
     map.getView().animate({ center: ol.proj.fromLonLat([lon, lat]), zoom: 15 });
   }
 
-  // Allow clicking to select map location
   map.on('click', (event) => {
     const coord = ol.proj.toLonLat(event.coordinate);
     const lon = coord[0];
     const lat = coord[1];
     setMarker(lon, lat);
 
-    // Call Nominatim API to get detailed address
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
       .then(res => res.json())
       .then(data => {
@@ -2600,7 +2447,6 @@ if(boxMap) {
           const inputLat = document.querySelector(`[name="latitude"]`);
           inputLat.value = lat;
 
-          // Update cart
           drawCart();
         } else {
           notyf.error("Address not found!");
@@ -2608,7 +2454,6 @@ if(boxMap) {
       })
   });
 
-  // Search location
   const searchInput = document.querySelector("#mapSearchInput");
   const searchBtn = document.querySelector("#mapSearchBtn");
   searchBtn.addEventListener("click", () => {
@@ -2617,7 +2462,7 @@ if(boxMap) {
       notyf.error("Please enter search address!");
       return;
     }
-    
+
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(keyword)}&countrycodes=vn`)
       .then(res => res.json())
       .then(data => {
@@ -2626,10 +2471,8 @@ if(boxMap) {
           const lon = parseFloat(firstResult.lon);
           const lat = parseFloat(firstResult.lat);
           setMarker(lon, lat);
-          // Move map to correct location
           map.getView().animate({ center: ol.proj.fromLonLat([lon, lat]), zoom: 15 });
 
-          // Assign address back to input field
           const inputAddress = document.querySelector(`[name="address"]`);
           inputAddress.value = firstResult.display_name;
 
@@ -2644,9 +2487,7 @@ if(boxMap) {
 	  });
   })
 }
-// End Map
 
-// Dashboard Address Edit Form
 const dashboardAddressEditForm = document.querySelector("#dashboardAddressEditForm");
 if(dashboardAddressEditForm) {
   const validation = new JustValidate('#dashboardAddressEditForm');
@@ -2735,18 +2576,15 @@ if(dashboardAddressEditForm) {
     })
   ;
 }
-// End Dashboard Address Edit Form
 
-// Profile Photo
 const profilePhoto = document.querySelector("#profile_photo");
 if(profilePhoto) {
   profilePhoto.addEventListener("change", (event) => {
     const avatar = event.target.files[0];
     if(avatar) {
-      // Create FormData
       const formData = new FormData();
       formData.append("avatar", avatar);
-      
+
       fetch(`/dashboard/profile/change-avatar`, {
         method: "PATCH",
         body: formData
@@ -2766,9 +2604,7 @@ if(profilePhoto) {
     }
   })
 }
-// End Profile Photo
 
-// Apply Coupon Form
 const applyCouponForm = document.querySelector("#applyCouponForm");
 
 function checkCoupon(coupon) {
@@ -2806,7 +2642,6 @@ function checkCoupon(coupon) {
 }
 
 if(applyCouponForm) {
-  // Add coupon
   applyCouponForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const coupon = event.target.coupon.value;
@@ -2817,7 +2652,6 @@ if(applyCouponForm) {
     checkCoupon(coupon);
   })
 
-  // Delete coupon
   const buttonRemove = document.querySelector("#applyCouponForm .inner-view-coupon .inner-remove");
   if(buttonRemove) {
     const elementViewCoupon = document.querySelector("#applyCouponForm .inner-view-coupon");
@@ -2828,9 +2662,7 @@ if(applyCouponForm) {
     })
   }
 }
-// End Apply Coupon Form
 
-// Checkout Page
 const checkoutPage = document.querySelector(".checkout_page");
 if(checkoutPage) {
   const listInputUserAddress = checkoutPage.querySelectorAll(`input[name="userAddress"]`);
@@ -2840,7 +2672,6 @@ if(checkoutPage) {
 
   listInputUserAddress.forEach(input => {
     input.addEventListener("change", () => {
-      // Uncheck all
       listInputUserAddress.forEach(i => {
         if(input.value == i.value) {
           i.checked = true;
@@ -2857,18 +2688,14 @@ if(checkoutPage) {
         map.updateSize();
       }
 
-      // Update cart
       drawCart();
     })
   })
 }
-// End Checkout Page
 
-// Button Order
 const buttonOrder = document.querySelector("[button-order]");
 if(buttonOrder) {
   buttonOrder.addEventListener("click", () => {
-    // Customer info
     const inputUserAddressChecked = document.querySelector(`input[name="userAddress"]:checked`);
     if(!inputUserAddressChecked) {
       notyf.error("Please enter address!");
@@ -2893,14 +2720,12 @@ if(buttonOrder) {
     const textareaNote = document.querySelector(`textarea[name="note"]`);
     dataUser.note = textareaNote.value;
 
-    // Product info
     let dataCart = JSON.parse(localStorage.getItem("cart"));
     dataCart = dataCart.filter(item => {
       delete item.detail;
       return item.checked;
     });
 
-    // Coupon Code
     let dataCoupon = "";
     let coupon = sessionStorage.getItem("couponDetail");
     if(coupon) {
@@ -2908,11 +2733,9 @@ if(buttonOrder) {
       dataCoupon = coupon.code;
     }
 
-    // Payment Method
     const inputPaymentMethodChecked = document.querySelector(`input[name="paymentMethod"]:checked`);
     const dataPaymentMethod = inputPaymentMethodChecked.value;
 
-    // Shipping Partner
     const inputShippingMethodChecked = document.querySelector(`input[name="shippingMethod"]:checked`);
     const dataShippingMethod = inputShippingMethodChecked?.value;
     if(!dataShippingMethod) {
@@ -2920,11 +2743,9 @@ if(buttonOrder) {
       return;
     }
 
-    // Use Points
     const usePointCheckbox = document.querySelector("[use-point-checkbox]");
     const dataUsePoint = usePointCheckbox ? usePointCheckbox.checked : false;
 
-    // Complete data
     const dataFinal = {
       ...dataUser,
       items: dataCart,
@@ -2934,7 +2755,6 @@ if(buttonOrder) {
       usePoint: dataUsePoint
     };
 
-    // Send to backend
     fetch(`/order/create`, {
       method: "POST",
       headers: {
@@ -2949,26 +2769,21 @@ if(buttonOrder) {
         }
 
         if(data.code == "success") {
-          // Delete ordered items from cart
           let cart = JSON.parse(localStorage.getItem("cart"));
           cart = cart.filter(item => item.checked == false);
           localStorage.setItem("cart", JSON.stringify(cart));
 
-          // Delete coupon
           sessionStorage.removeItem("couponDetail");
 
           switch (dataPaymentMethod) {
             case "money":
-              // Redirect to Order Success page
               drawNotify(data.code, data.message);
               window.location.href = `/order/success?orderCode=${data.orderCode}&phone=${data.phone}`;
               break;
             case "zalopay":
-              // Redirect to ZaloPay payment page
               window.location.href = `/order/payment-zalopay?orderCode=${data.orderCode}&phone=${data.phone}`;
               break;
             case "vnpay":
-              // Redirect to VNPay payment page
               window.location.href = `/order/payment-vnpay?orderCode=${data.orderCode}&phone=${data.phone}`;
               break;
             default:
@@ -2979,9 +2794,7 @@ if(buttonOrder) {
       })
   })
 }
-// End Button Order
 
-// Write a review
 const listButtonReview = document.querySelectorAll("[data-bs-target='#modalReview']");
 if(listButtonReview.length > 0) {
   const modalReview = document.querySelector("#modalReview");
@@ -2996,21 +2809,16 @@ if(listButtonReview.length > 0) {
       variant = button.getAttribute("variant");
       variant = variant ? `(${variant})` : "";
 
-      // Update modal title
       const modalTitle = modalReview.querySelector("[product-name]");
       modalTitle.innerHTML = `${productName} ${variant}`;
 
-      // Add orderItemId to form
       formReview.orderItemId.value = orderItemId;
 
-      // Delete old rating
       const listStar = formReview.querySelectorAll(`[rating] i`);
       listStar.forEach(star => star.classList.remove("active"));
 
-      // Delete old comment
       formReview.comment.value = "";
 
-      // Delete old image
       const listPreviewImage = formReview.querySelectorAll("[images] .gallery .apnd-img");
       listPreviewImage.forEach(img => img.remove());
       const listInputImage = formReview.querySelectorAll("[images] .gallery input");
@@ -3050,7 +2858,6 @@ if(listButtonReview.length > 0) {
       return;
     }
 
-    // Create FormData
     const formData = new FormData();
     formData.append("orderId", orderId);
     formData.append("orderItemId", orderItemId);
@@ -3076,16 +2883,13 @@ if(listButtonReview.length > 0) {
       })
   })
 }
-// End of write a review
 
-// Report a review
 const modalReportReview = document.getElementById("modalReportReview");
 const btnConfirmReport = document.getElementById("btnConfirmReport");
 if (modalReportReview && btnConfirmReport) {
   let pendingReviewId = null;
   let pendingBtn = null;
 
-  // Capture which review triggered the modal (Bootstrap fires this before showing)
   modalReportReview.addEventListener("show.bs.modal", (e) => {
     const trigger = e.relatedTarget;
     if (trigger) {
@@ -3120,9 +2924,7 @@ if (modalReportReview && btnConfirmReport) {
     pendingBtn = null;
   });
 }
-// End of report a review
 
-// filterRating
 const listInputFilterRating = document.querySelectorAll(`.sidebar_rating input[name="rating"]`);
 if(listInputFilterRating.length > 0) {
   const url = new URL(window.location.href);
@@ -3143,7 +2945,6 @@ if(listInputFilterRating.length > 0) {
     })
   })
 
-  // Display default selected option
   const rating = url.searchParams.get("rating");
   if(rating) {
     const listRating = rating.split(",");
@@ -3155,21 +2956,16 @@ if(listInputFilterRating.length > 0) {
     })
   }
 }
-// End filterRating
 
-// Initialize translation feature
-// 1. Immediately restore saved language to cookie with path=/ before GTranslate script initializes
 let savedLang = localStorage.getItem("selectedLanguage");
 if (!savedLang) {
   savedLang = "en";
   localStorage.setItem("selectedLanguage", "en");
 }
 
-// Clear any potential path-specific cookies to avoid duplicate mismatches
 document.cookie = "googtrans=; path=" + window.location.pathname + "; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 document.cookie = "googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 
-// Set explicit cookie at root level
 document.cookie = `googtrans=/en/${savedLang}; path=/; max-age=31536000;`;
 
 const gtranslateWrapper = document.querySelector(".gtranslate_wrapper");
@@ -3184,11 +2980,9 @@ if(gtranslateWrapper) {
     "switcher_horizontal_position":"inline"
   }
 
-  // 2. Periodically check and synchronize the GTranslate selected language in DOM/cookie to localStorage
   setInterval(() => {
     let currentLang = "";
 
-    // Method A: Read directly from googtrans cookie (works universally for all languages like Azerbaijani 'az')
     const cookieMatch = document.cookie.match(/googtrans=([^;]+)/);
     if (cookieMatch) {
       const parts = cookieMatch[1].split('/');
@@ -3197,7 +2991,6 @@ if(gtranslateWrapper) {
       }
     }
 
-    // Method B: Fallback to selected element in DOM if cookie is not yet generated or is cleared
     if (!currentLang) {
       const selectedLangEl = gtranslateWrapper.querySelector(".gt_selected a") || gtranslateWrapper.querySelector(".gt_selected");
       if (selectedLangEl) {
@@ -3207,7 +3000,6 @@ if(gtranslateWrapper) {
         } else if (text.includes("tiếng việt") || text === "vietnamese" || text === "vi") {
           currentLang = "vi";
         } else {
-          // Attempt parsing GTranslate function call from href: googtrans(en|az) -> az
           const href = selectedLangEl.getAttribute("href");
           if (href && href.includes("googtrans")) {
             const match = href.match(/googtrans\(([^)]+)\)/);
@@ -3224,35 +3016,29 @@ if(gtranslateWrapper) {
 
     if (currentLang && localStorage.getItem("selectedLanguage") !== currentLang) {
       localStorage.setItem("selectedLanguage", currentLang);
-      // Aggressively clear path-specific and domain cookies to prevent conflict
       document.cookie = "googtrans=; path=" + window.location.pathname + "; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
       document.cookie = "googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-      
-      // Write the new global cookie
+
       document.cookie = `googtrans=/en/${currentLang}; path=/; max-age=31536000;`;
     }
   }, 1000);
 
-  // Sort language options alphabetically (Latin) after GTranslate renders
   const sortGtranslateOptions = () => {
     const optionContainer = gtranslateWrapper.querySelector(".gt_option");
     if(!optionContainer) return false;
     const links = Array.from(optionContainer.querySelectorAll("a"));
     if(links.length < 2) return false;
 
-    // Sort by visible text using localeCompare (Latin-friendly)
     links.sort((a, b) => {
       const textA = a.textContent.trim();
       const textB = b.textContent.trim();
       return textA.localeCompare(textB, "en", { sensitivity: "base" });
     });
 
-    // Re-append in sorted order
     links.forEach(link => optionContainer.appendChild(link));
     return true;
   };
 
-  // Watch for GTranslate widget to render, then sort
   const observer = new MutationObserver((mutations, obs) => {
     if(sortGtranslateOptions()) {
       obs.disconnect();
@@ -3260,16 +3046,12 @@ if(gtranslateWrapper) {
   });
   observer.observe(gtranslateWrapper, { childList: true, subtree: true });
 
-  // Fallback: try sorting after page load
   window.addEventListener("load", () => {
     setTimeout(sortGtranslateOptions, 1000);
   });
 }
-// End of translation feature initialization
 
-// Quick-action buttons on product listing cards
 document.addEventListener('click', (e) => {
-  // Add to Cart (no variant)
   const btnCart = e.target.closest('[btn-cart-quick]');
   if (btnCart) {
     e.preventDefault();
@@ -3290,7 +3072,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Add to Compare
   const btnCompare = e.target.closest('[btn-compare-quick]');
   if (btnCompare) {
     e.preventDefault();
@@ -3309,7 +3090,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Add to Wishlist
   const btnWishlist = e.target.closest('[btn-wishlist-quick]');
   if (btnWishlist) {
     e.preventDefault();
@@ -3327,31 +3107,29 @@ document.addEventListener('click', (e) => {
     return;
   }
 });
-// End quick-action buttons
 
-// Hotline Call custom modal interceptor
 document.addEventListener('click', (e) => {
   const telLink = e.target.closest('a[href^="tel:"]');
   if (telLink) {
     e.preventDefault();
     const href = telLink.getAttribute('href');
     const text = telLink.textContent.trim();
-    
+
     const modalEl = document.querySelector('#modalPhoneConfirm');
     if (modalEl) {
       const msgEl = modalEl.querySelector('#modalPhoneConfirmMessage');
       const callBtn = modalEl.querySelector('#modalPhoneConfirmCall');
-      
+
       if (msgEl) {
         msgEl.textContent = `Would you like to call ${text || href.replace('tel:', '')}?`;
       }
       if (callBtn) {
         callBtn.setAttribute('href', href);
       }
-      
+
       const bsModal = new bootstrap.Modal(modalEl);
       bsModal.show();
-      
+
       callBtn.addEventListener('click', () => {
         bsModal.hide();
       }, { once: true });
@@ -3361,7 +3139,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Contact Form validation and AJAX submit using JustValidate
 const contactForm = document.querySelector("#contact-form");
 if (contactForm) {
   const validation = new JustValidate('#contact-form');
@@ -3423,7 +3200,7 @@ if (contactForm) {
       const email = event.target.querySelector('#email').value.trim();
       const subject = event.target.querySelector('#subject').value.trim();
       const message = event.target.querySelector('#message').value.trim();
-      
+
       const btn = event.target.querySelector('button[type="submit"]');
       if (btn) btn.disabled = true;
 

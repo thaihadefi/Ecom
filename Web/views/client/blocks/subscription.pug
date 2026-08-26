@@ -1,12 +1,12 @@
 if blockData
   section(
     style=`background: url(${getFullUrl(blockData.background) || '/client/assets/images/subscribe_2_bg.jpg'});`
-    class="subscription_2 mt_50 xs_mt_60"
+    class="subscription_area mt_50 xs_mt_60"
     )
     .container
       .row.justify-content-center
         .col-xxl-6.col-lg-8.wow.fadeInUp
-          div(class="subscription_2_text")
+          div(class="subscription_area_text")
             h2
               | #{blockData.title}
               if blockData.highlight

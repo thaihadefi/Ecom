@@ -2,17 +2,17 @@ import mongoose from "mongoose";
 
 const schema = new mongoose.Schema(
   {
-    name: String, // Template name
-    slug: String, // Path applying the template
-    blocks: [ // List of template blocks
+    name: String,
+    slug: String,
+    blocks: [
       {
-        blockId: String, // Template block ID
-        position: Number, // Template block position
+        blockId: String,
+        position: Number,
       }
     ],
     status: {
       type: String,
-      enum: ["active", "inactive"], 
+      enum: ["active", "inactive"],
       default: "inactive"
     },
     search: String,
@@ -23,7 +23,7 @@ const schema = new mongoose.Schema(
     deletedAt: Date
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
@@ -34,6 +34,8 @@ schema.index({ name: 1 });
 
 schema.index({ search: 1 });
 
-const Template = mongoose.model('Template', schema, "templates");
+import { ITemplate } from '../interfaces/models/template.interface';
+
+const Template = mongoose.model<ITemplate>('Template', schema, "templates");
 
 export default Template;

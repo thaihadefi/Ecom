@@ -9,7 +9,6 @@ block main
           .row.align-items-center
             .col
               h4.card-title #{pageTitle}
-            // end col
             .col-auto
               a.btn.btn-outline-danger.me-1(href=`/${pathAdmin}/coupon/trash`)
                 i.fa-solid.fa-trash.me-1
@@ -26,10 +25,6 @@ block main
                 )
                 i.fa-solid.fa-plus.me-1
                 | Create Coupon
-                // end col
-            // end col
-          // end row
-        // end card-header
         .card-body.pt-0
           .row
             .col-lg-6
@@ -104,4 +99,3 @@ block main
                         )
                           i.las.la-trash-alt.text-secondary.fs-20
           +pagination()
-    // end col

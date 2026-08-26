@@ -1,10 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import AccountUser from "../../models/account-user.model";
-import UserAddress from "../../models/user-address.model";
-import { COOKIE_OPTS } from '../../configs/cookie.config';
-import RefreshToken from "../../models/refresh-token.model";
-import { rotateRefreshToken } from "../../helpers/token-rotation.helper";
+import * as clientAuthService from "../../services/client/auth.service";
 
 const paths = [
   "/.well-known",
@@ -12,28 +8,10 @@ const paths = [
 ];
 
 const loadAccountIntoLocals = async (res: Response, userId: string, email: string) => {
-  const existAccount = await AccountUser.findOne({
-    _id: userId,
-    email,
-    deleted: false,
-    status: "active"
-  }).select("_id fullName email phone avatar totalPoint usedPoint status");
+  const accountUser = await clientAuthService.getUserAccountForAuth(userId, email);
+  if (!accountUser) return false;
 
-  if (!existAccount) return false;
-
-  const addressList = await UserAddress.find({ userId: existAccount.id }).select("_id name phone address province district ward type").sort({ createdAt: "desc" });
-
-  res.locals.accountUser = {
-    id: existAccount.id,
-    fullName: existAccount.fullName,
-    email: existAccount.email,
-    phone: existAccount.phone,
-    avatar: existAccount.avatar,
-    addressList,
-    totalPoint: existAccount.totalPoint,
-    usedPoint: existAccount.usedPoint
-  };
-
+  res.locals.accountUser = accountUser;
   return true;
 };
 
@@ -50,8 +28,9 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
         const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as JwtPayload;
         await loadAccountIntoLocals(res, decoded.id, decoded.email);
         return next();
-      } catch (err: any) {
-        if (err.name !== "TokenExpiredError") {
+      } catch (err: unknown) {
+        const errorName = err instanceof Error ? err.name : "";
+        if (errorName !== "TokenExpiredError") {
           return next();
         }
       }
@@ -60,39 +39,8 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
     const refreshTokenValue = req.cookies.refreshToken;
     if (!refreshTokenValue) return next();
 
-    const storedToken = await RefreshToken.findOne({
-      token: refreshTokenValue,
-      role: "user",
-      expiresAt: { $gt: new Date() }
-    });
-
-    if (!storedToken) {
-      res.clearCookie("refreshToken", COOKIE_OPTS);
-      return next();
-    }
-
-    const account = await AccountUser.findOne({
-      _id: storedToken.userId,
-      deleted: false,
-      status: "active"
-    }).select("_id email status");
-
-    if (!account) {
-      await RefreshToken.deleteOne({ _id: storedToken._id });
-      res.clearCookie("refreshToken", COOKIE_OPTS);
-      return next();
-    }
-
-    const outcome = await rotateRefreshToken({
-      storedToken,
-      account: { id: account.id, email: account.email },
-      role: "user",
-      accessTokenCookieName: "tokenUser",
-      refreshTokenCookieName: "refreshToken",
-      res,
-    });
-
-    if (outcome === "revoked") return next();
+    const account = await clientAuthService.handleUserRefreshTokenRotation(refreshTokenValue, res);
+    if (!account) return next();
 
     await loadAccountIntoLocals(res, account.id, account.email ?? "");
     next();

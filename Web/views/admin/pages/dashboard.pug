@@ -6,7 +6,6 @@ block main
     - const pct = v => (v >= 0 ? `+${v.toFixed(1)}` : v.toFixed(1)) + "%"
     - const pctClass = v => v >= 0 ? "text-success" : "text-danger"
 
-    //- ── Revenue ────────────────────────────────────────────────────
     .row
       .col-12
         .card
@@ -32,7 +31,6 @@ block main
                     .fs-18.fw-semibold #{fmt(thisMonthRevenue)} VND
                     small(class=pctClass(monthPercent)) #{pct(monthPercent)} vs last month
 
-    //- ── Orders ─────────────────────────────────────────────────────
     .row.mt-3
       .col-12
         .card
@@ -40,7 +38,6 @@ block main
             h4.card-title.mb-0 Orders
             a(href="/admin/order/list").btn.btn-sm.btn-outline-secondary View All
           .card-body
-            //- Summary KPI strip
             .row.g-2.mb-3
               .col-4
                 .dash-kpi.text-center.rounded.p-2.h-100.d-flex.flex-column.justify-content-center
@@ -59,7 +56,6 @@ block main
                   if monthOrderPercent != null
                     small(class=pctClass(monthOrderPercent)) #{pct(monthOrderPercent)}
 
-            //- Status table
             .table-responsive
               table.table.table-hover.align-middle.mb-0.dash-status-table
                 thead.table-light
@@ -69,7 +65,6 @@ block main
                     th.text-end(scope="col") Today
                     th.text-end(scope="col") This Month
                 tbody
-                  //- Pending
                   tr
                     td
                       .d-flex.align-items-center.gap-2
@@ -87,7 +82,6 @@ block main
                         |
                         small(class=pctClass(orderStatusStats.pending.monthPercent)) #{pct(orderStatusStats.pending.monthPercent)}
 
-                  //- Confirmed
                   tr
                     td
                       .d-flex.align-items-center.gap-2
@@ -105,7 +99,6 @@ block main
                         |
                         small(class=pctClass(orderStatusStats.confirmed.monthPercent)) #{pct(orderStatusStats.confirmed.monthPercent)}
 
-                  //- Shipping
                   tr
                     td
                       .d-flex.align-items-center.gap-2
@@ -123,7 +116,6 @@ block main
                         |
                         small(class=pctClass(orderStatusStats.shipping.monthPercent)) #{pct(orderStatusStats.shipping.monthPercent)}
 
-                  //- Completed
                   tr
                     td
                       .d-flex.align-items-center.gap-2
@@ -141,7 +133,6 @@ block main
                         |
                         small(class=pctClass(orderStatusStats.completed.monthPercent)) #{pct(orderStatusStats.completed.monthPercent)}
 
-                  //- Cancelled
                   tr
                     td
                       .d-flex.align-items-center.gap-2
@@ -159,7 +150,6 @@ block main
                         |
                         small(class=pctClass(orderStatusStats.cancelled.monthPercent)) #{pct(orderStatusStats.cancelled.monthPercent)}
 
-                  //- Returned
                   tr
                     td
                       .d-flex.align-items-center.gap-2

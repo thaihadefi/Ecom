@@ -2,7 +2,9 @@ import { Socket } from "socket.io";
 import * as cookie from 'cookie';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-export const authSocket = (socket: Socket, next: any) => {
+type SocketNextFn = (err?: Error) => void;
+
+export const authSocket = (socket: Socket, next: SocketNextFn) => {
   try {
 
     const cookieString = socket.handshake.headers.cookie;
@@ -16,11 +18,9 @@ export const authSocket = (socket: Socket, next: any) => {
     let role: string = "";
     let roomId: string = "";
 
-    // Use role hint from client to determine which token to use
     const intendedRole = socket.handshake.auth.role;
 
     if (intendedRole === "user" && cookieParsed.tokenUser) {
-      // Client explicitly wants to connect as user
       token = cookieParsed.tokenUser;
       role = "user";
     } else if (cookieParsed.tokenAdmin) {
@@ -50,8 +50,9 @@ export const authSocket = (socket: Socket, next: any) => {
     };
 
     next();
-  } catch (error: any) {
-    console.log("[Socket] Auth error:", error?.message || error);
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.log("[Socket] Auth error:", errorMsg);
     next(new Error("Authentication failed"));
   }
 }

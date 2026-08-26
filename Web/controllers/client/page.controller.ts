@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import ContactInquiry from "../../models/contact-inquiry.model";
+import * as contactInquiryService from "../../services/admin/contact-inquiry.service";
 
 export const about = (_req: Request, res: Response) => {
   res.render("client/pages/about", { pageTitle: "About Us" });
@@ -28,7 +28,7 @@ export const faq = (_req: Request, res: Response) => {
 export const contactPost = async (req: Request, res: Response) => {
   try {
     const { name, email, subject, message } = req.body;
-    await ContactInquiry.create({ name, email, subject, message });
+    await contactInquiryService.createContactInquiry({ name, email, subject, message });
     res.json({ code: "success", message: "Your message has been sent. We'll get back to you soon!" });
   } catch (error) {
     console.error("Error in contactPost:", error);

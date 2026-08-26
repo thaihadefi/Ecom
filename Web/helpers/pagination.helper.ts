@@ -7,14 +7,14 @@ export interface Pagination {
 }
 
 export const getPagination = (
-  queryPage: any,
+  queryPage: unknown,
   limitItems: number,
   totalRecord: number
 ): Pagination => {
   let page = 1;
   if (queryPage) {
-    const parsedPage = parseInt(`${queryPage}`, 10);
-    if (parsedPage > 0) {
+    const parsedPage = parseInt(String(queryPage), 10);
+    if (!isNaN(parsedPage) && parsedPage > 0) {
       page = parsedPage;
     }
   }

@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { getApiAppPassword, getGeneral } from "../configs/setting.config";
+import { getApiAppPassword } from "../configs/setting.config";
 
 const BRAND_BLUE = "#0057B7";
 const BRAND_YELLOW = "#FFD700";
@@ -44,26 +44,16 @@ function buildEmailHtml(storeName: string, title: string, bodyHtml: string): str
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 16px;">
     <tr><td align="center">
       <table width="100%" style="max-width:560px;" cellpadding="0" cellspacing="0">
-
-        <!-- Header -->
         <tr><td style="background:${BRAND_BLUE};padding:20px 32px;border-radius:8px 8px 0 0;">
           <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.5px;">${storeName}</span>
         </td></tr>
-
-        <!-- Yellow accent -->
         <tr><td style="background:${BRAND_YELLOW};height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
-
-        <!-- Title -->
         <tr><td style="background:#ffffff;padding:28px 32px 8px;">
           <h2 style="margin:0;color:#111827;font-size:18px;font-weight:600;line-height:1.4;">${title}</h2>
         </td></tr>
-
-        <!-- Body -->
         <tr><td style="background:#ffffff;padding:12px 32px 32px;color:#374151;font-size:15px;line-height:1.6;">
           ${bodyHtml}
         </td></tr>
-
-        <!-- Footer -->
         <tr><td style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;border-radius:0 0 8px 8px;">
           <p style="margin:0;color:#9ca3af;font-size:12px;line-height:1.5;">
             This is an automated message from ${storeName}. Please do not reply to this email.<br>
@@ -256,7 +246,6 @@ export const emailTemplates = {
 
 };
 
-// Keep buildOtpEmail as a thin wrapper for backward compatibility
 export const buildOtpEmail = async (options: {
   heading: string;
   subtext: string;
@@ -276,22 +265,24 @@ export const buildOtpEmail = async (options: {
 
 export const sendMail = async (email: string, title: string, content: string) => {
   const apiAppPassword = await getApiAppPassword();
+  const gmailUser = String(apiAppPassword.gmailUser || "");
+  const gmailPassword = String(apiAppPassword.gmailPassword || "");
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
     secure: process.env.NODE_ENV === "production",
     auth: {
-      user: apiAppPassword.gmailUser,
-      pass: apiAppPassword.gmailPassword,
+      user: gmailUser,
+      pass: gmailPassword,
     }
-  });
+  } as nodemailer.TransportOptions);
 
   const info = await transporter.sendMail({
-    from: apiAppPassword.gmailUser,
+    from: gmailUser,
     to: email,
     subject: title,
     html: content
   });
-  console.log("Mail sent:", info.response);
+  console.log("Mail sent:", info.messageId);
 };

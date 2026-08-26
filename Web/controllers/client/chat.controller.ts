@@ -1,171 +1,101 @@
 import { Request, Response } from 'express';
-import ChatRoom from '../../models/chat-room.model';
-import ChatMessage from '../../models/chat-message.model';
-import { timeAgo } from '../../helpers/format.helper';
-import FormData from 'form-data';
-import axios from 'axios';
-import { domainCDN } from '../../configs/variable.config';
+import * as chatService from '../../services/client/chat.service';
 
 export const messages = async (req: Request, res: Response) => {
-  const userId = res.locals.accountUser.id;
-  
-  if(!userId) {
+  const userId = res.locals.accountUser?.id;
+
+  if (!userId) {
     res.json({
       code: "error",
       message: "Failed!"
-    })
+    });
     return;
   }
 
-  // Get chat room info
-  const chatRoom = await ChatRoom.findOne({
-    userId: userId
-  });
-
-  if(!chatRoom) {
-    res.json({
-      code: "error",
-      message: "Failed!"
-    })
-    return;
-  }
-
-  // Messages list
   const { limit = 20, lastMessageId } = req.query;
 
-  const find: any = {
-    roomId: chatRoom?.id
-  };
+  const data = await chatService.getMessagesByUserId(
+    userId,
+    limit,
+    lastMessageId ? String(lastMessageId) : undefined
+  );
 
-  if(lastMessageId) {
-    find._id = {
-      $lt: lastMessageId
-    };
+  if (!data) {
+    res.json({
+      code: "error",
+      message: "Failed!"
+    });
+    return;
   }
 
-  const chatMessages: any = await ChatMessage
-    .find(find)
-    .sort({
-      createdAt: "desc" // Newest first
-    })
-    .limit(parseInt(`${limit}`))
-
-  for (const item of chatMessages) {
-    item.createdAtFormat = timeAgo(item.createdAt);
-  }
-  
   res.json({
     code: "success",
     message: "Success!",
-    messages: lastMessageId ? chatMessages : chatMessages.reverse(),
-    adminUnreadCount: chatRoom.unreadCount?.admin ?? 0
-  })
-}
+    ...data
+  });
+};
 
 export const uploadPost = async (req: Request, res: Response) => {
   try {
-    const userId = res.locals.accountUser.id;
+    const userId = res.locals.accountUser?.id;
     const files = req.files as Express.Multer.File[];
 
-    if(!files || !files.length) {
+    if (!files || !files.length) {
       res.json({
         code: "error",
         message: "Please provide files!"
-      })
-      return;
-    }
-
-    const chatRoomDetail = await ChatRoom.findOne({
-      userId: userId
-    });
-
-    if(chatRoomDetail?.status === "locked") {
-      res.json({
-        code: "error",
-        message: "Chat room is locked!"
-      })
-      return;
-    }
-
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file.buffer, {
-        filename: file.originalname,
-        contentType: file.mimetype
       });
-    })
-    formData.append('folderPath', `chats/${userId}`);
-
-    const response = await axios.post(`${domainCDN}/file-manager/upload`, formData, {
-      headers: {
-        ...formData.getHeaders(),
-        Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`
-      } // Required for correct multipart/form-data sending
-    });
-
-    if(response.data.code == "error") {
-      res.json({
-        code: "error",
-        message: "Upload error!"
-      })
       return;
     }
-    
-    const saveLinks = response.data.saveLinks;
-    const fileUrls = saveLinks.map((item: any) => `${item.folder}/${item.filename}`);
+
+    const result = await chatService.uploadChatFiles(userId, files);
+
+    if (!result.success) {
+      res.json({
+        code: "error",
+        message: result.message
+      });
+      return;
+    }
+
     res.json({
       code: "success",
       message: "Uploaded successfully!",
-      fileUrls: fileUrls
+      fileUrls: result.fileUrls
     });
   } catch (error) {
-    console.error(error);
+    console.error("chat upload error:", error);
     res.json({
       code: "error",
       message: "Invalid data!"
-    })
+    });
   }
-}
+};
 
 export const ratePost = async (req: Request, res: Response) => {
   try {
-    const userId = res.locals.accountUser.id;
+    const userId = res.locals.accountUser?.id;
     const { stars, comment } = req.body;
 
-    const chatRoom = await ChatRoom.findOne({
-      userId: userId,
-      status: "open"
-    });
+    const result = await chatService.rateChatRoom(userId, stars, comment);
 
-    if(!chatRoom) {
+    if (!result.success) {
       res.json({
         code: "error",
-        message: "Chat room not found!"
-      })
+        message: result.message
+      });
       return;
     }
 
-    await ChatRoom.updateOne({
-      _id: chatRoom.id
-    }, {
-      $push: {
-        rating: {
-          stars: stars,
-          comment: comment,
-          ratedAt: new Date()
-        }
-      }
-    });
-    
     res.json({
       code: "success",
-      message: "Thank you for your rating!"
+      message: result.message
     });
   } catch (error) {
-    console.error(error);
+    console.error("chat rate error:", error);
     res.json({
       code: "error",
       message: "Invalid data!"
-    })
+    });
   }
-}
+};

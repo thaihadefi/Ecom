@@ -2,25 +2,13 @@ extends ../layouts/default.pug
 include ../mixins/index.pug
 
 block main
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
   +page-banner(
     {
       name: pageTitle,
     },
     `/dashboard/profile/edit`
   )
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
 
-  //
-    ============================
-    DSHBOARD START
-    =============================
   section.dashboard(class="mb_100")
     .container
       .row
@@ -31,7 +19,7 @@ block main
             h3(class="dashboard_title")
               | #{pageTitle}
               a(
-                href="/dashboard/profile" 
+                href="/dashboard/profile"
                 class="common_btn cancel_edit"
                 ) Cancel
             div(class="dashboard_profile_info_edit")
@@ -156,7 +144,7 @@ block main
                     setTimeout(() => { window.location.href = '/auth/login'; }, 2000);
                   });
                 })();
-            
+
             h3(class="dashboard_title mt_40") Change Password
             div(class="dashboard_profile_info_edit")
               p(style="color:#6b7280;font-size:14px;margin-bottom:20px;")
@@ -164,7 +152,3 @@ block main
               a(href="/dashboard/change-password" class="common_btn")
                 | Change Password
                 i.fas.fa-long-arrow-right(aria-hidden="true")
-  //
-    ============================
-    DSHBOARD END
-    =============================

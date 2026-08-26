@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-export const checkout = (req: Request, res: Response) => {
+export const checkout = (_req: Request, res: Response) => {
   res.render("client/pages/checkout", {
     pageTitle: "Checkout"
   });

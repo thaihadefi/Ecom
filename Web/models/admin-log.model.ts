@@ -12,13 +12,15 @@ const schema = new mongoose.Schema(
     }
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
 schema.index({ adminId: 1 });
 schema.index({ createdAt: -1 });
 
-const AdminLog = mongoose.model('AdminLog', schema, "admin-logs");
+import { IAdminLog } from '../interfaces/models/admin-log.interface';
+
+const AdminLog = mongoose.model<IAdminLog>('AdminLog', schema, "admin-logs");
 
 export default AdminLog;

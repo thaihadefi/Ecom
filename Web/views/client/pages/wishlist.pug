@@ -2,25 +2,13 @@ extends ../layouts/default.pug
 include ../mixins/index.pug
 
 block main
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
   +page-banner(
     {
       name: pageTitle
     },
     `/compare`
   )
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
 
-  //
-    ============================
-    WISHLIST START
-    =============================
   section(class="wishlist_page cart_page mt_100 mb_100")
     .container
       .row.justify-content-center
@@ -39,48 +27,3 @@ block main
             .table-responsive
               table.table
                 tbody(wishlist-table)
-                  //- tr
-                  //-   td(class="cart_page_img")
-                  //-     .img
-                  //-       img.img-fluid.w-100(
-                  //-         alt="Products 1" 
-                  //-         src="/client/assets/images/product_18.png"
-                  //-         )
-                  //-   td(class="cart_page_details")
-                  //-     a.title(href="/product/detail/:slug") Products 1
-                  //-     p
-                  //-       | 1,000,000 VND
-                  //-       del 1,200,000 VND
-                  //-     span
-                  //-       b Color:
-                  //-       | Red
-                  //-     span
-                  //-       b Size:
-                  //-       | M
-                  //-   td(class="cart_page_price")
-                  //-     h3 1,000,000 VND
-                  //-   td(class="cart_page_quantity")
-                  //-     div(class="details_qty_input")
-                  //-       button.minus
-                  //-         i.fal.fa-minus(aria-hidden="true")
-                  //-       input(
-                  //-         value="2"
-                  //-         type="text"
-                  //-         )
-                  //-       button.plus
-                  //-         i.fal.fa-plus(aria-hidden="true")
-                  //-   td(class="cart_page_price")
-                  //-     h3 2,000,000 VND
-                  //-   td(class="cart_page_action")
-                  //-     a(
-                  //-       class="common_btn" 
-                  //-       href="#"
-                  //-       ) Add to Cart
-                  //-     a.remove(
-                  //-       class="common_btn" 
-                  //-       href="#"
-                  //-       ) Delete        
-  //
-    ============================
-    WISHLIST END
-    =============================

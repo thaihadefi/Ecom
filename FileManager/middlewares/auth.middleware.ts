@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 export const verifySecret = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!process.env.FILE_MANAGER_SECRET) {
       res.status(500).json({
         code: "error",
@@ -11,7 +11,7 @@ export const verifySecret = async (req: Request, res: Response, next: NextFuncti
       });
       return;
     }
-    
+
     if(!authHeader || authHeader !== `Bearer ${process.env.FILE_MANAGER_SECRET}`) {
       res.status(401).json({
         code: "error",

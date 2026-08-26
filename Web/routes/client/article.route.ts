@@ -19,11 +19,10 @@ router.get(
 );
 
 router.get(
-  '/detail/:slug', 
+  '/detail/:slug',
   getPopularBlog,
   getPopularCategoryBlog,
   articleController.detail
 );
-
 
 export default router;

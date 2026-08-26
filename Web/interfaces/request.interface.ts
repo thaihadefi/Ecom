@@ -1,5 +1,6 @@
 import { Request } from "express";
 
 export interface RequestAccount extends Request {
-  adminId?: String
+  adminId?: string;
+  _auditLogged?: boolean;
 }

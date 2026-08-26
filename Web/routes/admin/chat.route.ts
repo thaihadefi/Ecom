@@ -5,14 +5,11 @@ import { checkPermission } from "../../middlewares/admin/auth.middleware";
 
 const router = Router();
 
-// Use memoryStorage to keep file in buffer
 const storage = multer.memoryStorage();
 
-// Fix Vietnamese font issue in file name (multer defaults to Latin1)
 const upload = multer({
   storage,
-  fileFilter: (req, file, cb) => {
-    // Force originalname to UTF-8
+  fileFilter: (_req, file, cb) => {
     file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
     cb(null, true);
   }
@@ -25,9 +22,9 @@ router.get('/detail/:id', checkPermission("chat-list"), chatController.detail);
 router.get('/messages', checkPermission("chat-list"), chatController.messages);
 
 router.post(
-  '/upload', 
+  '/upload',
   checkPermission("chat-reply"),
-  upload.array("files"), 
+  upload.array("files"),
   chatController.uploadPost
 );
 

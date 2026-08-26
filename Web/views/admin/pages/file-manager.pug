@@ -12,7 +12,6 @@ block main
     tr:hover .row-actions { opacity: 1; }
     .action-btn { width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 12px; }
 
-  //- Cut / Paste Banner
   #paste-container.alert.alert-warning.border-warning.d-none.d-flex.align-items-center.justify-content-between.flex-wrap.gap-2.mb-3.py-2.px-3(role="alert")
     .d-flex.align-items-center.gap-2
       i.fa-solid.fa-scissors.text-warning
@@ -27,11 +26,9 @@ block main
         i.fa-solid.fa-xmark.me-1
         | Cancel
 
-  //- Breadcrumb nav
   nav.mb-3(aria-label="Folder navigation")
     ul.list-group.list-group-horizontal-md.flex-wrap.m-0(breadcumb-folder)
 
-  //- Folders Card
   .card.mb-3
     .card-header.d-flex.align-items-center.justify-content-between.flex-wrap.gap-2
       h5.card-title.mb-0
@@ -94,7 +91,6 @@ block main
                 p.small.text-truncate.mb-0.fw-medium(title=item.name) #{item.name}
                 p.text-muted.mb-0(style="font-size:10px") #{item.createdAtFormat}
 
-  //- Files Card
   .card.mb-3
     .card-header.d-flex.align-items-center.justify-content-between.flex-wrap.gap-2
       h5.card-title.mb-0
@@ -218,7 +214,6 @@ block main
         .p-3.border-top
           +pagination()
 
-  //- Upload Card
   .card
     .card-header
       h5.card-title.mb-0
@@ -227,7 +222,6 @@ block main
     .card-body
       div(id="uppy-upload")
 
-  //- Modal: Preview File
   #modalPreviewFile.modal.fade(aria-hidden="true" tabindex="-1")
     .modal-dialog.modal-lg.modal-dialog-centered
       .modal-content
@@ -239,7 +233,6 @@ block main
         .modal-body
           .inner-preview
 
-  //- Modal: Rename File
   #modalChangeFileName.modal.fade(aria-hidden="true" tabindex="-1")
     .modal-dialog.modal-dialog-centered
       .modal-content
@@ -268,7 +261,6 @@ block main
                 i.fa-solid.fa-check.me-1
                 | Save
 
-  //- Modal: Rename Folder
   #modalRenamefolder.modal.fade(aria-hidden="true" tabindex="-1")
     .modal-dialog.modal-dialog-centered
       .modal-content

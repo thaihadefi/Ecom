@@ -18,7 +18,7 @@ const schema = new mongoose.Schema(
     deletedAt: Date
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
@@ -28,6 +28,8 @@ schema.index({ deletedAt: -1 }, { partialFilterExpression: { deleted: true } });
 
 schema.index({ search: 1 });
 
-const Role = mongoose.model('Role', schema, "roles");
+import { IRole } from '../interfaces/models/role.interface';
+
+const Role = mongoose.model<IRole>('Role', schema, "roles");
 
 export default Role;

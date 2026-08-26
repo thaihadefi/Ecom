@@ -1,19 +1,16 @@
 import { Request, Response } from 'express';
-import AccountAdmin from '../../models/account-admin.model';
-import bcrypt from "bcryptjs";
-import RefreshToken from '../../models/refresh-token.model';
 import { pathAdmin } from '../../configs/variable.config';
 import { logAdminAction } from '../../helpers/log.helper';
 import { COOKIE_OPTS } from '../../configs/cookie.config';
-import jwt from "jsonwebtoken";
 import { RequestAccount } from '../../interfaces/request.interface';
-import { issueRefreshToken, REFRESH_TOKEN_TTL_MS } from "../../helpers/token-rotation.helper";
+import { REFRESH_TOKEN_TTL_MS } from "../../helpers/token-rotation.helper";
+import * as authService from '../../services/admin/auth.service';
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (_req: Request, res: Response) => {
   res.render("admin/pages/account-login", {
     pageTitle: "Admin Login"
   });
-}
+};
 
 export const loginPost = async (req: RequestAccount, res: Response) => {
   const { email, password, rememberPassword } = req.body;
@@ -24,45 +21,27 @@ export const loginPost = async (req: RequestAccount, res: Response) => {
     rememberPassword === 1 ||
     rememberPassword === "1";
 
-  const existAccount = await AccountAdmin.findOne({ email, deleted: false });
+  const result = await authService.loginAdmin(email, password, remember);
 
-  if (!existAccount) {
-    res.json({ code: "error", message: "Email does not exist!" });
+  if (!result.success) {
+    res.json({
+      code: "error",
+      message: result.message
+    });
     return;
   }
 
-  const isPasswordValid = bcrypt.compareSync(password, `${existAccount.password}`);
-  if (!isPasswordValid) {
-    res.json({ code: "error", message: "Incorrect password!" });
-    return;
+  req.adminId = result.adminId;
+
+  if (result.token) {
+    res.cookie("tokenAdmin", result.token, {
+      ...COOKIE_OPTS,
+      maxAge: result.cookieMaxAge
+    });
   }
 
-  if (existAccount.status !== "active") {
-    res.json({ code: "error", message: "Account is not activated!" });
-    return;
-  }
-
-  const tokenTTL = remember ? "7d" : "1d";
-  const cookieMaxAge = remember ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
-
-  const token = jwt.sign(
-      { id: existAccount.id, email: existAccount.email },
-      `${process.env.JWT_SECRET}`,
-      {
-        expiresIn: tokenTTL
-      }
-    );
-
-  req.adminId = existAccount.id;
-
-  res.cookie("tokenAdmin", token, {
-    ...COOKIE_OPTS,
-    maxAge: cookieMaxAge
-  });
-
-  if (remember) {
-    const refreshToken = await issueRefreshToken(existAccount.id, "admin");
-    res.cookie("refreshTokenAdmin", refreshToken, {
+  if (remember && result.refreshToken) {
+    res.cookie("refreshTokenAdmin", result.refreshToken, {
       ...COOKIE_OPTS,
       maxAge: REFRESH_TOKEN_TTL_MS,
     });
@@ -72,17 +51,16 @@ export const loginPost = async (req: RequestAccount, res: Response) => {
 
   res.json({
     code: "success",
-    message: "Login successful!"
-  })
-}
+    message: result.message
+  });
+};
 
 export const logout = async (req: Request, res: Response) => {
   logAdminAction(req, "Logged out");
   const refreshToken = req.cookies.refreshTokenAdmin;
-  if (refreshToken) {
-    await RefreshToken.deleteOne({ token: refreshToken });
-  }
+  await authService.logoutAdmin(refreshToken);
+
   res.clearCookie("refreshTokenAdmin", COOKIE_OPTS);
   res.clearCookie("tokenAdmin", COOKIE_OPTS);
   res.redirect(`/${pathAdmin}/account/login`);
-}
+};

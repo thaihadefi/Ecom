@@ -1,11 +1,3 @@
-/**
- * [jQuery-stickit]{@link https://github.com/emn178/jquery-stickit}
- *
- * @version 0.2.14
- * @author Chen, Yi-Cyuan [emn178@gmail.com]
- * @copyright Chen, Yi-Cyuan 2014-2017
- * @license MIT
- */
 (function ($) {
   var KEY = 'jquery-stickit';
   var SPACER_KEY = KEY + '-spacer';
@@ -327,7 +319,7 @@
         }
         break;
       case Stick.None:
-      /* falls through */
+      
       default:
         rect = element[0].getBoundingClientRect();
         top = rect.top - this.baseTop;
@@ -437,7 +429,6 @@
 
   var PublicMethods = ['destroy', 'refresh'];
   $.fn.stickit = function (method, options) {
-    // init
     if (typeof(method) == 'string') {
       if ($.inArray(method, PublicMethods) != -1) {
         var args = arguments;

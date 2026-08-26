@@ -1,15 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import ChatRoom from "../../models/chat-room.model";
+import * as chatService from "../../services/client/chat.service";
 
-export const getChatMessageTotal = async (req: Request, res: Response, next: NextFunction) => {
-  if(res.locals.accountUser) {
-    // Get chat room info
-    const chatRoom = await ChatRoom.findOne({
-      userId: res.locals.accountUser.id
-    }).select("unreadCount");
-    if(chatRoom) {
-      res.locals.chatMessageTotal = chatRoom.unreadCount?.user;
-    }
+export const getChatMessageTotal = async (_req: Request, res: Response, next: NextFunction) => {
+  if (res.locals.accountUser?.id) {
+    res.locals.chatMessageTotal = await chatService.getUserUnreadCount(res.locals.accountUser.id);
   }
   next();
-}
+};

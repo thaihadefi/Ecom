@@ -1,3 +1,12 @@
 node_modules/
-
 .env
+
+# Media uploads storage
+media/*
+!media/temp/
+!media/users/
+!media/.gitkeep
+media/temp/*
+!media/temp/.gitkeep
+media/users/*
+!media/users/.gitkeep

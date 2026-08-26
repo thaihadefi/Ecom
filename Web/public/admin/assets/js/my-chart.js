@@ -1,4 +1,3 @@
-// REVENUE CHART BY HOUR
 const revenueChartHour = document.querySelector("#revenueChartHour");
 if (revenueChartHour) {
   const ctx = revenueChartHour.getContext("2d");
@@ -55,9 +54,7 @@ if (revenueChartHour) {
     },
   });
 }
-// END OF REVENUE CHART BY HOUR
 
-// REVENUE CHART BY DAY
 const revenueChartDay = document.querySelector("#revenueChartDay");
 if (revenueChartDay) {
   const ctx = revenueChartDay.getContext("2d");
@@ -76,7 +73,7 @@ if (revenueChartDay) {
         },
         {
           label: "Last Month",
-          data: lastMonthData.slice(0, labelsDay.length), // Slice to match number of days
+          data: lastMonthData.slice(0, labelsDay.length),
           borderDash: [5, 5],
           borderWidth: 2,
           tension: 0.4,
@@ -114,9 +111,7 @@ if (revenueChartDay) {
     },
   });
 }
-// END OF REVENUE CHART BY DAY
 
-// REVENUE CHART BY MONTH
 const revenueChartMonth = document.querySelector("#revenueChartMonth");
 if (revenueChartMonth) {
   const ctx = revenueChartMonth.getContext("2d");
@@ -166,7 +161,6 @@ if (revenueChartMonth) {
     },
   });
 }
-// END OF REVENUE CHART BY MONTH
 
 const PIE_OPTIONS = {
   responsive: true,
@@ -193,28 +187,21 @@ const PIE_OPTIONS = {
   }
 };
 
-// ORDER STATUS RATIO BY DAY
 const orderStatusToday = document.querySelector("#orderStatusToday");
 if(orderStatusToday) {
   new Chart(orderStatusToday, { type: 'pie', data: pieToday, options: PIE_OPTIONS });
 }
-// END OF ORDER STATUS RATIO BY DAY
 
-// ORDER STATUS RATIO BY MONTH
 const orderStatusMonth = document.querySelector("#orderStatusMonth");
 if(orderStatusMonth) {
   new Chart(orderStatusMonth, { type: 'pie', data: pieThisMonth, options: PIE_OPTIONS });
 }
-// END OF ORDER STATUS RATIO BY MONTH
 
-// ORDER STATUS RATIO BY YEAR
 const orderStatusYear = document.querySelector("#orderStatusYear");
 if(orderStatusYear) {
   new Chart(orderStatusYear, { type: 'pie', data: pieThisYear, options: PIE_OPTIONS });
 }
-// END OF ORDER STATUS RATIO BY YEAR
 
-// ─── AJAX FILTER: REVENUE ────────────────────────────────────────────────────
 var _revenueCustomChart = null;
 
 function reEnableSubmitButton() {
@@ -296,7 +283,6 @@ if (btnRevenueReset) {
   });
 }
 
-// ─── AJAX FILTER: ORDER STATISTIC ────────────────────────────────────────────
 var _orderCustomChart = null;
 
 function drawOrderChart(from, to) {
@@ -348,7 +334,6 @@ if (btnOrderReset) {
   });
 }
 
-// ─── EVENT: JustValidate onSuccess dispatches this ───────────────────────────
 document.addEventListener('dashboard-filter-apply', function(e) {
   if (document.querySelector('#revenueDefaultSection')) {
     drawRevenueChart(e.detail.from, e.detail.to);
@@ -357,7 +342,6 @@ document.addEventListener('dashboard-filter-apply', function(e) {
   }
 });
 
-// ─── PAGE LOAD: restore filter from URL params ────────────────────────────────
 (function() {
   var params  = new URLSearchParams(window.location.search);
   var urlFrom = params.get('from');

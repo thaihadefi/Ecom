@@ -5,14 +5,14 @@ if blockData && blockProductList && blockProductList.length
     .container
       .row
         .col-xl-6.col-sm-9
-          div(class="section_heading_2 section_heading")
+          div(class="section_heading section_heading")
             h3
               | #{blockData.title && blockData.title.normal}
               span #{blockData.title && blockData.title.highlight}
         .col-xl-6.col-sm-3
           div(class="view_all_btn_area")
             a(href=((blockData.linkViewAll && blockData.linkViewAll !== "#") ? blockData.linkViewAll : "/product") class="view_all_btn") #{blockData.viewAll || "View all"}
-      .row(class="mt_40 favourite_product_2_slider")
+      .row(class="mt_40 favourite_product_slider")
         each item in blockProductList
           .col-xl-1-5.col-6.col-md-4.wow.fadeInUp
             +product-item(item)

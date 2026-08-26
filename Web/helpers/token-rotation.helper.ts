@@ -20,8 +20,15 @@ export const issueRefreshToken = async (userId: string, role: "user" | "admin"):
 const ACCESS_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const GRACE_PERIOD_MS = 15000;
 
+interface StoredTokenDocument {
+  used: boolean;
+  rotatedAt?: Date | null;
+  expiresAt: Date;
+  save: (options?: { session?: mongoose.ClientSession }) => Promise<unknown>;
+}
+
 interface RotateOptions {
-  storedToken: any;
+  storedToken: StoredTokenDocument;
   account: { id: string; email?: string | null };
   role: "user" | "admin";
   accessTokenCookieName: string;
@@ -44,19 +51,16 @@ export const rotateRefreshToken = async (opts: RotateOptions): Promise<RotateOut
     const timePassed = Date.now() - new Date(storedToken.rotatedAt || 0).getTime();
 
     if (timePassed <= GRACE_PERIOD_MS) {
-      // Concurrent request within grace period — issue new access token only, skip rotation
       res.cookie(accessTokenCookieName, newAccessToken, { ...COOKIE_OPTS, maxAge: ACCESS_TOKEN_TTL_MS });
       return "grace";
     }
 
-    // Reuse outside grace period — possible token theft, revoke all tokens for this user
     await RefreshToken.deleteMany({ userId: account.id });
     res.clearCookie(refreshTokenCookieName, COOKIE_OPTS);
     res.clearCookie(accessTokenCookieName, COOKIE_OPTS);
     return "revoked";
   }
 
-  // Normal rotation
   const newRefreshToken = crypto.randomBytes(40).toString("hex");
   const session = await mongoose.startSession();
   try {

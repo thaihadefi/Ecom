@@ -24,19 +24,19 @@ const schema = new mongoose.Schema(
     deletedAt: Date
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
-// Indexes
 schema.index({ slug: 1 }, { unique: true });
 schema.index({ parent: 1 });
 schema.index({ deleted: 1 });
 schema.index({ status: 1 });
 schema.index({ search: 1 });
-// Partial indexes
 schema.index({ status: 1, parent: 1 }, { partialFilterExpression: { deleted: false } });
 
-const CategoryBlog = mongoose.model('CategoryBlog', schema, "categories-blog");
+import { ICategoryBlog } from '../interfaces/models/category-blog.interface';
+
+const CategoryBlog = mongoose.model<ICategoryBlog>('CategoryBlog', schema, "categories-blog");
 
 export default CategoryBlog;

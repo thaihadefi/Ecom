@@ -22,7 +22,7 @@ const schema = new mongoose.Schema(
     deletedAt: Date
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
@@ -31,6 +31,8 @@ schema.index({ name: 1, deleted: 1 });
 
 schema.index({ search: 1 });
 
-const AttributeProduct = mongoose.model('AttributeProduct', schema, "attributes-product");
+import { IAttributeProduct } from "../interfaces/models/attribute-product.interface";
+
+const AttributeProduct = mongoose.model<IAttributeProduct>('AttributeProduct', schema, "attributes-product");
 
 export default AttributeProduct;

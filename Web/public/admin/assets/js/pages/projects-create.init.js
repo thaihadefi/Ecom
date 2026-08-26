@@ -1,1 +1,0 @@
-var elem=document.querySelector('input[name="startdate"]'),elem=(new Datepicker(elem,{}),document.querySelector('input[name="enddate"]'));new Datepicker(elem,{});

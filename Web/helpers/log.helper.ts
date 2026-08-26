@@ -2,7 +2,7 @@ import { RequestAccount } from "../interfaces/request.interface";
 import AdminLog from "../models/admin-log.model";
 
 export const logAdminAction = (req: RequestAccount, title: string): void => {
-  (req as any)._auditLogged = true;
+  req._auditLogged = true;
   new AdminLog({
     adminId: req.adminId,
     method: req.method,

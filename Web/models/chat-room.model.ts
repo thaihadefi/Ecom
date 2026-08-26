@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 
 const schema = new mongoose.Schema(
   {
-    userId: { type: String, unique: true, sparse: true }, // one room per user
-    adminId: String, // Admin ID
-    unreadCount: { // Unread messages count
+    userId: { type: String, unique: true, sparse: true },
+    adminId: String,
+    unreadCount: {
       user: {
         type: Number,
         default: 0
@@ -14,24 +14,24 @@ const schema = new mongoose.Schema(
         default: 0
       }
     },
-    status: { // Chat room status
+    status: {
       type: String,
-      enum: ["open", "locked"], 
+      enum: ["open", "locked"],
     },
-    rating: [ // Chat rating
+    rating: [
       {
-        stars: { // Stars count
+        stars: {
           type: Number,
           min: 1,
           max: 5
         },
-        comment: String, // Notes
-        ratedAt: Date // Rating date/time
+        comment: String,
+        ratedAt: Date
       }
     ]
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
@@ -39,6 +39,8 @@ schema.index({ adminId: 1 });
 schema.index({ status: 1 });
 schema.index({ adminId: 1, status: 1 });
 
-const ChatRoom = mongoose.model('ChatRoom', schema, "chat-rooms");
+import { IChatRoom } from '../interfaces/models/chat-room.interface';
+
+const ChatRoom = mongoose.model<IChatRoom>('ChatRoom', schema, "chat-rooms");
 
 export default ChatRoom;

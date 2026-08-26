@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { Model, PipelineStage } from "mongoose";
 
 const ATLAS_SEARCH_INDEX = process.env.ATLAS_SEARCH_INDEX || "default";
 
@@ -9,7 +9,6 @@ type Params<T> = {
   limit?: number;
 };
 
-// Helper function to normalize and remove accents for standard Vietnamese search compatibility
 const removeAccents = (str: string): string => {
   return str
     .normalize("NFD")
@@ -19,44 +18,56 @@ const removeAccents = (str: string): string => {
     .toLowerCase();
 };
 
-export const findIdsByKeyword = async <T>({ model, keyword, atlasPaths, limit = 2000 }: Params<T>): Promise<string[]> => {
-  if(!keyword || !/[\p{L}\p{N}]/u.test(keyword)) return [];
+export const searchAtlas = async <T>({
+  model,
+  keyword,
+  atlasPaths,
+  limit = 20
+}: Params<T>): Promise<string[]> => {
+  if (!keyword || !keyword.trim()) {
+    return [];
+  }
 
-  const pipeline: any[] = [
+  const stages: PipelineStage[] = [
     {
       $search: {
         index: ATLAS_SEARCH_INDEX,
-        text: { query: keyword, path: atlasPaths },
-      },
+        text: {
+          query: keyword,
+          path: atlasPaths,
+          fuzzy: {
+            maxEdits: 1
+          }
+        }
+      }
     },
-    { $project: { _id: 1 } },
-    { $limit: limit },
+    {
+      $limit: limit
+    },
+    {
+      $project: {
+        _id: 1
+      }
+    }
   ];
 
   try {
-    // Try Atlas Search
-    const results = await model.aggregate(pipeline);
-    return results.map((item: any) => item._id?.toString()).filter(Boolean);
+    const results = await model.aggregate(stages);
+    return results
+      .map((item: { _id?: unknown }) => item._id ? String(item._id) : undefined)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
   } catch (error) {
-    // Fallback: local/regex search if Atlas Search is unavailable, index is missing, or fails
-    const hasSearchField = model.schema.path("search") !== undefined;
-    const normalized = removeAccents(keyword);
-    const words = normalized
-      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      .split(/\s+/)
-      .filter(Boolean);
+    let fallbackQuery: Record<string, unknown>;
 
-    let fallbackQuery: any = {};
-
-    if (hasSearchField && words.length > 0) {
-      // Powerful multi-word search against the pre-computed 'search' field (slugified/no-accents)
+    if (model.schema.path("search")) {
+      const cleanKeyword = removeAccents(keyword.trim());
+      const words = cleanKeyword.split(/\s+/).filter(Boolean);
       fallbackQuery = {
         $and: words.map(word => ({
           search: new RegExp(word, "i")
         }))
       };
     } else {
-      // Generic fallback search against original paths
       const paths = Array.isArray(atlasPaths) ? atlasPaths : [atlasPaths];
       const regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       fallbackQuery = {
@@ -65,11 +76,15 @@ export const findIdsByKeyword = async <T>({ model, keyword, atlasPaths, limit = 
     }
 
     try {
-      const results = await (model as any).find(fallbackQuery).select("_id").limit(limit);
-      return results.map((item: any) => item._id?.toString()).filter(Boolean);
+      const results = await model.find(fallbackQuery).select("_id").limit(limit);
+      return results
+        .map((item: { _id?: unknown }) => item._id ? String(item._id) : undefined)
+        .filter((id): id is string => typeof id === "string" && id.length > 0);
     } catch (fallbackError) {
       console.error("Fallback search failed:", fallbackError);
       return [];
     }
   }
 };
+
+export const findIdsByKeyword = searchAtlas;

@@ -8,7 +8,7 @@ export const configureGooglePassport = async function (
   passportInstance: typeof passport
 ) {
   const apiLoginSocial = await getApiLoginSocial();
-  
+
   const googleClientId = apiLoginSocial?.googleClientId || "placeholder";
   const googleClientSecret = apiLoginSocial?.googleClientSecret || "placeholder";
   const googleCallbackUrl = apiLoginSocial?.googleCallbackUrl || "http://localhost:3000/auth/google/callback";
@@ -20,10 +20,9 @@ export const configureGooglePassport = async function (
         clientSecret: `${googleClientSecret}`,
         callbackURL: `${googleCallbackUrl}`,
       },
-      // Callback function when google authentication is successful
-      async (accessToken, refreshToken, profile, done) => {
+      async (_accessToken, _refreshToken, profile, done) => {
         try {
-          const email = (profile.emails as any)?.[0]?.value;
+          const email = profile.emails?.[0]?.value;
           if (!email) {
             return done(new Error("Google account email is not available."), undefined);
           }
@@ -58,7 +57,7 @@ export const configureGooglePassport = async function (
     )
   );
 
-  passportInstance.serializeUser((user: any, done) => {
+  passportInstance.serializeUser((user: { id?: string }, done) => {
     done(null, user.id);
   });
 

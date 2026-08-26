@@ -1,11 +1,7 @@
-//
-  ============================
-    CATEGORY 2 START
-    ==============================
-section.category(class="category_2 mt_55")
+section.category(class="category_area mt_55")
   .container
     if blockData.items && blockData.items.length
-      .row(class="category_2_slider")
+      .row(class="category_slider")
         each item in blockData.items
           .col-2.wow.fadeInUp
             a(
@@ -19,7 +15,3 @@ section.category(class="category_2 mt_55")
                   loading="lazy"
                   )
               h3 #{item.title}
-//
-  ============================
-    CATEGORY 2 END
-    ==============================

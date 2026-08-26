@@ -8,7 +8,6 @@ const router = Router();
 
 const upload = multer();
 
-// ── Category ──────────────────────────────────────────────────────────────
 router.get('/category', productController.category);
 router.get('/category/trash', productController.trashCategory);
 router.get('/category/create', productController.createCategory);
@@ -39,7 +38,6 @@ router.patch('/category/undo/:id', checkPermission("product-edit"), productContr
 router.delete('/category/destroy-many', checkPermission("product-delete"), productController.destroyManyCategoryDelete);
 router.delete('/category/destroy/:id', checkPermission("product-delete"), productController.destroyCategoryDelete);
 
-// ── Attribute ─────────────────────────────────────────────────────────────
 router.get('/attribute', productController.attribute);
 router.get('/attribute/create', productController.createAttribute);
 
@@ -66,7 +64,6 @@ router.get('/attribute/trash', productController.trashAttribute);
 router.patch('/attribute/undo/:id', checkPermission("product-edit"), productController.undoAttributePatch);
 router.delete('/attribute/destroy/:id', checkPermission("product-delete"), productController.destroyAttributeDelete);
 
-// ── Product ───────────────────────────────────────────────────────────────
 router.get('/create', productController.create);
 
 router.post(

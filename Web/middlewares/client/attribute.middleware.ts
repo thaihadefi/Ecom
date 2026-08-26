@@ -1,17 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import AttributeProduct from "../../models/attribute-product.model";
+import * as attributeProductService from "../../services/admin/attribute-product.service";
 
-export const getAttributeProduct = async (req: Request, res: Response, next: NextFunction) => {
-  const attributeProductList: any = await AttributeProduct
-    .find({
-      deleted: false
-    })
-    .select("_id name type options")
-    .sort({
-      createdAt: "desc"
-    })
-
+export const getAttributeProduct = async (_req: Request, res: Response, next: NextFunction) => {
+  const attributeProductList = await attributeProductService.getActiveAttributes();
   res.locals.attributeProductList = attributeProductList;
-
   next();
-}
+};

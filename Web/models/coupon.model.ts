@@ -2,27 +2,27 @@ import mongoose from "mongoose";
 
 const schema = new mongoose.Schema(
   {
-    code: String, // Coupon code
-    name: String, // Coupon name
-    description: String, // Description
+    code: String,
+    name: String,
+    description: String,
     typeDiscount: {
       type: String,
       enum: ["percentage", "fixed"],
       default: "percentage"
     },
-    value: Number, // Discount value (10%, 10000 VND,...)
-    minOrderValue: Number, // Minimum order value to apply
-    maxDiscountValue: Number, // Maximum discount amount (if type = percentage)
-    usageLimit: Number, // Usage limit count
+    value: Number,
+    minOrderValue: Number,
+    maxDiscountValue: Number,
+    usageLimit: Number,
     usedCount: {
       type: Number,
       default: 0
-    }, // Count of times used
-    startDate: Date, // Start date of coupon validity
-    endDate: Date, // Expiration date
+    },
+    startDate: Date,
+    endDate: Date,
     typeDisplay: {
       type: String,
-      enum: ["public", "private"], 
+      enum: ["public", "private"],
       default: "private"
     },
     status: {
@@ -37,7 +37,7 @@ const schema = new mongoose.Schema(
     deletedAt: Date
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
@@ -48,6 +48,8 @@ schema.index({ deletedAt: -1 }, { partialFilterExpression: { deleted: true } });
 
 schema.index({ search: 1 });
 
-const Coupon = mongoose.model('Coupon', schema, "coupons");
+import { ICoupon } from '../interfaces/models/coupon.interface';
+
+const Coupon = mongoose.model<ICoupon>('Coupon', schema, "coupons");
 
 export default Coupon;

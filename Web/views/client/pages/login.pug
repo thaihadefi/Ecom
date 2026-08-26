@@ -1,10 +1,6 @@
 extends ../layouts/default.pug
 
 block main
-  //
-    =========================
-    SIGN IN PAGE START
-    ==========================
   section(class="sign_in mt_100 mb_100")
     .container
       .row.justify-content-center
@@ -53,13 +49,13 @@ block main
                     a(href="/auth/forgot-password") Forgot password?
                 .col-xl-12
                   button(
-                    class="common_btn" 
+                    class="common_btn"
                     type="submit"
                     )
                     | Login
                     i.fas.fa-long-arrow-right(aria-hidden="true")
             p(class="dont_account")
-              | Don't have an account? 
+              | Don't have an account?
               a(href="/auth/register") Register
             .or-divider
               span.or-line
@@ -76,7 +72,3 @@ block main
                   span
                     i.fab.fa-facebook-f(aria-hidden="true")
                   | Facebook
-  //
-    =========================
-    SIGN IN PAGE END
-    ==========================

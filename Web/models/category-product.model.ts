@@ -24,19 +24,19 @@ const schema = new mongoose.Schema(
     deletedAt: Date
   },
   {
-    timestamps: true, // Automatically generate createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
-// Indexes
 schema.index({ slug: 1 }, { unique: true });
 schema.index({ parent: 1 });
 schema.index({ deleted: 1 });
 schema.index({ status: 1 });
 schema.index({ search: 1 });
-// Partial indexes
 schema.index({ status: 1, parent: 1 }, { partialFilterExpression: { deleted: false } });
 
-const CategoryProduct = mongoose.model('CategoryProduct', schema, "categories-product");
+import { ICategoryProduct } from '../interfaces/models/category-product.interface';
+
+const CategoryProduct = mongoose.model<ICategoryProduct>('CategoryProduct', schema, "categories-product");
 
 export default CategoryProduct;

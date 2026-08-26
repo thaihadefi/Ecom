@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { IRefreshToken } from "../interfaces/models/refresh-token.interface";
 
 const schema = new mongoose.Schema(
   {
@@ -14,9 +15,8 @@ const schema = new mongoose.Schema(
   }
 );
 
-// Auto-delete expired documents
 schema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-const RefreshToken = mongoose.model("RefreshToken", schema, "refresh-tokens");
+const RefreshToken = mongoose.model<IRefreshToken>("RefreshToken", schema, "refresh-tokens");
 
 export default RefreshToken;

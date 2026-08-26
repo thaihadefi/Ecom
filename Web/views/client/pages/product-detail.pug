@@ -2,23 +2,11 @@ extends ../layouts/default.pug
 include ../mixins/index.pug
 
 block main
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
   +page-banner(
     productDetail,
     `/product/detail/${productDetail.slug}`
   )
-  //
-    =========================
-    PAGE BANNER START
-    ==========================
 
-  //
-    ============================
-    SHOP DETAILS START
-    =============================
   section(class="shop_details mt_100")
     .container
       .row
@@ -34,28 +22,8 @@ block main
               include ../partials/shop-details-des-area.pug
         .col-xxl-2.wow.fadeInRight
           include ../partials/sticky-sidebar-shop-detail.pug
-  //
-    ============================
-    SHOP DETAILS END
-    =============================
-  //
-    ============================
-    RELATED PRODUCTS START
-    =============================
   if (relatedProducts.length > 0)
     +products-slider("Products", "Related", relatedProducts)
-  //
-    ============================
-    RELATED PRODUCTS END
-    =============================
 
-  //
-    ============================
-    Viewed Products
-    =============================
   if (viewedProducts.length > 0)
     +products-slider("Products", "Viewed", viewedProducts)
-  //
-    ============================
-    End of Viewed Products
-    =============================
