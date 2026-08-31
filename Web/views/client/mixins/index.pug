@@ -16,7 +16,7 @@ mixin avatar(fullName, avatarUrl, sizeClass)
   - var name = fullName || "U"
   - var parts = name.trim().split(/\s+/)
   - var initials = parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : parts[0][0].toUpperCase()
-  - var cdnUrl = (avatarUrl && !avatarUrl.startsWith('http')) ? (domainCDN + '/' + avatarUrl) : null
+  - var cdnUrl = (avatarUrl && !avatarUrl.startsWith('http')) ? getFullUrl(avatarUrl) : null
   if cdnUrl
     img.avatar-img(
       src=cdnUrl
@@ -48,12 +48,12 @@ mixin blog-item(item)
         if (item.authorName)
           li
             span
-              i.far.fa-user(aria-hidden="true")
+              i.fas.fa-user(aria-hidden="true")
             | #{item.authorName}
         if (item.date)
           li
             span
-              i.far.fa-calendar-alt(aria-hidden="true")
+              i.fas.fa-calendar-alt(aria-hidden="true")
             | #{item.date}
       a.title(href=`/article/detail/${item.slug}`)
         | #{item.name}
@@ -77,28 +77,28 @@ mixin renderCategory(items, level = 0)
           li
             a(href=`/product/category/${item.slug}`)
               if (level == 0 && item.avatar)
-                span
+                span.cat_icon
                   img(
                     alt=item.name
                     src=`${domainCDN}${item.avatar}`
                     loading="lazy"
                     )
               | #{item.name}
-              if (level > 0 && item.children && item.children.length > 0)
-                i.fal.fa-angle-right(aria-hidden="true")
+              if (item.children && item.children.length > 0)
+                i.fas.fa-angle-right(aria-hidden="true")
             if (item.children && item.children.length > 0)
               +renderCategory(item.children, level+1)
       if(level == 0)
         li(class="all_category")
             a(href="/product")
               | View All
-              i.far.fa-arrow-right(aria-hidden="true")
+              i.fas.fa-arrow-right(aria-hidden="true")
   else if (level == 0)
     ul(class=ulClass)
       li(class="all_category")
           a(href="/product")
             | View All
-            i.far.fa-arrow-right(aria-hidden="true")
+            i.fas.fa-arrow-right(aria-hidden="true")
 
 mixin page-banner(data, link)
   section(class="page_banner")
@@ -111,7 +111,7 @@ mixin page-banner(data, link)
               ul
                 li
                   a(href="/")
-                    i.fal.fa-home-lg(aria-hidden="true")
+                    i.fas.fa-home(aria-hidden="true")
                     | Home
                 li
                   a(href=link) #{data.name}
@@ -142,7 +142,7 @@ mixin product-item(item)
             title="Compare"
             aria-label="Compare"
             )
-            i.far.fa-exchange-alt(aria-hidden="true")
+            i.fas.fa-exchange-alt(aria-hidden="true")
         li
           a(
             href="javascript:;"
@@ -160,7 +160,7 @@ mixin product-item(item)
             title="Add to Cart"
             aria-label="Add to Cart"
             )
-            i.far.fa-shopping-cart(aria-hidden="true")
+            i.fas.fa-shopping-cart(aria-hidden="true")
     div(class="product_text")
       a.title(href=`/product/detail/${item.slug}`) #{item.name}
       p.price.d-flex.flex-wrap.align-items-baseline.gap-1
@@ -200,7 +200,7 @@ mixin product-list-item(item)
                 title="Compare"
                 aria-label="Compare"
                 )
-                i.far.fa-exchange-alt(aria-hidden="true")
+                i.fas.fa-exchange-alt(aria-hidden="true")
             li
               a(
                 href="javascript:;"
@@ -243,8 +243,11 @@ mixin products-slider(title1, title2, productList)
           div(class="section_heading section_heading")
             h3
               span #{title1}
-              | #{title2}
+              |  #{title2}
       .row(class="mt_25 flash_sell_slider")
         each item in productList
-          .col-xl-1-5
+          //- Slick controls how many cards show per view; each slide is a full
+          //- column (matching blocks/flash-sale.pug). .col-xl-1-5 here would
+          //- let its `max-width: 20%` collapse the card inside .slick-slide.
+          .col-12
             +product-item(item)

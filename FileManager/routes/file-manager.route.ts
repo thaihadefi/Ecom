@@ -7,7 +7,7 @@ import crypto from "crypto";
 
 const router = Router();
 
-const mediaRoot = path.resolve(__dirname, "../media");
+const mediaRoot = path.resolve(process.cwd(), "media");
 const tempDir = path.resolve(mediaRoot, "temp");
 
 if (!fs.existsSync(tempDir)) {

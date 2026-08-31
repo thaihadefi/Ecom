@@ -18,7 +18,7 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
             div(class="menu_category_bar")
               p
                 span
-                  i.far.fa-bars(aria-hidden="true")
+                  i.fas.fa-bars(aria-hidden="true")
                 | Product Categories
               i.fas.fa-chevron-down(aria-hidden="true")
             +renderCategory(categoryProductList, 0)
@@ -26,7 +26,7 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
             li
               a(href="/compare" aria-label="Compare list")
                 b
-                  i.far.fa-exchange-alt(aria-hidden="true")
+                  i.fas.fa-exchange-alt(aria-hidden="true")
                 span(mini-compare-quantity) 0
             li
               a(href="/wishlist" aria-label="Wishlist")
@@ -41,22 +41,22 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
                 data-bs-toggle="offcanvas"
                 )
                 b
-                  i.far.fa-shopping-cart(aria-hidden="true")
+                  i.fas.fa-shopping-cart(aria-hidden="true")
                 span(mini-cart-quantity) 0
             if (!accountUser)
               li
                 a.user(href="/auth/login" aria-label="Login to your account")
                   b
-                    i.far.fa-user(aria-hidden="true")
+                    i.fas.fa-user(aria-hidden="true")
                   h5 Account
                 ul(class="user_dropdown")
                   li
                     a(href="/auth/login")
-                      <i class="fas fa-user me-2" aria-hidden="true"></i>
+                      <i class="fas fa-user fa-fw me-2" aria-hidden="true"></i>
                       | Login
                   li
                     a(href="/auth/register")
-                      <i class="fas fa-user-plus me-2" aria-hidden="true"></i>
+                      <i class="fas fa-user-plus fa-fw me-2" aria-hidden="true"></i>
                       | Register
             else
               - const _mp = (accountUser.fullName||'').trim().split(/\s+/)
@@ -65,7 +65,7 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
                 a.user(href="/dashboard")
                   if accountUser.avatar && !accountUser.avatar.startsWith('http')
                     b
-                      img.rounded-circle(alt=`${accountUser.fullName}` src=`${domainCDN}/${accountUser.avatar}` style="width:28px;height:28px;object-fit:cover")
+                      img.rounded-circle(alt=`${accountUser.fullName}` src=getFullUrl(accountUser.avatar) style="width:28px;height:28px;object-fit:cover")
                   else
                     div.avatar-initials.avatar-sm.notranslate(translate="no")= _mi
                   h5.notranslate(translate="no") #{accountUser.fullName}

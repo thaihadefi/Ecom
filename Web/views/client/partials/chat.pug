@@ -23,6 +23,10 @@ if (accountUser)
           i.fas.fa-times(aria-hidden="true")
 
     #chat-body.chat-popup-body
+      #chat-typing.chat-typing-indicator
+        span
+        span
+        span
 
     #chat-rate.chat-rate-panel.d-none
       .chat-rate-header
@@ -37,11 +41,6 @@ if (accountUser)
         span.star(data-value="5") &#9733;
       textarea#rate-content(placeholder="Share your feedback (optional)...")
       button#rate-submit.chat-rate-submit Submit
-
-    #chat-typing.chat-typing-indicator
-      span
-      span
-      span
 
     #chat-preview.chat-preview-strip.d-none
 

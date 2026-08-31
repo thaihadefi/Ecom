@@ -1,7 +1,7 @@
 footer(class="footer_main pt_100")
   .container
     .row.justify-content-between
-      .col-xl-3.col-md-6.col-lg-3
+      .col-xl-3.col-md-6.col-lg-4
         div(class="footer_logo_area")
           a(
             href="/"
@@ -13,21 +13,16 @@ footer(class="footer_main pt_100")
               )
           p
             | Your one-stop destination for quality products delivered fast. Shop with confidence every day.
-          ul
-            li
-              span Follow :
-            li
-              a(href="https://www.facebook.com/UIT.Fanpage" aria-label="Facebook")
-                i.fab.fa-facebook-f(aria-hidden="true")
-            li
-              a(href="https://www.youtube.com/@uitchannel" aria-label="YouTube")
-                i.fab.fa-youtube(aria-hidden="true")
-            li
-              a(href="https://www.instagram.com/uituniversity" aria-label="Instagram")
-                i.fab.fa-instagram(aria-hidden="true")
-            li
-              a(href="https://www.linkedin.com/school/university-of-information-technology" aria-label="LinkedIn")
-                i.fab.fa-linkedin-in(aria-hidden="true")
+          .footer_social_follow
+            span Follow :
+            a.footer_social_icon(href="https://www.facebook.com/UIT.Fanpage" aria-label="Facebook")
+              i.fab.fa-facebook-f(aria-hidden="true")
+            a.footer_social_icon(href="https://www.youtube.com/@uitchannel" aria-label="YouTube")
+              i.fab.fa-youtube(aria-hidden="true")
+            a.footer_social_icon(href="https://www.instagram.com/uituniversity" aria-label="Instagram")
+              i.fab.fa-instagram(aria-hidden="true")
+            a.footer_social_icon(href="https://www.linkedin.com/school/university-of-information-technology" aria-label="LinkedIn")
+              i.fab.fa-linkedin-in(aria-hidden="true")
       .col-xl-2.col-sm-6.col-md-4.col-lg-2
         div(class="footer_link")
           h3 Company
@@ -75,7 +70,7 @@ footer(class="footer_main pt_100")
           span
             b
               i.fas.fa-envelope.text-white.me-2(aria-hidden="true")
-            a(href="mailto:support@mail.com") info@uit.edu.vn
+            a(href="mailto:info@uit.edu.vn") info@uit.edu.vn
     .row
       .col-12
         div(class="footer_copyright mt_75")
@@ -86,11 +81,11 @@ footer(class="footer_main pt_100")
           ul.payment
             li Payment by:
             li(title="Cash on Delivery")
-              i.far.fa-money-bill-alt(aria-hidden="true")
+              i.fas.fa-money-bill-wave(aria-hidden="true")
               span  Cash
             li(title="ZaloPay")
-              i.far.fa-wallet(aria-hidden="true")
+              i.fas.fa-wallet(aria-hidden="true")
               span  ZaloPay
             li(title="VNPay")
-              i.far.fa-wallet(aria-hidden="true")
+              i.fas.fa-credit-card(aria-hidden="true")
               span  VNPay

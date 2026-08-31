@@ -6,6 +6,8 @@ const router = Router();
 
 const upload = multer();
 
+router.get('/session', chatController.session);
+
 router.get('/messages', chatController.messages);
 
 router.post(

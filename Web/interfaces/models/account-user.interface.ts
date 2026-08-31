@@ -13,6 +13,7 @@ export interface IAccountUser extends Document {
   totalPoint: number;
   usedPoint: number;
   search?: string;
+  lastSeenAt?: Date;
   deleted: boolean;
   deletedAt?: Date;
   createdAt: Date;

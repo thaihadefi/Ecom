@@ -24,6 +24,10 @@ export interface IAdminTypingPayload {
   isTyping?: boolean;
 }
 
+export interface IClientTypingPayload {
+  isTyping?: boolean;
+}
+
 export interface IServerSendMessagePayload {
   _id: string;
   roomId: string;
@@ -31,6 +35,7 @@ export interface IServerSendMessagePayload {
   senderRole: string;
   content: string;
   files: string[];
+  createdAt?: Date;
 }
 
 export interface IServerDeleteMessagePayload {
@@ -39,6 +44,16 @@ export interface IServerDeleteMessagePayload {
 
 export interface IServerDeleteRoomPayload {
   roomId: string;
+}
+
+export interface IServerRoomStatusPayload {
+  roomId: string;
+  status: 'open' | 'locked';
+}
+
+export interface IServerRoomAssignedPayload {
+  roomId: string;
+  adminId: string;
 }
 
 export interface IServerStatusPayload {
@@ -53,15 +68,20 @@ export interface IServerMessageDeliveredPayload {
 export interface IServerAdminStatusPayload {
   status: 'online' | 'offline';
   lastSeenAt?: number;
+  adminId?: string;
+  /** Server clock at emit time (epoch ms) so clients can correct for skew. */
+  serverNow?: number;
 }
 
 export interface IUserStatusPayload {
   id: string;
   status: 'online' | 'offline';
   lastSeenAt?: number;
+  serverNow?: number;
 }
 
 export interface IListUserOnlinePayload {
   listUserOnline: string[];
   lastSeenMap: Record<string, number>;
+  serverNow?: number;
 }

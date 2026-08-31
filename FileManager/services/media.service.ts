@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 
-const mediaRoot = path.resolve(__dirname, "../media");
+const mediaRoot = path.resolve(process.cwd(), "media");
 
 export const resolveMediaFilePath = async (
   subPath: unknown

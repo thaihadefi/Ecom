@@ -842,7 +842,7 @@ const drawCart = () => {
                   ${htmlVariant}
                 </div>
                 <a class="del_icon" href="javascript:;" button-remove-item>
-                  <i class="fal fa-times" aria-hidden="true"></i>
+                  <i class="fas fa-times" aria-hidden="true"></i>
                 </a>
               </li>
             `;
@@ -877,7 +877,7 @@ const drawCart = () => {
                 <td class="cart_page_quantity">
                   <div class="details_qty_input">
                     <button class="minus">
-                      <i class="fal fa-minus" aria-hidden="true"></i>
+                      <i class="fas fa-minus" aria-hidden="true"></i>
                     </button>
                     <input
                       value="${item.quantity}"
@@ -887,7 +887,7 @@ const drawCart = () => {
                       max="${stock}"
                     />
                     <button class="plus">
-                      <i class="fal fa-plus" aria-hidden="true"></i>
+                      <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
                   </div>
                 </td>
@@ -896,7 +896,7 @@ const drawCart = () => {
                 </td>
                 <td class="cart_page_action">
                   <a href="javascript:;" button-remove-item>
-                    <i class="fal fa-times" aria-hidden="true"></i> Delete
+                    <i class="fas fa-times" aria-hidden="true"></i> Delete
                   </a>
                 </td>
               </tr>
@@ -1545,7 +1545,7 @@ const drawComparePage = () => {
                   <i class="fas fa-star" aria-hidden="true"></i>
                   <i class="fas fa-star" aria-hidden="true"></i>
                   <i class="fas fa-star" aria-hidden="true"></i>
-                  <i class="fal fa-star" aria-hidden="true"></i>
+                  <i class="far fa-star" aria-hidden="true"></i>
                 </p>
               </td>
             `;
@@ -1559,7 +1559,7 @@ const drawComparePage = () => {
                   '<div class="text-danger">Out of stock</div>'
                 }
                 <a class="remove common_btn" href="javascript:;" button-remove="${index}">
-                  <i class="fal fa-trash" aria-hidden="true"></i>
+                  <i class="fas fa-trash" aria-hidden="true"></i>
                 </a>
               </td>
             `;
@@ -1812,7 +1812,7 @@ const drawWishlistPage = () => {
                 <td class="cart_page_quantity">
                   <div class="details_qty_input">
                     <button class="minus">
-                      <i class="fal fa-minus" aria-hidden="true"></i>
+                      <i class="fas fa-minus" aria-hidden="true"></i>
                     </button>
                     <input
                       value="${item.quantity}"
@@ -1822,7 +1822,7 @@ const drawWishlistPage = () => {
                       max="${stock}"
                     />
                     <button class="plus">
-                      <i class="fal fa-plus" aria-hidden="true"></i>
+                      <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
                   </div>
                 </td>

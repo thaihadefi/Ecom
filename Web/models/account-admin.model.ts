@@ -14,6 +14,7 @@ const schema = new mongoose.Schema(
     search: String,
     isSuperAdmin: { type: Boolean, default: false },
     lastLoginAt: Date,
+    lastSeenAt: Date,
     deleted: {
       type: Boolean,
       default: false

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import path from "path";
 import pug from "pug";
-import { domainCDN, flashSaleConfig } from "../configs/variable.config";
+import { mediaBase, flashSaleConfig } from "../configs/variable.config";
 import { formatDateTime, formatVND } from "./format.helper";
 import Template from "../models/template.model";
 import Block from "../models/block.model";
@@ -61,7 +61,7 @@ export const renderHTML = async (_req: Request, res: Response, blockList: Array<
 
       const html = pug.renderFile(blockPath, {
         categoryProductList: res.locals.categoryProductList,
-        domainCDN: domainCDN,
+        domainCDN: mediaBase,
         formatDateTime,
         formatVND,
         getFullUrl: (url: string) => {
@@ -69,7 +69,7 @@ export const renderHTML = async (_req: Request, res: Response, blockList: Array<
           if (url.startsWith("http://") || url.startsWith("https://")) return url;
           if (url.startsWith("/client/") || url.startsWith("client/")) return url;
           if (url.startsWith("/images/") || url.startsWith("images/")) return url;
-          return `${domainCDN}${url.startsWith("/") ? "" : "/"}${url}`;
+          return `${mediaBase}${url.startsWith("/") ? "" : "/"}${url}`;
         },
         blockData: renderedBlockData,
         blockProductList: productList,

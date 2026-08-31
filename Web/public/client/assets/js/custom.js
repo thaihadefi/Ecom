@@ -21,7 +21,8 @@ $(function () {
         $('.menu_category_bar').addClass('ratate_arrow');
     }
 
-    $('.menu_category_bar').on('click', function () {
+    $('.menu_category_bar').on('click', function (e) {
+        e.stopPropagation();
         const $bannerCat = $('.banner_main .menu_cat_item');
         if ($bannerCat.length && $bannerCat.is(':visible')) {
             $bannerCat.slideToggle(300);
@@ -29,6 +30,13 @@ $(function () {
             $('.menu_category_area').toggleClass('show_category');
         }
         $('.menu_category_bar').toggleClass('ratate_arrow');
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.menu_category_area').length) {
+            $('.menu_category_area').removeClass('show_category');
+            $('.menu_category_bar').removeClass('ratate_arrow');
+        }
     });
 
     $('.venobox').venobox();
@@ -90,130 +98,56 @@ $(function () {
         autoplay: false,
         autoplaySpeed: 3000,
         dots: true,
-        arrows: false,
-        fade: true,
-
-        responsive: [
-            {
-                breakpoint: 576,
-                settings: {
-                    dots: false
-                }
-            }
-        ]
+        arrows: false
     });
 
-    $('.category_slider').slick({
-        slidesToShow: 6,
-        slidesToScroll: 1,
-        autoplay: false,
-        autoplaySpeed: 2500,
-        dots: false,
-        arrows: true,
-        nextArrow: '<i class="far fa-arrow-right nextArrow"></i>',
-        prevArrow: '<i class="far fa-arrow-left prevArrow"></i>',
-
-        responsive: [
-            {
-                breakpoint: 1200,
-                settings: {
-                    slidesToShow: 5,
-                }
-            },
-            {
-                breakpoint: 992,
-                settings: {
-                    slidesToShow: 4,
-                }
-            },
-            {
-                breakpoint: 768,
-                settings: {
-                    slidesToShow: 3,
-
-                }
-            },
-            {
-                breakpoint: 576,
-                settings: {
-                    slidesToShow: 2,
-                }
-            }
-        ]
+    // Slick caches the container width at init (before webfonts/images settle),
+    // which can leave slides wider than the viewport on mobile. Recalculate
+    // dimensions once the page is loaded and whenever the viewport changes.
+    let bannerResizeTimer;
+    $(window).on('load', function () {
+        $('.banner_slider').slick('refresh');
     });
-
-    $('.flash_sell_slider').slick({
-        slidesToShow: 4,
-        slidesToScroll: 1,
-        autoplay: false,
-        autoplaySpeed: 3000,
-        dots: false,
-        arrows: true,
-        nextArrow: '<i class="far fa-arrow-right nextArrow"></i>',
-        prevArrow: '<i class="far fa-arrow-left prevArrow"></i>',
-
-        responsive: [
-            {
-                breakpoint: 1200,
-                settings: {
-                    slidesToShow: 3,
-                }
-            },
-            {
-                breakpoint: 992,
-                settings: {
-                    slidesToShow: 3,
-                }
-            },
-            {
-                breakpoint: 768,
-                settings: {
-                    slidesToShow: 2,
-                    arrows: false
-                }
-            },
-            {
-                breakpoint: 576,
-                settings: {
-                    slidesToShow: 2,
-                }
-            }
-        ]
+    $(window).on('resize', function () {
+        clearTimeout(bannerResizeTimer);
+        bannerResizeTimer = setTimeout(function () {
+            $('.banner_slider').slick('refresh');
+        }, 200);
     });
 
 
 
-    $('.product_tabs').pwstabs({
-        effect: 'slidedown',
-        defaultTab: 1,
-    });
+    // The same class drives the home flash-sale rail and the "Related" /
+    // "Viewed" rails on the product page, which often carry fewer items than
+    // slidesToShow. With infinite scrolling Slick clones slides to fill the
+    // view, which misrenders when slidesToShow >= slideCount, so keep these
+    // rails finite and init each one on its own.
+    $('.flash_sell_slider').each(function () {
+        var $rail = $(this);
+        if ($rail.children().length === 0) return;
 
-    $('.banner_slider').slick({
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        autoplay: true,
-        autoplaySpeed: 3000,
-        dots: true,
-        arrows: false,
-        fade: true,
-    });
-
-    if ($('.flash_sell_slider').children().length > 5) {
-        $('.flash_sell_slider').slick({
+        $rail.slick({
             slidesToShow: 5,
             slidesToScroll: 1,
-            autoplay: true,
-            autoplaySpeed: 2500,
+            autoplay: false,
+            autoplaySpeed: 3000,
             dots: false,
             arrows: true,
-            nextArrow: '<i class="far fa-arrow-right nextArrow"></i>',
-            prevArrow: '<i class="far fa-arrow-left prevArrow"></i>',
+            infinite: false,
+            nextArrow: '<i class="fas fa-arrow-right nextArrow"></i>',
+            prevArrow: '<i class="fas fa-arrow-left prevArrow"></i>',
 
             responsive: [
                 {
                     breakpoint: 1600,
                     settings: {
                         slidesToShow: 4,
+                    }
+                },
+                {
+                    breakpoint: 1200,
+                    settings: {
+                        slidesToShow: 3,
                     }
                 },
                 {
@@ -228,10 +162,24 @@ $(function () {
                         slidesToShow: 2,
                         arrows: false
                     }
+                },
+                {
+                    breakpoint: 576,
+                    settings: {
+                        slidesToShow: 2,
+                    }
                 }
             ]
         });
-    }
+    });
+
+
+
+    $('.product_tabs').pwstabs({
+        effect: 'slidedown',
+        defaultTab: 1,
+    });
+
 
     if ($('.category_slider').children().length > 5) {
         $('.category_slider').slick({
@@ -241,8 +189,8 @@ $(function () {
             autoplaySpeed: 2500,
             dots: false,
             arrows: true,
-            nextArrow: '<i class="far fa-arrow-right nextArrow"></i>',
-            prevArrow: '<i class="far fa-arrow-left prevArrow"></i>',
+            nextArrow: '<i class="fas fa-arrow-right nextArrow"></i>',
+            prevArrow: '<i class="fas fa-arrow-left prevArrow"></i>',
 
             responsive: [
                 {
@@ -300,8 +248,8 @@ $(function () {
             autoplaySpeed: 2500,
             dots: false,
             arrows: true,
-            nextArrow: '<i class="far fa-arrow-right nextArrow"></i>',
-            prevArrow: '<i class="far fa-arrow-left prevArrow"></i>',
+            nextArrow: '<i class="fas fa-arrow-right nextArrow"></i>',
+            prevArrow: '<i class="fas fa-arrow-left prevArrow"></i>',
 
             responsive: [
                 {

@@ -14,7 +14,7 @@ block main
               if infoUser.avatar && !infoUser.avatar.startsWith('http')
                 img.rounded-circle.thumb-lg(
                   alt=infoUser.fullName
-                  src=`${domainCDN}/${infoUser.avatar}`
+                  src=getFullUrl(infoUser.avatar)
                   onerror=`this.style.display='none';this.nextElementSibling.style.display='flex'`
                 )
                 span.avatar-initials.thumb-lg.rounded-circle(style="display:none") #{_hi}
@@ -25,7 +25,7 @@ block main
                 h6.my-0.fw-medium.text-dark.fs-14 #{infoUser.fullName}
                 .d-flex.align-items-center.gap-1.mt-1
                   span#admin-chat-online-dot.admin-chat-online-dot
-                  span#admin-chat-status-text.admin-chat-status-text Online
+                  span#admin-chat-status-text.admin-chat-status-text Offline
           .d-none.d-sm-inline-block.align-self-center
             a.me-2.text-muted(
               data-bs-custom-class="tooltip-primary"
@@ -84,6 +84,10 @@ block main
               i.iconoir-trash.fs-22
         .chat-body
           .chat-detail
+            #admin-chat-typing.admin-chat-typing-indicator
+              span
+              span
+              span
         #chat-ai-suggest-reply.chat-ai-suggest-reply.d-none
           .inner-content
           .inner-close ✕

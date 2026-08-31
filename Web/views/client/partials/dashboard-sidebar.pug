@@ -9,7 +9,7 @@ div(class="dashboard_sidebar")
         if accountUser.avatar && !accountUser.avatar.startsWith('http')
           img.img-fluid.w-100(
             alt=`${accountUser.fullName} profile photo`
-            src=`${domainCDN}/${accountUser.avatar}`
+            src=getFullUrl(accountUser.avatar)
             profile-photo-preview
             onerror=`this.style.display='none';this.nextElementSibling.style.display='flex'`
           )
@@ -17,7 +17,7 @@ div(class="dashboard_sidebar")
         else
           span.avatar-initials.avatar-sidebar.notranslate(profile-photo-preview translate="no") #{_i}
         label(for="profile_photo" aria-label="Change profile photo")
-          i.far.fa-camera(aria-hidden="true")
+          i.fas.fa-camera(aria-hidden="true")
         input(
           hidden=""
           id="profile_photo"

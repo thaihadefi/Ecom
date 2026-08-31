@@ -13,7 +13,7 @@ div(class="shop_details_text")
       +stars(productDetail)
       span (#{productDetail.ratingCount} Reviews)
     p.views.ms-3(style="color: var(--paraColor); font-size: 14px;")
-      i.fal.fa-eye.me-1(aria-hidden="true" style="color: var(--themeColorTwo);")
+      i.fas.fa-eye.me-1(aria-hidden="true" style="color: var(--themeColorTwo);")
       span #{productDetail.view || 0} Views
   h3.price
     div.price-new #{(productDetail.priceNew || 0).toLocaleString("vi-VN")} VND
@@ -40,7 +40,7 @@ div(class="shop_details_text")
   .d-flex.flex-wrap.align-items-center
     div(class="details_qty_input")
       button.minus(type="button" aria-label="Decrease quantity")
-        i.fal.fa-minus(aria-hidden="true")
+        i.fas.fa-minus(aria-hidden="true")
       input(
         value=(productDetail.stock > 0 ? 1 : 0)
         type="number"
@@ -52,7 +52,7 @@ div(class="shop_details_text")
         readonly
         )
       button.plus(type="button" aria-label="Increase quantity")
-        i.fal.fa-plus(aria-hidden="true")
+        i.fas.fa-plus(aria-hidden="true")
     div(class="details_btn_area")
 
       button(
@@ -70,7 +70,7 @@ div(class="shop_details_text")
         product-id=productDetail.id
         aria-label="Add to Wishlist"
       )
-        i.fal.fa-heart(aria-hidden="true")
+        i.far.fa-heart(aria-hidden="true")
         | Wishlist
     li
       a(
@@ -79,7 +79,7 @@ div(class="shop_details_text")
         product-id=productDetail.id
         aria-label="Add to Compare"
         )
-        i.fal.fa-exchange(aria-hidden="true")
+        i.fas.fa-exchange-alt(aria-hidden="true")
         | Compare
 
   ul(class="details_tags_sku")

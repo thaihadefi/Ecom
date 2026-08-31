@@ -3,7 +3,7 @@ import fs from "fs";
 import crypto from "crypto";
 import mime from "mime-types";
 
-const mediaRoot = path.resolve(__dirname, "../media");
+const mediaRoot = path.resolve(process.cwd(), "media");
 
 export const isSafePath = (targetPath: string): boolean => {
   const resolvedPath = path.resolve(targetPath);

@@ -7,7 +7,7 @@ if pagination && pagination.totalPage > 1
             href="javascript:;"
             page=pagination.currentPage - 1
           )
-            i.far.fa-arrow-left(aria-hidden="true")
+            i.fas.fa-arrow-left(aria-hidden="true")
 
         - var maxVisible = 5;
         if pagination.totalPage <= maxVisible
@@ -77,4 +77,4 @@ if pagination && pagination.totalPage > 1
             href="javascript:;"
             page=pagination.currentPage + 1
           )
-            i.far.fa-arrow-right(aria-hidden="true")
+            i.fas.fa-arrow-right(aria-hidden="true")

@@ -689,6 +689,23 @@ header.header_main {
     border-bottom: 1px solid var(--borderColor);
 }
 
+/* Header is a fixed 90px in the base theme; let it grow instead of letting
+   its content spill over the nav bar below on tighter widths. */
+header.header_main,
+header.header_main .container,
+header.header_main .row {
+    height: auto !important;
+    min-height: 90px;
+}
+
+/* Between lg and xl the hotline + language + currency don't fit on one row and
+   wrap over the nav. Drop the (secondary) hotline there so the switchers fit. */
+@media (max-width: 1199.98px) {
+    header.header_main .header_support {
+        display: none !important;
+    }
+}
+
 /* Header search */
 header.header_main form {
     width: 100%;
@@ -1103,6 +1120,54 @@ header form .input .inner-voice.recording {
     color: var(--themeColoeOne) !important;
 }
 
+/* Account dropdown — a standard left-aligned icon+label menu. Every row is the
+   same height, the icon sits in one fixed-width column, and all labels start at
+   the same x. Left-aligned (not centered) is the convention for menus: it gives
+   the eye one edge to scan and stops variable-length labels from shifting. */
+.menu_icon li .user_dropdown {
+    padding: 8px !important;
+    line-height: normal !important;
+}
+
+.menu_icon li .user_dropdown li {
+    margin: 0 !important;
+}
+
+.menu_icon li .user_dropdown li a {
+    display: grid !important;
+    grid-template-columns: 20px 1fr !important;
+    align-items: center !important;
+    column-gap: 10px !important;
+    text-align: left !important;
+    line-height: 1.4 !important;
+    padding: 9px 10px !important;
+    border-radius: 6px !important;
+    transition: background var(--t), color var(--t) !important;
+}
+
+/* Icon lives in a fixed 20px grid track and is centred in it, so the label
+   column always starts at the same x no matter how wide the glyph draws. */
+.menu_icon li .user_dropdown li a > i,
+.menu_icon li .user_dropdown li a > svg {
+    grid-column: 1 !important;
+    justify-self: center !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    font-size: 15px !important;
+    text-align: center !important;
+    color: var(--paraColor) !important;
+}
+
+.menu_icon li .user_dropdown li a:hover {
+    background: rgba(37, 99, 235, 0.06) !important;
+}
+
+.menu_icon li .user_dropdown li a:hover > i,
+.menu_icon li .user_dropdown li a:hover > svg {
+    color: var(--themeColoeOne) !important;
+}
+
 /* Category menu bar Font Awesome icon spacing */
 .menu_category_bar p span {
     display: inline-flex !important;
@@ -1186,32 +1251,207 @@ header form .input .inner-voice.recording {
     margin-top: 16px !important;
 }
 
-/* Social links styling */
-.footer_main .footer_logo_area ul {
-    margin-top: 20px !important;
-    gap: 10px !important;
+.footer_main .footer_logo_area {
+    padding-left: 0 !important;
+    padding-right: 15px !important;
 }
 
-.footer_main .footer_logo_area ul li span {
-    color: #94A3B8 !important;
-    font-weight: 600 !important;
-    margin-right: 4px;
+/* Social links styling - vertically aligned with text above */
+.footer_social_follow,
+.footer_logo_area .footer_social_follow,
+.footer_main .footer_logo_area .footer_social_follow {
+    margin-top: 18px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    gap: 8px !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
 }
 
-.footer_main .footer_logo_area ul li a {
-    width: 38px !important;
-    height: 38px !important;
-    line-height: 38px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+.footer_social_follow span,
+.footer_logo_area .footer_social_follow span,
+.footer_main .footer_logo_area .footer_social_follow span {
     color: #CBD5E1 !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-weight: 500 !important;
+    font-size: 15px !important;
+    margin: 0 4px 0 0 !important;
+    padding: 0 !important;
+    display: inline !important;
+    white-space: nowrap !important;
+    position: static !important;
 }
 
-/* Specific Social Brand Hovers */
-.footer_main .footer_logo_area ul li a:hover {
+.footer_social_icon {
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #CBD5E1 !important;
+    transition: all 0.25s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    font-size: 14px !important;
+    flex-shrink: 0 !important;
+    text-decoration: none !important;
+}
+
+.footer_social_icon:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    color: #FFFFFF !important;
+}
+
+/* Slider Arrows Alignment - Clean centered & aligned with content */
+.flash_sell_slider .slick-arrow,
+.flash_sell .nextArrow,
+.flash_sell .prevArrow,
+.category .nextArrow,
+.category .prevArrow {
+    position: absolute !important;
+    top: 45% !important;
+    transform: translateY(-50%) !important;
+    width: 42px !important;
+    height: 42px !important;
+    line-height: 42px !important;
+    background: #FFFFFF !important;
+    color: #1E293B !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 10 !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+}
+
+.flash_sell_slider .nextArrow,
+.flash_sell .nextArrow,
+.category .nextArrow {
+    right: -15px !important;
+    left: auto !important;
+}
+
+.flash_sell_slider .prevArrow,
+.flash_sell .prevArrow,
+.category .prevArrow {
+    left: -15px !important;
+    right: auto !important;
+}
+
+.flash_sell_slider .nextArrow:hover,
+.flash_sell_slider .prevArrow:hover,
+.flash_sell .nextArrow:hover,
+.flash_sell .prevArrow:hover {
+    background: #0057B7 !important;
+    color: #FFFFFF !important;
+    border-color: #0057B7 !important;
+    transform: translateY(-50%) scale(1.06) !important;
+}
+
+/* Hero Banner Slider Dots - Clean horizontal bottom indicator */
+.banner_slider .slick-dots {
+    position: absolute !important;
+    bottom: 24px !important;
+    top: auto !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: auto !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.banner_slider .slick-dots li {
+    margin: 0 !important;
+    display: inline-block !important;
+}
+
+.banner_slider .slick-dots li button {
+    width: 10px !important;
+    height: 10px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+    border: none !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+}
+
+.banner_slider .slick-dots li button::before,
+.banner_slider .slick-dots li button::after {
+    display: none !important;
+    content: none !important;
+}
+
+.banner_slider .slick-dots li.slick-active button,
+.banner_slider .slick-dots li button:hover {
+    width: 28px !important;
+    border-radius: 6px !important;
+    background: #0057B7 !important;
+}
+
+/* Symmetric Hero Banner Cards */
+.banner_slider_2 {
+    margin: 25px 0 0 0 !important;
+    width: 100% !important;
+}
+
+.banner_add {
+    margin: 25px 0 0 0 !important;
+    width: 100% !important;
+}
+
+/* Below lg the banner columns lose their grid padding — restore a side
+   gutter so the hero/side cards don't run edge-to-edge on tablet/mobile. */
+@media (max-width: 991.98px) {
+    .banner_slider_2,
+    .banner_add {
+        width: auto !important;
+        margin-left: 16px !important;
+        margin-right: 16px !important;
+    }
+}
+
+/* Guard against a transient horizontal scroll while Slick re-measures the
+   hero slides on load. */
+.banner_main {
+    overflow-x: hidden;
+}
+
+.footer_social_icon:has(.fa-facebook-f):hover {
+    background: #1877F2 !important;
+    border-color: #1877F2 !important;
+}
+
+.footer_social_icon:has(.fa-youtube):hover {
+    background: #FF0000 !important;
+    border-color: #FF0000 !important;
+}
+
+.footer_social_icon:has(.fa-instagram):hover {
+    background: #E4405F !important;
+    border-color: #E4405F !important;
+}
+
+.footer_social_icon:has(.fa-linkedin-in):hover {
+    background: #0A66C2 !important;
+    border-color: #0A66C2 !important;
 }
 
 .footer_main .footer_logo_area ul li a .fa-facebook-f:hover,
@@ -1524,6 +1764,28 @@ header form .input .inner-voice.recording {
     border-radius: 50% !important;
 }
 
+.category_slider:not(.slick-initialized) {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 32px !important;
+}
+
+.category_slider:not(.slick-initialized) > [class*="col-"] {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+.category_slider:not(.slick-initialized) .category_item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    margin: 0 !important;
+}
+
 /* ── 28. TRENDING — equal height cards ── */
 .trending_product_2 [class*="col-"] {
     display: flex;
@@ -1593,19 +1855,50 @@ header form .input .inner-voice.recording {
 }
 
 .menu_cat_item li a {
-    padding: 7px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 14px !important;
     font-size: 13.5px !important;
-    border-bottom-color: var(--borderColor) !important;
+    border-bottom: 1px solid var(--borderColor) !important;
     transition: background var(--t), color var(--t), padding-left var(--t) !important;
+    position: relative !important;
+    text-decoration: none !important;
 }
 
-.menu_cat_item li a span {
-    width: 30px !important;
-    height: 30px !important;
+.menu_cat_item li a::after {
+    display: none !important;
+    content: none !important;
+}
+
+.menu_cat_item li a i {
+    font-size: 11px !important;
+    color: #94A3B8 !important;
+    margin-left: auto !important;
+    transition: transform var(--t), color var(--t) !important;
+}
+
+.menu_cat_item li a span.cat_icon,
+.menu_cat_item li a span:has(img) {
+    display: inline-flex !important;
+    width: 28px !important;
+    height: 28px !important;
     border-radius: 6px !important;
-    background: var(--lightBg2) !important;
-    padding: 4px !important;
-    flex-shrink: 0;
+    background: var(--lightBg2, #f1f5f9) !important;
+    padding: 3px !important;
+    margin-right: 10px !important;
+    flex-shrink: 0 !important;
+}
+
+.menu_cat_item li a span:not(.cat_icon):not(:has(img)) {
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    display: inline !important;
 }
 
 .menu_cat_item > li:hover > a {
@@ -1614,8 +1907,54 @@ header form .input .inner-voice.recording {
     color: var(--themeColoeOne) !important;
 }
 
-.menu_cat_item > li:hover > a span {
+.menu_cat_item > li:hover > a span.cat_icon {
     background: rgba(0, 87, 183, 0.12) !important;
+}
+
+/* Fly-out Submenu Dropdown for Categories */
+.menu_cat_droapdown {
+    width: 250px !important;
+    background: #FFFFFF !important;
+    position: absolute !important;
+    z-index: 9999 !important;
+    top: 0 !important;
+    left: 100% !important;
+    padding: 6px 0 !important;
+    border-radius: 8px !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.menu_cat_item li:hover > .menu_cat_droapdown {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+.menu_cat_droapdown li a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 16px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
+    border-bottom: 1px solid #F1F5F9 !important;
+    transition: all 0.2s ease !important;
+}
+
+.menu_cat_droapdown li:last-child a {
+    border-bottom: none !important;
+}
+
+.menu_cat_droapdown li:hover > a {
+    background: rgba(0, 87, 183, 0.06) !important;
+    color: #0057B7 !important;
+    padding-left: 20px !important;
 }
 
 /* "View All" — sticky CTA pinned to bottom of category panel */
@@ -2455,4 +2794,45 @@ button[disabled] {
   .dashboard_content { margin-top: 12px !important; padding: 0 !important; }
   .dashboard_order_invoice { margin-top: 0 !important; border: none !important; border-radius: 0 !important; overflow: visible !important; }
   .dashboard_order_invoice_area { padding: 0 !important; }
+}
+
+/* ── Inline Message Stream Typing Bubble (Client & Admin) ── */
+#chat-body .chat-typing-indicator,
+.chat-detail .admin-chat-typing-indicator {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  background: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 16px 16px 16px 4px !important;
+  padding: 8px 14px !important;
+  width: fit-content !important;
+  max-width: 70px !important;
+  margin: 6px 0 !important;
+  align-self: flex-start !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+#chat-body .chat-typing-indicator.is-typing,
+.chat-detail .admin-chat-typing-indicator.is-typing {
+  display: flex !important;
+}
+
+#chat-body .chat-typing-indicator span,
+.chat-detail .admin-chat-typing-indicator span {
+  width: 6px !important;
+  height: 6px !important;
+  background: #0057B7 !important;
+  border-radius: 50% !important;
+  animation: typing-bounce 0.9s infinite ease-in-out !important;
+}
+
+#chat-body .chat-typing-indicator span:nth-child(2),
+.chat-detail .admin-chat-typing-indicator span:nth-child(2) {
+  animation-delay: 0.15s !important;
+}
+
+#chat-body .chat-typing-indicator span:nth-child(3),
+.chat-detail .admin-chat-typing-indicator span:nth-child(3) {
+  animation-delay: 0.3s !important;
 }

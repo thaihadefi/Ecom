@@ -1,11 +1,8 @@
 node_modules/
 .env
+dist/
 
-# Media uploads storage
-media/*
-!media/temp/
-!media/users/
-!media/.gitkeep
+# Temporary and dynamic user uploads storage
 media/temp/*
 !media/temp/.gitkeep
 media/users/*

@@ -60,7 +60,7 @@ block main
                         div(class="d-flex align-items-center gap-2")
                           if (item.user && item.user.avatar && !item.user.avatar.startsWith('http'))
                             img(
-                              src=`${domainCDN}/${item.user.avatar}`
+                              src=getFullUrl(item.user.avatar)
                               class="rounded-circle thumb-md flex-shrink-0"
                               alt=""
                               loading="lazy"

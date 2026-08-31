@@ -890,8 +890,8 @@ header .header_support h3 a:hover {
 }
 
 .menu_cat_item>li>a::after {
-    font-family: "Font Awesome 5 Pro";
-    font-weight: 400;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
     font-style: normal;
     position: absolute;
     content: "\f105";
@@ -4015,7 +4015,7 @@ footer {
 }
 
 .footer_main .footer_logo_area {
-    padding-right: 50px;
+    padding-right: 0px;
 }
 
 .footer_main .footer_logo_area ul {

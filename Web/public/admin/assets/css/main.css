@@ -883,3 +883,42 @@ button, a, [button-api], [button-soft-delete-many], [button-delete-many], .btn, 
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Admin Chat Inline Typing Bubble */
+.admin-chat-typing-indicator {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  background: #f0f2f5;
+  border-radius: 14px 14px 14px 4px;
+  padding: 8px 12px;
+  width: fit-content;
+  max-width: 70px;
+  margin: 6px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.admin-chat-typing-indicator.is-typing {
+  display: flex !important;
+}
+
+.admin-chat-typing-indicator span {
+  width: 6px;
+  height: 6px;
+  background: #0057b7;
+  border-radius: 50%;
+  animation: adm-typing-bounce 0.9s infinite ease-in-out;
+}
+
+.admin-chat-typing-indicator span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.admin-chat-typing-indicator span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes adm-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}

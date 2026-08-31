@@ -49,14 +49,22 @@ const updateDateDividers = () => {
   });
 };
 
-const fmtLastSeen = (ts) => {
+// `offset` = serverNow - clientNow, so the elapsed time is measured against the
+// server clock and stays right even when the visitor's device clock is wrong.
+const fmtLastSeen = (ts, offset = 0) => {
   if (!ts) return "Offline";
-  const diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 60)  return "Last seen just now";
-  if (diff < 3600) return `Last seen ${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `Last seen ${Math.floor(diff / 3600)}h ago`;
-  return `Last seen ${Math.floor(diff / 86400)}d ago`;
+  const diff = Math.max(0, Math.floor((Date.now() + offset - ts) / 1000));
+  if (diff < 60)     return "Last seen just now";
+  if (diff < 3600)   return `Last seen ${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400)  return `Last seen ${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `Last seen ${Math.floor(diff / 86400)}d ago`;
+  return `Last seen ${new Date(ts).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
 };
+
+// Chat content is user-authored and rendered via innerHTML — always escape it.
+const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => (
+  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+));
 
 const showConfirm = (msg, onOk) => {
   const overlay  = document.getElementById("chat-confirm-modal");
@@ -77,14 +85,48 @@ const showConfirm = (msg, onOk) => {
   overlay.addEventListener("click", (e) => { if (e.target === overlay) handleCancel(); }, { once: true });
 };
 
-const socket = io({ auth: { role: "user" } });
-
-socket.on("connect_error", (err) => console.error("[Chat] Socket error:", err.message));
-socket.on("disconnect",    (r)   => console.warn("[Chat] Disconnected:", r));
-
 const chatButton = document.querySelector("#chat-button");
 
+// The chat UI is only rendered for logged-in visitors. Guests have no chat
+// session, so opening the socket just fails the auth handshake and fires a
+// misleading "session expired" toast on every page — skip it entirely when
+// there is no chat button in the DOM.
 if (chatButton) {
+  const socket = io({ auth: { role: "user" } });
+
+  const AUTH_ERRORS = [
+    "Account not available", "Authentication failed",
+    "No token", "No cookies", "Invalid token payload", "Session expired",
+  ];
+  let sessionRecoveryTried = false;
+  let sessionEndedNotified = false;
+
+  socket.on("connect_error", async (err) => {
+    console.error("[Chat] Socket error:", err.message);
+    if (!AUTH_ERRORS.includes(err.message)) return; // transient network error — let Socket.IO retry
+
+    socket.disconnect(); // pointless to keep retrying a rejected handshake
+
+    // One silent recovery attempt: a same-origin GET runs the HTTP verifyToken
+    // middleware, which rotates an expired access token from the refresh
+    // cookie. If that restores the session, reconnect once with the fresh
+    // cookie — the visitor never sees an error.
+    if (!sessionRecoveryTried) {
+      sessionRecoveryTried = true;
+      try {
+        const res = await fetch("/chat/session", { credentials: "same-origin" });
+        const data = await res.json().catch(() => ({}));
+        if (data.ok) { socket.connect(); return; }
+      } catch { /* fall through to the notice */ }
+    }
+
+    if (!sessionEndedNotified) {
+      sessionEndedNotified = true;
+      notyf.error("Your session has ended. Please log in again to use chat.");
+    }
+  });
+  socket.on("connect", () => { sessionRecoveryTried = false; sessionEndedNotified = false; });
+  socket.on("disconnect", (r) => console.warn("[Chat] Disconnected:", r));
   const chatPopup    = document.getElementById("chat-popup");
   const chatClose    = document.getElementById("chat-close");
   const chatBody     = document.getElementById("chat-body");
@@ -102,6 +144,11 @@ if (chatButton) {
   let lastSentId    = null;
   let adminUnreadCount = 0;
   let isAdminOnline = false;
+
+  // Presence / "last seen"
+  let serverClockOffset = 0;   // serverNow - clientNow
+  let adminLastSeenAt   = null; // epoch ms, kept so the label can re-render live
+  let lastSeenTimer     = null;
 
   const updateMessageStatuses = () => {
     const userMsgStatuses = chatBody.querySelectorAll(".message.user .msg-status[data-status-for]");
@@ -126,13 +173,26 @@ if (chatButton) {
     });
   };
 
+  const renderLastSeen = () => {
+    if (statusText) statusText.textContent = fmtLastSeen(adminLastSeenAt, serverClockOffset);
+  };
+  const stopLastSeenTicker = () => {
+    if (lastSeenTimer) { clearInterval(lastSeenTimer); lastSeenTimer = null; }
+  };
+
   const setOnline = () => {
+    stopLastSeenTicker();
+    adminLastSeenAt = null;
     if (statusText) statusText.textContent = "Online";
     if (onlineDot)  onlineDot.classList.add("is-online");
   };
   const setOffline = (lastSeenAt) => {
-    if (statusText) statusText.textContent = fmtLastSeen(lastSeenAt);
-    if (onlineDot)  onlineDot.classList.remove("is-online");
+    if (lastSeenAt) adminLastSeenAt = lastSeenAt;
+    renderLastSeen();
+    if (onlineDot) onlineDot.classList.remove("is-online");
+    // Re-render every 30s so "Last seen 2m ago" keeps counting up without a reload.
+    stopLastSeenTicker();
+    lastSeenTimer = setInterval(renderLastSeen, 30000);
   };
 
   const emitChatOpenState = (isOpen) => {
@@ -178,7 +238,18 @@ if (chatButton) {
     }
   };
 
+  const defaultInputPlaceholder = chatInput?.getAttribute("placeholder") || "Type a message...";
+  const setChatLocked = (locked) => {
+    if (chatInput) {
+      chatInput.disabled = locked;
+      chatInput.placeholder = locked ? "This conversation is locked" : defaultInputPlaceholder;
+    }
+    if (chatSend)   chatSend.disabled = locked;
+    if (chatAttach) chatAttach.disabled = locked;
+  };
+
   const sendMessage = async () => {
+    if (chatInput?.disabled) return;
     let fileUrls = [];
     if (selectedFiles.length > 0) {
       const fd = new FormData();
@@ -197,9 +268,31 @@ if (chatButton) {
     }
   };
 
+  let clientTypingTimeout, isClientTyping = false;
+  chatInput?.addEventListener("keyup", (e) => {
+    if (e.key === "Enter") return;
+    if (!isClientTyping) {
+      isClientTyping = true;
+      socket.emit("CLIENT_TYPING", { isTyping: true });
+    }
+    clearTimeout(clientTypingTimeout);
+    clientTypingTimeout = setTimeout(() => {
+      isClientTyping = false;
+      socket.emit("CLIENT_TYPING", { isTyping: false });
+    }, 2000);
+  });
+
   chatSend?.addEventListener("click", sendMessage);
   chatInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (isClientTyping) {
+        isClientTyping = false;
+        clearTimeout(clientTypingTimeout);
+        socket.emit("CLIENT_TYPING", { isTyping: false });
+      }
+      sendMessage();
+    }
   });
 
   const appendMessage = (item, isPrepend = false) => {
@@ -215,17 +308,18 @@ if (chatButton) {
     }
 
     if (item.content) {
-      html += `<div class="bubble">${item.content}</div>`;
+      html += `<div class="bubble">${escapeHtml(item.content).replace(/\n/g, "<br>")}</div>`;
     }
 
     if (item.files?.length > 0) {
       html += `<div class="message-files">`;
       item.files.forEach(file => {
-        const ext = file.split(".").pop().toLowerCase();
+        const url = escapeHtml(domainCDN + file);
+        const ext = String(file).split(".").pop().toLowerCase();
         if (["jpg","jpeg","png","gif","webp"].includes(ext)) {
-          html += `<a href="${domainCDN}${file}" target="_blank"><img src="${domainCDN}${file}" class="chat-image" alt="image"></a>`;
+          html += `<a href="${url}" target="_blank"><img src="${url}" class="chat-image" alt="image"></a>`;
         } else {
-          html += `<a href="${domainCDN}${file}" target="_blank"><i class="fas fa-file"></i> Attached file</a>`;
+          html += `<a href="${url}" target="_blank"><i class="fas fa-file"></i> Attached file</a>`;
         }
       });
       html += `</div>`;
@@ -281,6 +375,7 @@ if (chatButton) {
       const data = await res.json();
       if (data.code === "success" && Array.isArray(data.messages)) {
         adminUnreadCount = data.adminUnreadCount ?? 0;
+        setChatLocked(data.roomStatus === "locked");
         data.messages.forEach(m => appendMessage(m));
         chatBody.scrollTop = chatBody.scrollHeight;
         updateMessageStatuses();
@@ -290,10 +385,13 @@ if (chatButton) {
 
   document.addEventListener("visibilitychange", () => {
     emitChatOpenState(isChatVisible());
+    // Background tabs freeze timers — refresh the label on the way back.
+    if (document.visibilityState === "visible" && !isAdminOnline && adminLastSeenAt) renderLastSeen();
   });
 
   window.addEventListener("focus", () => {
     emitChatOpenState(isChatVisible());
+    if (!isAdminOnline && adminLastSeenAt) renderLastSeen();
   });
 
   window.addEventListener("blur", () => {
@@ -332,14 +430,38 @@ if (chatButton) {
     isLoading = false;
   });
 
+  const getOrCreateTypingBubble = () => {
+    let el = document.getElementById("chat-typing");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "chat-typing";
+      el.className = "chat-typing-indicator";
+      el.innerHTML = "<span></span><span></span><span></span>";
+    }
+    return el;
+  };
+
+  let adminTypingTimeout;
   socket.on("SERVER_SEND_ADMIN_TYPING", ({ isTyping }) => {
-    chatTyping?.classList.toggle("is-typing", isTyping);
+    clearTimeout(adminTypingTimeout);
+    const bubble = getOrCreateTypingBubble();
+    if (isTyping) {
+      bubble.classList.add("is-typing");
+      chatBody?.appendChild(bubble);
+      if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+      adminTypingTimeout = setTimeout(() => {
+        bubble.classList.remove("is-typing");
+      }, 3000);
+    } else {
+      bubble.classList.remove("is-typing");
+    }
   });
 
   socket.on("USER_STATUS_ONLINE", () => {
   });
 
   socket.on("SERVER_ADMIN_STATUS", (data) => {
+    if (typeof data.serverNow === "number") serverClockOffset = data.serverNow - Date.now();
     if (data.status === "online") {
       setOnline();
       isAdminOnline = true;
@@ -348,6 +470,15 @@ if (chatButton) {
       isAdminOnline = false;
     }
     updateMessageStatuses();
+  });
+
+  socket.on("SERVER_ROOM_STATUS", (data) => {
+    const locked = data?.status === "locked";
+    setChatLocked(locked);
+    notyf[locked ? "error" : "success"](
+      locked ? "This conversation has been locked by support."
+             : "This conversation has been reopened."
+    );
   });
 
   chatAttach?.addEventListener("click", () => chatFile?.click());
@@ -387,12 +518,12 @@ if (chatButton) {
   socket.on("SERVER_DELETE_MESSAGE", ({ messageId }) => {
     document.getElementById(messageId)?.remove();
   });
-}
 
-socket.on("SERVER_SEND_STATUS", ({ code, message }) => {
-  if (code === "success") notyf.success(message);
-  else if (code === "error")  notyf.error(message);
-});
+  socket.on("SERVER_SEND_STATUS", ({ code, message }) => {
+    if (code === "success") notyf.success(message);
+    else if (code === "error")  notyf.error(message);
+  });
+}
 
 const buttonRate = document.getElementById("button-rate");
 if (buttonRate) {

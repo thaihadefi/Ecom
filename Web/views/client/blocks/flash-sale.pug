@@ -20,5 +20,5 @@ if blockData && blockProductList && blockProductList.length
                   ) #{blockData.viewAll}
       .row(class="mt_25 flash_sell_slider")
         each item in blockProductList
-          .col-6.col-md-4.col-lg-3.col-xl-1-5.wow.fadeInUp
+          .col-12.wow.fadeInUp
             +product-item(item)

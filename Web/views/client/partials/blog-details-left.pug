@@ -10,16 +10,16 @@ div(class="blog_details_left")
     if (articleDetail.date)
       li
         span
-          i.far.fa-calendar-alt.me-2(aria-hidden="true")
+          i.fas.fa-calendar-alt.me-2(aria-hidden="true")
         | #{articleDetail.date}
     if (articleDetail.authorName)
       li
         span
-          i.far.fa-user(aria-hidden="true")
+          i.fas.fa-user(aria-hidden="true")
         | #{articleDetail.authorName}
     li
       span
-        i.far.fa-eye.me-2(aria-hidden="true")
+        i.fas.fa-eye.me-2(aria-hidden="true")
       | #{articleDetail.view || 0} Views
 
   div(class="blog_details_desc")

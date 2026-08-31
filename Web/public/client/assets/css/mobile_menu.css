@@ -19,6 +19,9 @@
 }
 
 .mobile_menu_area .btn-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: absolute;
   top: 13px;
   right: -30px;
@@ -26,7 +29,6 @@
   color: var(--colorWhite);
   width: 40px;
   height: 40px;
-  line-height: 35px;
   text-align: center;
   padding: 0;
   opacity: 1;
@@ -37,6 +39,15 @@
   -moz-border-radius: 6px;
   -ms-border-radius: 6px;
   -o-border-radius: 6px;
+}
+
+/* The solid red background covers Bootstrap's built-in × SVG, and the global
+   `.btn-close i { display:none }` hides the fallback — re-show it here. */
+.mobile_menu_area .btn-close i {
+  display: inline-block !important;
+  color: var(--colorWhite);
+  font-size: 16px;
+  line-height: 1;
 }
 
 .mobile_menu_area .offcanvas.offcanvas-start {

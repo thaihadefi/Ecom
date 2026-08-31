@@ -1,12 +1,13 @@
 import express from 'express';
 import path from 'path';
+import { Readable } from 'node:stream';
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cron from "node-cron";
 import compression from "compression";
 import adminRoutes from "./routes/admin/index.route";
 import clientRoutes from "./routes/client/index.route";
-import { domainCDN, pathAdmin } from './configs/variable.config';
+import { pathAdmin, domainCDN, mediaBase } from './configs/variable.config';
 import { connectDB } from './configs/database.config';
 import cookieParser from "cookie-parser";
 import session from "express-session";
@@ -16,7 +17,7 @@ import { configureFacebookPassport } from './configs/facebookOauth.config';
 import { RequestAccount } from './interfaces/request.interface';
 import { Server } from 'socket.io';
 import { createServer } from 'node:http';
-import { initSocket } from './sockets/index.socket';
+import { initSocket, stopSocket } from './sockets/index.socket';
 import { startJobs } from './jobs/index.job';
 import * as adminAuth from './middlewares/admin/auth.middleware';
 import { validateEnv } from './configs/env.config';
@@ -33,7 +34,7 @@ const server = createServer(app);
 const io = new Server(server, {
   pingInterval: 25000,
   pingTimeout: 60000,
-  maxHttpBufferSize: 1e7,
+  maxHttpBufferSize: 1e6, // 1 MB — chat payloads are text + short file paths; uploads go over HTTP
   transports: ["websocket", "polling"],
 });
 
@@ -43,9 +44,33 @@ app.use(requestLogger);
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
-app.use(express.static(path.join(__dirname, 'public'), {
+app.use(express.static(path.join(process.cwd(), 'public'), {
   maxAge: 7 * 24 * 60 * 60 * 1000
 }));
+
+// Serve FileManager media through this app so the browser only ever talks to
+// one origin — no CDN host to configure, no extra port to open, works the same
+// on localhost, a LAN IP, or a teammate's clone. A real CDN in production sets
+// CDN_DOMAIN and bypasses this entirely.
+app.get(/^\/+media\//, async (req, res) => {
+  const upstreamPath = req.originalUrl.replace(/^\/+/, "/"); // collapse any leading //
+  try {
+    const upstream = await fetch(`${domainCDN}${upstreamPath}`);
+    res.status(upstream.status);
+    const contentType = upstream.headers.get("content-type");
+    if (contentType) res.type(contentType);
+    // Media filenames are timestamp-prefixed and never rewritten — cache hard.
+    res.set("Cache-Control", upstream.ok ? "public, max-age=31536000, immutable" : "no-store");
+    if (upstream.body) {
+      Readable.fromWeb(upstream.body as Parameters<typeof Readable.fromWeb>[0]).pipe(res);
+    } else {
+      res.end();
+    }
+  } catch (err) {
+    console.error("[Media] proxy to FileManager failed:", err instanceof Error ? err.message : err);
+    res.status(502).end();
+  }
+});
 
 app.use((req, res, next) => {
   if (req.method === 'GET') {
@@ -56,18 +81,20 @@ app.use((req, res, next) => {
   next();
 });
 
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(process.cwd(), 'views'));
 app.set('view engine', 'pug');
 
-app.locals.pathAdmin = pathAdmin;
-app.locals.domainCDN = domainCDN;
-app.locals.getFullUrl = (url: string) => {
+const buildFullUrl = (cdn: string, url?: string): string => {
   if (!url) return "";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   if (url.startsWith("/client/") || url.startsWith("client/")) return url;
   if (url.startsWith("/images/") || url.startsWith("images/")) return url;
-  return `${domainCDN}${url.startsWith("/") ? "" : "/"}${url}`;
+  return `${cdn}${url.startsWith("/") ? "" : "/"}${url}`;
 };
+
+app.locals.pathAdmin = pathAdmin;
+app.locals.domainCDN = mediaBase;
+app.locals.getFullUrl = (url: string) => buildFullUrl(mediaBase, url);
 app.locals.tinymceApiKey = process.env.TINYMCE_API_KEY || '';
 app.locals.formatDateTime = formatDateTime;
 app.locals.formatVND = formatVND;
@@ -149,6 +176,7 @@ const gracefulShutdown = (signal: string) => {
     console.log("HTTP server closed.");
 
     try {
+      stopSocket();
       io.close();
       console.log("Socket.io server closed.");
 

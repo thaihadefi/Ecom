@@ -13,7 +13,7 @@ export const getMessagesByUserId = async (
   const chatRoom = await ChatRoom.findOne({ userId });
   if (!chatRoom) return null;
 
-  const limit = parseInt(`${rawLimit || 20}`);
+  const limit = Math.min(Math.max(parseInt(`${rawLimit ?? 20}`) || 20, 1), 100);
   const find: Record<string, unknown> = {
     roomId: chatRoom.id
   };
@@ -33,7 +33,8 @@ export const getMessagesByUserId = async (
 
   return {
     messages: lastMessageId ? chatMessages : chatMessages.reverse(),
-    adminUnreadCount: chatRoom.unreadCount?.admin ?? 0
+    adminUnreadCount: chatRoom.unreadCount?.admin ?? 0,
+    roomStatus: chatRoom.status ?? "open"
   };
 };
 

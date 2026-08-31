@@ -12,6 +12,7 @@ export interface IAccountAdmin extends Document {
   search?: string;
   isSuperAdmin: boolean;
   lastLoginAt?: Date;
+  lastSeenAt?: Date;
   deleted: boolean;
   deletedAt?: Date;
   createdAt: Date;

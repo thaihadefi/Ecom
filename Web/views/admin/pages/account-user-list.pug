@@ -54,7 +54,7 @@ block main
                       td #{pagination.skip + index + 1}
                       td
                         if item.avatar && !item.avatar.startsWith('http')
-                          img(src=`${domainCDN}/${item.avatar}` class="rounded thumb-md me-1 d-inline" alt="" loading="lazy")
+                          img(src=getFullUrl(item.avatar) class="rounded thumb-md me-1 d-inline" alt="" loading="lazy")
                         else
                           - var _words = (item.fullName || 'U').trim().split(/\s+/)
                           - var _initials = (_words.length >= 2 ? _words[0][0] + _words[_words.length-1][0] : _words[0][0]).toUpperCase()

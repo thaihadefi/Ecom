@@ -12,7 +12,7 @@
                   if item.infoUser.avatar && !item.infoUser.avatar.startsWith('http')
                     img.thumb-lg.rounded-circle(
                       alt=item.infoUser.fullName
-                      src=`${domainCDN}/${item.infoUser.avatar}`
+                      src=getFullUrl(item.infoUser.avatar)
                       onerror=`this.style.display='none';this.nextElementSibling.style.display='flex'`
                     )
                     span.avatar-initials.thumb-lg.rounded-circle(style="display:none") #{_i}

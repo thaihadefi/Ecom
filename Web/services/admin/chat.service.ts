@@ -7,6 +7,8 @@ import { getChatRoomList, invalidateRoomList } from '../../helpers/chat.helper';
 import { timeAgo } from '../../helpers/format.helper';
 import { aiGenerateAnswer } from '../../helpers/ai.helper';
 import { domainCDN } from '../../configs/variable.config';
+import { invalidateRoomStatus } from '../../helpers/chat-cache.helper';
+import { getIO } from '../../sockets/index.socket';
 
 export const getAdminChatList = async (adminId: string) => {
   return getChatRoomList(adminId);
@@ -39,6 +41,7 @@ export const getAdminChatDetail = async (roomId: string, adminId: string) => {
 };
 
 export const getAdminMessages = async (roomId: string, limit = 20, lastMessageId?: unknown) => {
+  const cappedLimit = Math.min(Math.max(limit || 20, 1), 100);
   const chatRoom = await ChatRoom.findOne({ _id: roomId });
   if (!chatRoom) {
     return null;
@@ -57,7 +60,7 @@ export const getAdminMessages = async (roomId: string, limit = 20, lastMessageId
   const chatMessages = await ChatMessage
     .find(find)
     .sort({ createdAt: "desc" })
-    .limit(limit);
+    .limit(cappedLimit);
 
   for (const item of chatMessages) {
     item.createdAtFormat = timeAgo(item.createdAt);
@@ -112,6 +115,12 @@ export const changeChatRoomStatus = async (roomId: string, status: string) => {
   }
 
   await ChatRoom.updateOne({ _id: roomId }, { status });
+
+  // Drop the cached status so the socket layer stops serving a stale value,
+  // and tell everyone in the room right away.
+  invalidateRoomStatus(roomId);
+  getIO()?.to(roomId).emit("SERVER_ROOM_STATUS", { roomId, status });
+
   return { success: true, message: "Status changed successfully!" };
 };
 
