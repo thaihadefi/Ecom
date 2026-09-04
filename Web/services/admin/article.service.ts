@@ -5,10 +5,12 @@ import Blog from '../../models/blog.model';
 import { IBlog, IArticleInput } from '../../interfaces/models/blog.interface';
 import { ICategoryBlog, ICategoryBlogInput } from '../../interfaces/models/category-blog.interface';
 import { IProductSeoInput } from '../../interfaces/models/product.interface';
+import { buildSeoPayload } from '../../helpers/seo.helper';
 import { buildCategoryTree } from '../../helpers/category.helper';
 import { pingGoogleSitemap } from '../../helpers/ping-google.helper';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
+import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
 
 export const getCategoryBlogList = async (rawKeyword?: unknown, rawPage?: unknown) => {
   const find: {
@@ -136,19 +138,12 @@ export const permanentlyDeleteCategoryBlog = async (id: string) => {
   return { success: true, message: "Category permanently deleted!" };
 };
 
-export const softDeleteManyCategories = async (ids: string[]) => {
-  await CategoryBlog.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date() });
-  return { success: true, message: `Moved ${ids.length} category(s) to trash!` };
-};
+export const softDeleteManyCategories = (ids: string[]) => softDeleteMany(CategoryBlog, ids, "category");
 
-export const restoreManyCategories = async (ids: string[]) => {
-  await CategoryBlog.updateMany({ _id: { $in: ids } }, { deleted: false });
-  return { success: true, message: `Restored ${ids.length} category(s)!` };
-};
+export const restoreManyCategories = (ids: string[]) => restoreMany(CategoryBlog, ids, "category");
 
 export const permanentlyDeleteManyCategories = async (ids: string[]) => {
-  await CategoryBlog.deleteMany({ _id: { $in: ids } });
-  return { success: true, message: `Permanently deleted ${ids.length} category(s)!` };
+  return permanentlyDeleteMany(CategoryBlog, ids, "category");
 };
 
 export const getArticleList = async (rawKeyword?: unknown, rawPage?: unknown) => {
@@ -259,31 +254,13 @@ export const updateArticleSEO = async (id: string, body: IProductSeoInput): Prom
     return { success: false, message: "Article does not exist!" };
   }
 
-  const seoTitle = body.seoTitle || articleDetail.name;
-  const seoDescription = body.seoDescription || "";
-  let seoKeywords: string[] = [];
-  if (body.seoKeywords) {
-    try {
-      seoKeywords = typeof body.seoKeywords === "string" ? JSON.parse(body.seoKeywords) : body.seoKeywords;
-    } catch {
-      seoKeywords = [String(body.seoKeywords)];
-    }
-  }
-  const seoRobotsIndex = body.seoRobotsIndex === "true";
-  const seoRobotsFollow = body.seoRobotsFollow === "true";
-  const seoOgTitle = body.seoOgTitle || seoTitle;
-  const seoOgDescription = body.seoOgDescription || seoDescription;
-  const seoOgImage = body.seoOgImage || articleDetail.avatar || "";
-
-  await Blog.updateOne({ _id: id, deleted: false }, {
-    seo: {
-      title: seoTitle,
-      description: seoDescription,
-      keywords: seoKeywords,
-      robots: { index: seoRobotsIndex, follow: seoRobotsFollow },
-      og: { title: seoOgTitle, description: seoOgDescription, image: seoOgImage },
-    }
+  const seo = buildSeoPayload(body, {
+    title: articleDetail.name,
+    keywords: [],
+    image: articleDetail.avatar || "",
   });
+
+  await Blog.updateOne({ _id: id, deleted: false }, { seo });
 
   return { success: true, message: "SEO updated successfully!" };
 };
@@ -303,21 +280,12 @@ export const permanentlyDeleteArticle = async (id: string) => {
   return { success: true, message: "Deleted permanently!" };
 };
 
-export const softDeleteManyArticles = async (ids: string[]) => {
-  await Blog.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date() });
-  return { success: true, message: `Moved ${ids.length} article(s) to trash!` };
-};
+export const softDeleteManyArticles = (ids: string[]) => softDeleteMany(Blog, ids, "article");
 
-export const restoreManyArticles = async (ids: string[]) => {
-  await Blog.updateMany({ _id: { $in: ids } }, { deleted: false });
-  return { success: true, message: `Restored ${ids.length} article(s)!` };
-};
+export const restoreManyArticles = (ids: string[]) => restoreMany(Blog, ids, "article");
 
 export const permanentlyDeleteManyArticles = async (ids: string[]) => {
-  await Blog.deleteMany({ _id: { $in: ids } });
-  return { success: true, message: `Deleted ${ids.length} article(s) permanently!` };
+  return permanentlyDeleteMany(Blog, ids, "article");
 };
 
-export const getArticleTrash = async () => {
-  return Blog.find({ deleted: true }).select("_id name slug avatar status deletedAt").sort({ deletedAt: "desc" });
-};
+export const getArticleTrash = () => getTrash(Blog, "_id name slug avatar status deletedAt");

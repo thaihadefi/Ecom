@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import * as orderService from '../../services/client/order.service';
+import * as zalopayService from '../../services/payment/zalopay.service';
+import * as vnpayService from '../../services/payment/vnpay.service';
 
 export const createPost = async (req: Request, res: Response) => {
   try {
@@ -47,7 +49,7 @@ export const success = async (req: Request, res: Response) => {
 export const paymentZaloPay = async (req: Request, res: Response) => {
   const { orderCode, phone } = req.query;
 
-  const result = await orderService.createZaloPayPaymentUrl(String(orderCode), String(phone));
+  const result = await zalopayService.createZaloPayPaymentUrl(String(orderCode), String(phone));
 
   if (!result) {
     res.redirect("/");
@@ -64,7 +66,7 @@ export const paymentZaloPay = async (req: Request, res: Response) => {
 
 export const paymentZalopayResult = async (req: Request, res: Response) => {
   try {
-    const result = await orderService.handleZaloPayCallback(req.body.data, req.body.mac);
+    const result = await zalopayService.handleZaloPayCallback(req.body.data, req.body.mac);
     res.json(result);
   } catch (ex: unknown) {
     const errorMessage = ex instanceof Error ? ex.message : "ZaloPay callback error";
@@ -77,7 +79,7 @@ export const paymentVNPay = async (req: Request, res: Response) => {
   const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const ipAddr = Array.isArray(rawIp) ? rawIp[0] : (typeof rawIp === "string" ? rawIp.split(',')[0].trim() : undefined);
 
-  const result = await orderService.createVNPayPaymentUrl(String(orderCode), String(phone), ipAddr);
+  const result = await vnpayService.createVNPayPaymentUrl(String(orderCode), String(phone), ipAddr);
 
   if (!result) {
     res.redirect("/");
@@ -94,7 +96,7 @@ export const paymentVNPay = async (req: Request, res: Response) => {
 
 export const paymentVNPayResult = async (req: Request, res: Response) => {
   try {
-    const redirectUrl = await orderService.handleVNPayResult(req.query as Record<string, unknown>);
+    const redirectUrl = await vnpayService.handleVNPayResult(req.query as Record<string, unknown>);
     res.redirect(redirectUrl);
   } catch (error) {
     console.error("paymentVNPayResult error:", error);

@@ -7,37 +7,14 @@ import AttributeProduct from '../../models/attribute-product.model';
 import { IProduct, IProductInput, IProductSeoInput } from '../../interfaces/models/product.interface';
 import { buildCategoryTree } from '../../helpers/category.helper';
 import { toSearchText } from '../../helpers/slugify.helper';
-import { generateRandomString, escapeRegex } from '../../helpers/generate.helper';
+import { generateRandomString } from '../../helpers/generate.helper';
 import { pingGoogleSitemap } from '../../helpers/ping-google.helper';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
+import { softDeleteMany, restoreMany, getTrash } from "../../helpers/admin-crud.helper";
+import { paginatedSearch } from "../../helpers/list-query.helper";
+import { buildSeoPayload } from "../../helpers/seo.helper";
 
 export const getProductList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  const find: {
-    deleted: boolean;
-    search?: RegExp;
-  } = {
-    deleted: false
-  };
-
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
-
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await Product.countDocuments(find);
-  const pagination = getPagination(rawPage, limitItems, totalRecord);
-
-  const recordList = await Product
-    .find(find)
-    .select("_id name slug images priceNew priceOld position stock view status")
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort({
-      position: "desc"
-    });
+  const { recordList, pagination } = await paginatedSearch(Product, rawKeyword, rawPage, { select: "_id name slug images priceNew priceOld position stock view status", sort: { position: "desc" } });
 
   return {
     recordList,
@@ -233,38 +210,13 @@ export const updateProductSEO = async (id: string, body: IProductSeoInput): Prom
     return { success: false, message: "Product does not exist!" };
   }
 
-  const seoTitle = body.seoTitle || productDetail.name;
-  const seoDescription = body.seoDescription || "";
-  let seoKeywords = productDetail.tags;
-  if (body.seoKeywords) {
-    try {
-      seoKeywords = typeof body.seoKeywords === "string" ? JSON.parse(body.seoKeywords) : body.seoKeywords;
-    } catch {
-      seoKeywords = [String(body.seoKeywords)];
-    }
-  }
-  const seoRobotsIndex = body.seoRobotsIndex === "true";
-  const seoRobotsFollow = body.seoRobotsFollow === "true";
-  const seoOgTitle = body.seoOgTitle || seoTitle;
-  const seoOgDescription = body.seoOgDescription || seoDescription;
-  const seoOgImage = body.seoOgImage || productDetail.images?.[0] || "";
+  const seo = buildSeoPayload(body, {
+    title: productDetail.name,
+    keywords: productDetail.tags,
+    image: productDetail.images?.[0] || "",
+  });
 
-  const seoData = {
-    title: seoTitle,
-    description: seoDescription,
-    keywords: seoKeywords,
-    robots: {
-      index: seoRobotsIndex,
-      follow: seoRobotsFollow,
-    },
-    og: {
-      title: seoOgTitle,
-      description: seoOgDescription,
-      image: seoOgImage,
-    },
-  };
-
-  await Product.updateOne({ _id: id, deleted: false }, { seo: seoData });
+  await Product.updateOne({ _id: id, deleted: false }, { seo });
 
   return { success: true, message: "Product SEO updated successfully!" };
 };
@@ -299,24 +251,16 @@ export const permanentlyDeleteManyProducts = async (ids: string[]) => {
   return { success: true, message: `Deleted ${ids.length} product(s) permanently!` };
 };
 
-export const softDeleteManyProducts = async (ids: string[]) => {
-  await Product.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date() });
-  return { success: true, message: `Moved ${ids.length} product(s) to trash!` };
-};
+export const softDeleteManyProducts = (ids: string[]) => softDeleteMany(Product, ids, "product");
 
 export const restoreProduct = async (id: string) => {
   await Product.updateOne({ _id: id }, { deleted: false });
   return { success: true, message: "Restored successfully!" };
 };
 
-export const restoreManyProducts = async (ids: string[]) => {
-  await Product.updateMany({ _id: { $in: ids } }, { deleted: false });
-  return { success: true, message: `Restored ${ids.length} product(s)!` };
-};
+export const restoreManyProducts = (ids: string[]) => restoreMany(Product, ids, "product");
 
-export const getProductTrash = async () => {
-  return Product.find({ deleted: true }).select("_id name slug images status deletedAt").sort({ deletedAt: "desc" });
-};
+export const getProductTrash = () => getTrash(Product, "_id name slug images status deletedAt");
 
 export const getProductsBatchForExport = async (skip: number, limit: number) => {
   return Product.find({ deleted: false }).skip(skip).limit(limit);

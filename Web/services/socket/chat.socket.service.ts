@@ -1,6 +1,4 @@
 import mongoose from 'mongoose';
-import FormData from 'form-data';
-import axios from 'axios';
 import ChatRoom from '../../models/chat-room.model';
 import ChatMessage from '../../models/chat-message.model';
 import AccountAdmin from '../../models/account-admin.model';
@@ -13,7 +11,7 @@ import {
   CK,
   warmCache,
 } from '../../helpers/chat-cache.helper';
-import { domainCDN } from '../../configs/variable.config';
+import { fmDeleteByLink, fmDeleteFolder } from '../../helpers/file-manager.client';
 import { IServerSendMessagePayload } from '../../interfaces/socket-events.interface';
 import type { Server } from 'socket.io';
 
@@ -199,18 +197,7 @@ export async function deleteMessage(messageId: string, senderId: string): Promis
   if (!existMessage) throw new Error('Message not found or unauthorized');
 
   if (existMessage.files && existMessage.files.length > 0) {
-    for (const file of existMessage.files) {
-      const lastSlash = file.lastIndexOf('/');
-      const formData = new FormData();
-      formData.append('folder', file.substring(0, lastSlash));
-      formData.append('fileName', file.substring(lastSlash + 1));
-      axios.patch(`${domainCDN}/file-manager/delete-file`, formData, {
-        headers: { ...formData.getHeaders(), Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}` },
-      }).catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : "unknown error";
-        console.error(`[FileManager] orphan file, delete failed: ${file} (${msg})`);
-      });
-    }
+    existMessage.files.forEach((file) => fmDeleteByLink(file));
   }
 
   await ChatMessage.deleteOne({ _id: messageId });
@@ -221,15 +208,7 @@ export async function deleteRoom(roomId: string, adminId: string): Promise<{ use
   const existRoom = await ChatRoom.findOne({ _id: roomId, adminId }).select('_id userId');
   if (!existRoom) throw new Error('Room not found or unauthorized');
 
-  const formData = new FormData();
-  const folderPath = `/media/chats/${existRoom.userId}`;
-  formData.append('folderPath', folderPath);
-  axios.patch(`${domainCDN}/file-manager/folder/delete`, formData, {
-    headers: { ...formData.getHeaders(), Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}` },
-  }).catch((err: unknown) => {
-    const msg = err instanceof Error ? err.message : "unknown error";
-    console.error(`[FileManager] orphan folder, delete failed: ${folderPath} (${msg})`);
-  });
+  fmDeleteFolder(`/media/chats/${existRoom.userId}`);
 
   await runAtomically(async (session) => {
     await ChatMessage.deleteMany({ roomId }, { session });

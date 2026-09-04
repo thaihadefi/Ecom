@@ -2,33 +2,10 @@ import Block from "../../models/block.model";
 import Template from "../../models/template.model";
 import { ITemplate, ITemplateInput } from "../../interfaces/models/template.interface";
 import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
+import { paginatedSearch } from "../../helpers/list-query.helper";
 
 export const getTemplateList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  const find: {
-    deleted: boolean;
-    search?: RegExp;
-  } = {
-    deleted: false
-  };
-
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
-
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await Template.countDocuments(find);
-  const pagination = getPagination(rawPage, limitItems, totalRecord);
-
-  const recordList = await Template.find(find)
-    .select("_id name slug status blocks")
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort({ name: "asc" });
+  const { recordList, pagination } = await paginatedSearch(Template, rawKeyword, rawPage, { select: "_id name slug status blocks", sort: { name: "asc" } });
 
   return {
     recordList,

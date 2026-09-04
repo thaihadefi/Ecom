@@ -3,35 +3,11 @@ import AccountUser from '../../models/account-user.model';
 import UserAddress from '../../models/user-address.model';
 import ChatRoom from '../../models/chat-room.model';
 import Review from '../../models/review.model';
-import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
+import { softDeleteMany, restoreMany, getTrash } from "../../helpers/admin-crud.helper";
+import { paginatedSearch } from "../../helpers/list-query.helper";
 
 export const getUserAccountList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  const find: {
-    deleted: boolean;
-    search?: RegExp;
-  } = {
-    deleted: false
-  };
-
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
-
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await AccountUser.countDocuments(find);
-  const pagination = getPagination(rawPage, limitItems, totalRecord);
-
-  const recordList = await AccountUser
-    .find(find)
-    .select("-password -search")
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort({ createdAt: "desc" });
+  const { recordList, pagination } = await paginatedSearch(AccountUser, rawKeyword, rawPage, { select: "-password -search" });
 
   return {
     recordList,
@@ -44,20 +20,14 @@ export const softDeleteUserAccount = async (id: string) => {
   return { success: true, message: "User deleted successfully!" };
 };
 
-export const softDeleteManyUserAccounts = async (ids: string[]) => {
-  await AccountUser.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date() });
-  return { success: true, message: `Moved ${ids.length} user(s) to trash!` };
-};
+export const softDeleteManyUserAccounts = (ids: string[]) => softDeleteMany(AccountUser, ids, "user");
 
 export const restoreUserAccount = async (id: string) => {
   await AccountUser.updateOne({ _id: id }, { deleted: false });
   return { success: true, message: "Restored successfully!" };
 };
 
-export const restoreManyUserAccounts = async (ids: string[]) => {
-  await AccountUser.updateMany({ _id: { $in: ids } }, { deleted: false });
-  return { success: true, message: `Restored ${ids.length} user(s)!` };
-};
+export const restoreManyUserAccounts = (ids: string[]) => restoreMany(AccountUser, ids, "user");
 
 export const permanentlyDeleteUserAccount = async (id: string) => {
   const userId = String(id);
@@ -97,6 +67,4 @@ export const permanentlyDeleteManyUserAccounts = async (ids: string[]) => {
   return { success: true, message: `Deleted ${ids.length} user account(s) permanently!` };
 };
 
-export const getUserAccountTrash = async () => {
-  return AccountUser.find({ deleted: true }).select("_id fullName email phone status deletedAt").sort({ deletedAt: "desc" });
-};
+export const getUserAccountTrash = () => getTrash(AccountUser, "_id fullName email phone status deletedAt");

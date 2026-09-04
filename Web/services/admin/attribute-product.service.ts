@@ -1,40 +1,15 @@
 import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
 import AttributeProduct from '../../models/attribute-product.model';
 import { IAttributeProduct, IAttributeProductInput } from '../../interfaces/models/attribute-product.interface';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
+import { getTrash } from "../../helpers/admin-crud.helper";
+import { paginatedSearch } from "../../helpers/list-query.helper";
 
 export const getActiveAttributes = async (): Promise<IAttributeProduct[]> => {
   return AttributeProduct.find({ deleted: false }).select("_id name type options").sort({ createdAt: "desc" });
 };
 
 export const getAttributeProductList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  const find: {
-    deleted: boolean;
-    search?: RegExp;
-  } = {
-    deleted: false
-  };
-
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
-
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await AttributeProduct.countDocuments(find);
-  const pagination = getPagination(rawPage, limitItems, totalRecord);
-
-  const recordList = await AttributeProduct
-    .find(find)
-    .select("_id name type options")
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort({
-      createdAt: "desc"
-    });
+  const { recordList, pagination } = await paginatedSearch(AttributeProduct, rawKeyword, rawPage, { select: "_id name type options" });
 
   return {
     recordList,
@@ -74,9 +49,7 @@ export const softDeleteAttributeProduct = async (id: string) => {
   return { success: true, message: "Attribute deleted successfully!" };
 };
 
-export const getAttributeProductTrash = async () => {
-  return AttributeProduct.find({ deleted: true }).select("_id name type deletedAt").sort({ deletedAt: "desc" });
-};
+export const getAttributeProductTrash = () => getTrash(AttributeProduct, "_id name type deletedAt");
 
 export const restoreAttributeProduct = async (id: string) => {
   await AttributeProduct.updateOne({ _id: id }, { deleted: false });

@@ -1,10 +1,9 @@
 import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
 import Coupon from '../../models/coupon.model';
 import { ICoupon, ICouponInput } from '../../interfaces/models/coupon.interface';
 import moment from 'moment';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
+import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
+import { paginatedSearch } from "../../helpers/list-query.helper";
 
 export const createCoupon = async (couponData: ICouponInput): Promise<{ success: boolean; message: string; coupon?: ICoupon }> => {
   const existCoupon = await Coupon.findOne({
@@ -31,28 +30,7 @@ export const createCoupon = async (couponData: ICouponInput): Promise<{ success:
 };
 
 export const getCouponList = async (keyword?: unknown, rawPage?: unknown) => {
-  const find: {
-    deleted: boolean;
-    search?: RegExp;
-  } = {
-    deleted: false
-  };
-
-  if (keyword) {
-    const kw = toSearchText(`${keyword}`);
-    const keywordRegex = new RegExp(escapeRegex(kw), "i");
-    find.search = keywordRegex;
-  }
-
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await Coupon.countDocuments(find);
-  const pagination = getPagination(rawPage, limitItems, totalRecord);
-
-  const recordList = await Coupon
-    .find(find)
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort({ createdAt: "desc" });
+  const { recordList, pagination } = await paginatedSearch(Coupon, keyword, rawPage);
 
   for (const item of recordList) {
     if (item.startDate) {
@@ -125,31 +103,20 @@ export const softDeleteCoupon = async (id: string) => {
   return { success: true, message: "Coupon deleted successfully!" };
 };
 
-export const softDeleteManyCoupons = async (ids: string[]) => {
-  await Coupon.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date() });
-  return { success: true, message: `Moved ${ids.length} coupon(s) to trash!` };
-};
+export const softDeleteManyCoupons = (ids: string[]) => softDeleteMany(Coupon, ids, "coupon");
 
 export const restoreCoupon = async (id: string) => {
   await Coupon.updateOne({ _id: id }, { deleted: false });
   return { success: true, message: "Restored successfully!" };
 };
 
-export const restoreManyCoupons = async (ids: string[]) => {
-  await Coupon.updateMany({ _id: { $in: ids } }, { deleted: false });
-  return { success: true, message: `Restored ${ids.length} coupon(s)!` };
-};
+export const restoreManyCoupons = (ids: string[]) => restoreMany(Coupon, ids, "coupon");
 
 export const permanentlyDeleteCoupon = async (id: string) => {
   await Coupon.deleteOne({ _id: id });
   return { success: true, message: "Deleted permanently!" };
 };
 
-export const permanentlyDeleteManyCoupons = async (ids: string[]) => {
-  await Coupon.deleteMany({ _id: { $in: ids } });
-  return { success: true, message: `Deleted ${ids.length} coupon(s) permanently!` };
-};
+export const permanentlyDeleteManyCoupons = (ids: string[]) => permanentlyDeleteMany(Coupon, ids, "coupon");
 
-export const getCouponTrash = async () => {
-  return Coupon.find({ deleted: true }).select("_id name code status deletedAt").sort({ deletedAt: "desc" });
-};
+export const getCouponTrash = () => getTrash(Coupon, "_id name code status deletedAt");

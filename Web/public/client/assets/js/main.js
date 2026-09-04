@@ -75,6 +75,29 @@ const confirmAction = (message, onConfirm) => {
   modal.show();
 }
 
+// Resolve price + stock for a cart/wishlist/compare line: the matched variant's
+// values when the line has a variant, otherwise the product's own. Used by
+// drawCart, drawWishlistPage and drawComparePage, which build different markup
+// around the same numbers.
+const resolveItemPricing = (item) => {
+  const { detail } = item;
+  if (!item.variant) {
+    return { priceOld: detail.priceOld, priceNew: detail.priceNew, stock: detail.stock, variantMatched: null };
+  }
+  const variantMatched = detail.variants.find(v =>
+    v.attributeValue.every(attr => {
+      const selected = item.variant.find(x => x.attrId === attr.attrId);
+      return selected && selected.value === attr.value;
+    })
+  );
+  return {
+    priceOld: variantMatched.priceOld,
+    priceNew: variantMatched.priceNew,
+    stock: variantMatched.stock,
+    variantMatched,
+  };
+};
+
 // Markup for an empty list/collection view (wishlist, compare, cart).
 const emptyStateHTML = (icon, title, text, ctaText, ctaHref) => `
   <div class="store_empty_state">
@@ -836,25 +859,11 @@ const drawCart = () => {
 
           data.cart.forEach(item => {
             const { detail } = item;
-            let priceOld = 0;
-            let priceNew = 0;
-            let stock = 0;
+            const { priceOld, priceNew, stock } = resolveItemPricing(item);
             let htmlVariant = "";
             let htmlVariantSummary = "";
 
             if(item.variant) {
-              const variantMatched = detail.variants.find(variantItem => {
-                return (
-                  variantItem.attributeValue.every(attr => {
-                    const selected = item.variant.find(v => v.attrId === attr.attrId);
-                    return selected && selected.value === attr.value;
-                  })
-                );
-              });
-              priceOld = variantMatched.priceOld;
-              priceNew = variantMatched.priceNew;
-              stock = variantMatched.stock;
-
               detail.attributeList.forEach(attr => {
                 const variant = item.variant.find(v => v.attrId === attr._id);
                 htmlVariant += `
@@ -867,10 +876,6 @@ const drawCart = () => {
                   <p>${attr.name}: ${variant.label}</p>
                 `;
               })
-            } else {
-              priceOld = detail.priceOld;
-              priceNew = detail.priceNew;
-              stock = detail.stock;
             }
 
             if(item.checked) {
@@ -1537,34 +1542,16 @@ const drawComparePage = () => {
 
           data.compareList.forEach((item, index) => {
             const { detail } = item;
-            let priceOld = 0;
-            let priceNew = 0;
-            let stock = 0;
+            const { priceOld, priceNew, stock } = resolveItemPricing(item);
             let htmlVariant = "";
 
             if(item.variant) {
-              const variantMatched = detail.variants.find(variantItem => {
-                return (
-                  variantItem.attributeValue.every(attr => {
-                    const selected = item.variant.find(v => v.attrId === attr.attrId);
-                    return selected && selected.value === attr.value;
-                  })
-                );
-              });
-              priceOld = variantMatched.priceOld;
-              priceNew = variantMatched.priceNew;
-              stock = variantMatched.stock;
-
               detail.attributeList.forEach(attr => {
                 const variant = item.variant.find(v => v.attrId === attr._id);
                 htmlVariant += `
                   <p>${attr.name}: ${variant.label}</p>
                 `;
               })
-            } else {
-              priceOld = detail.priceOld;
-              priceNew = detail.priceNew;
-              stock = detail.stock;
             }
 
             html1 += `
@@ -1818,24 +1805,10 @@ const drawWishlistPage = () => {
 
           data.wishlist.forEach((item, index) => {
             const { detail } = item;
-            let priceOld = 0;
-            let priceNew = 0;
-            let stock = 0;
+            const { priceOld, priceNew, stock } = resolveItemPricing(item);
             let htmlVariant = "";
 
             if(item.variant) {
-              const variantMatched = detail.variants.find(variantItem => {
-                return (
-                  variantItem.attributeValue.every(attr => {
-                    const selected = item.variant.find(v => v.attrId === attr.attrId);
-                    return selected && selected.value === attr.value;
-                  })
-                );
-              });
-              priceOld = variantMatched.priceOld;
-              priceNew = variantMatched.priceNew;
-              stock = variantMatched.stock;
-
               detail.attributeList.forEach(attr => {
                 const variant = item.variant.find(v => v.attrId === attr._id);
                 htmlVariant += `
@@ -1844,10 +1817,6 @@ const drawWishlistPage = () => {
                   </span>
                 `;
               })
-            } else {
-              priceOld = detail.priceOld;
-              priceNew = detail.priceNew;
-              stock = detail.stock;
             }
 
             htmlWishlistTable += `

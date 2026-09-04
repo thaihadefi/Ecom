@@ -3,34 +3,10 @@ import fs from "fs";
 import Block from "../../models/block.model";
 import { IBlock, IBlockInput } from '../../interfaces/models/block.interface';
 import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
+import { paginatedSearch } from "../../helpers/list-query.helper";
 
 export const getBlockList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  const find: {
-    deleted: boolean;
-    search?: RegExp;
-  } = {
-    deleted: false
-  };
-
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
-
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await Block.countDocuments(find);
-  const pagination = getPagination(rawPage, limitItems, totalRecord);
-
-  const recordList = await Block
-    .find(find)
-    .select("_id name slug fileName status createdAt")
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort({ createdAt: "desc" });
+  const { recordList, pagination } = await paginatedSearch(Block, rawKeyword, rawPage, { select: "_id name slug fileName status createdAt" });
 
   return {
     recordList,

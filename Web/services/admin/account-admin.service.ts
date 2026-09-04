@@ -6,6 +6,7 @@ import { toSearchText } from '../../helpers/slugify.helper';
 import { escapeRegex } from '../../helpers/generate.helper';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
+import { restoreMany, getTrash } from "../../helpers/admin-crud.helper";
 
 export const canActorGrantRoles = async (
   actorIsSuperAdmin: boolean,
@@ -181,6 +182,7 @@ export const softDeleteAdminAccount = async (id: string) => {
 };
 
 export const softDeleteManyAdminAccounts = async (ids: string[]) => {
+  // never trash a superadmin, even in a bulk selection
   await AccountAdmin.updateMany({ _id: { $in: ids }, isSuperAdmin: false }, { deleted: true, deletedAt: new Date() });
   return { success: true, message: `Moved ${ids.length} account(s) to trash!` };
 };
@@ -190,10 +192,7 @@ export const restoreAdminAccount = async (id: string) => {
   return { success: true, message: "Restored successfully!" };
 };
 
-export const restoreManyAdminAccounts = async (ids: string[]) => {
-  await AccountAdmin.updateMany({ _id: { $in: ids } }, { deleted: false });
-  return { success: true, message: `Restored ${ids.length} account(s)!` };
-};
+export const restoreManyAdminAccounts = (ids: string[]) => restoreMany(AccountAdmin, ids, "account");
 
 export const permanentlyDeleteAdminAccount = async (id: string) => {
   await AccountAdmin.deleteOne({ _id: id, isSuperAdmin: false });
@@ -205,6 +204,4 @@ export const permanentlyDeleteManyAdminAccounts = async (ids: string[]) => {
   return { success: true, message: `Deleted ${ids.length} admin account(s) permanently!` };
 };
 
-export const getAdminAccountTrash = async () => {
-  return AccountAdmin.find({ deleted: true }).select("_id fullName email status deletedAt").sort({ deletedAt: "desc" });
-};
+export const getAdminAccountTrash = () => getTrash(AccountAdmin, "_id fullName email status deletedAt");

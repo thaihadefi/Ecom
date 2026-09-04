@@ -1,9 +1,8 @@
 import Role from '../../models/role.model';
 import { IRole, IRoleInput } from '../../interfaces/models/role.interface';
 import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
+import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
+import { paginatedSearch } from "../../helpers/list-query.helper";
 
 export const createRole = async (data: IRoleInput): Promise<IRole> => {
   if (typeof data.permissions === "string") {
@@ -17,29 +16,7 @@ export const createRole = async (data: IRoleInput): Promise<IRole> => {
 };
 
 export const getRoleList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  const find: {
-    deleted: boolean;
-    search?: RegExp;
-  } = {
-    deleted: false
-  };
-
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
-
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await Role.countDocuments(find);
-  const pagination = getPagination(rawPage, limitItems, totalRecord);
-
-  const recordList = await Role
-    .find(find)
-    .select("_id name description status")
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort({ createdAt: "desc" });
+  const { recordList, pagination } = await paginatedSearch(Role, rawKeyword, rawPage, { select: "_id name description status" });
 
   return {
     recordList,
@@ -71,31 +48,20 @@ export const softDeleteRole = async (id: string) => {
   return { success: true, message: "Role deleted successfully!" };
 };
 
-export const softDeleteManyRoles = async (ids: string[]) => {
-  await Role.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date() });
-  return { success: true, message: `Moved ${ids.length} role(s) to trash!` };
-};
+export const softDeleteManyRoles = (ids: string[]) => softDeleteMany(Role, ids, "role");
 
 export const restoreRole = async (id: string) => {
   await Role.updateOne({ _id: id }, { deleted: false });
   return { success: true, message: "Restored successfully!" };
 };
 
-export const restoreManyRoles = async (ids: string[]) => {
-  await Role.updateMany({ _id: { $in: ids } }, { deleted: false });
-  return { success: true, message: `Restored ${ids.length} role(s)!` };
-};
+export const restoreManyRoles = (ids: string[]) => restoreMany(Role, ids, "role");
 
 export const permanentlyDeleteRole = async (id: string) => {
   await Role.deleteOne({ _id: id });
   return { success: true, message: "Deleted permanently!" };
 };
 
-export const permanentlyDeleteManyRoles = async (ids: string[]) => {
-  await Role.deleteMany({ _id: { $in: ids } });
-  return { success: true, message: `Deleted ${ids.length} role(s) permanently!` };
-};
+export const permanentlyDeleteManyRoles = (ids: string[]) => permanentlyDeleteMany(Role, ids, "role");
 
-export const getRoleTrash = async () => {
-  return Role.find({ deleted: true }).select("_id name description status deletedAt").sort({ deletedAt: "desc" });
-};
+export const getRoleTrash = () => getTrash(Role, "_id name description status deletedAt");

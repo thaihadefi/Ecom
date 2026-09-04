@@ -43,7 +43,7 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 - **Frontend:** Server-Side Rendering with Pug Templates, CSS3, JavaScript ES6+, Socket.IO Client, OpenLayers Map Picker with OpenStreetMap/Nominatim Geocoding.
 - **Backend:** Node.js, Express 5, TypeScript (Strict Mode, Fully Typed), Socket.IO Server, Groq API (LLaMA 3.1), Passport.js (OAuth2), Nodemailer, Bcryptjs, Joi, Axios, gzip response compression, CSV import/export (`papaparse` / `json2csv`), OpenMap.vn Reverse Geocoding (GoShip address resolution).
 - **Database & Storage:** MongoDB Atlas (Mongoose ORM with Type Generics & Embedded Sub-Schemas), Atlas Search Engine with Regex Fallback, NodeCache (In-Memory Chat & Settings Cache), Dynamic SEO Sub-Schema (`SeoSchema`), Standalone FileManager Microservice.
-- **Infrastructure & Design Patterns:** 3-Tier Layered Architecture (Routes → Controllers → Services → Models), DTO-Driven Domain Services, Admin Audit Trail Logging, Token Theft Detection & Refresh Token Rotation, Cascading Media Propagation, Path Traversal Protection, HttpOnly Cookies, Multer Disk Staging, OS Graceful Shutdown.
+- **Infrastructure & Design Patterns:** 3-Tier Layered Architecture (Routes → Controllers → Services → Models), DTO-Driven Domain Services, Shared Helper Layer (admin CRUD/trash lifecycle, paginated list queries, SEO payload builder, order resource rollback, FileManager client), Payment Gateway Services, Admin Audit Trail Logging, Token Theft Detection & Refresh Token Rotation, Cascading Media Propagation, Path Traversal Protection, HttpOnly Cookies, Multer Disk Staging, OS Graceful Shutdown.
 
 ---
 
@@ -67,7 +67,7 @@ Ecom/
     ├── controllers/                  # HTTP request delegates (admin/, client/)
     │   ├── admin/                    # Admin controllers delegating to admin services
     │   └── client/                   # Storefront controllers delegating to client services
-    ├── helpers/                      # Shared utility functions (slugify, mailer, AI assistant, Atlas search)
+    ├── helpers/                      # Shared utility + domain helpers (slugify, mailer, AI assistant, Atlas search, admin CRUD/trash, list-query pagination, SEO payload builder, order resource rollback, FileManager client)
     ├── interfaces/                   # Strict TypeScript domain interfaces & Input DTOs
     │   ├── models/                   # Type declarations for Mongoose models & input DTO schemas
     │   └── socket-events.interface.ts # Typed DTOs for all Socket.IO event payloads (client & server events)
@@ -86,6 +86,7 @@ Ecom/
     ├── services/                     # Core Business Logic & Database Transactions
     │   ├── admin/                    # Store administration services (catalog, orders, RBAC, audit logs)
     │   ├── client/                   # Storefront services (cart, checkout, Atlas search, live chat, orders)
+    │   ├── payment/                  # Payment gateway services (ZaloPay, VNPay: URL creation, callback/mac verification)
     │   └── socket/                   # Socket service layer (chat room init, message persistence, CDN file cleanup)
     ├── sockets/                      # Socket.IO bootstrap, handshake JWT auth, and presence tracking; chat event handlers delegate persistence to the socket service layer
     ├── validates/                    # Joi request payload validation schemas (admin/, client/)

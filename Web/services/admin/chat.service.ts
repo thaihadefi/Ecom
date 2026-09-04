@@ -1,12 +1,10 @@
-import FormData from 'form-data';
-import axios from 'axios';
 import ChatRoom from '../../models/chat-room.model';
 import AccountUser from '../../models/account-user.model';
 import ChatMessage from '../../models/chat-message.model';
 import { getChatRoomList, invalidateRoomList } from '../../helpers/chat.helper';
 import { timeAgo } from '../../helpers/format.helper';
 import { aiGenerateAnswer } from '../../helpers/ai.helper';
-import { domainCDN } from '../../configs/variable.config';
+import { fmUpload } from '../../helpers/file-manager.client';
 import { invalidateRoomStatus } from '../../helpers/chat-cache.helper';
 import { getIO } from '../../sockets/index.socket';
 
@@ -78,33 +76,15 @@ export const uploadAdminChatFiles = async (roomId: string, files: Express.Multer
     return { success: false, message: "Chat room not found!" };
   }
 
-  const formData = new FormData();
-  files.forEach(file => {
-    formData.append('files', file.buffer, {
-      filename: file.originalname,
-      contentType: file.mimetype
-    });
-  });
-  formData.append('folderPath', `chats/${chatRoomDetail.userId}`);
-
-  const response = await axios.post(`${domainCDN}/file-manager/upload`, formData, {
-    headers: {
-      ...formData.getHeaders(),
-      Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`
-    }
-  });
-
-  if (response.data.code === "error") {
+  const upload = await fmUpload(files, `chats/${chatRoomDetail.userId}`);
+  if (!upload.success) {
     return { success: false, message: "Upload error!" };
   }
-
-  const saveLinks: Array<{ folder: string; filename: string }> = response.data.saveLinks || [];
-  const fileUrls = saveLinks.map((item) => `${item.folder}/${item.filename}`);
 
   return {
     success: true,
     message: "Uploaded successfully!",
-    fileUrls
+    fileUrls: upload.fileUrls
   };
 };
 

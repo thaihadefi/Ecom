@@ -1,35 +1,14 @@
 import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
 import CategoryProduct from '../../models/category-product.model';
 import { ICategoryProduct, ICategoryProductInput } from '../../interfaces/models/category-product.interface';
 import { buildCategoryTree } from '../../helpers/category.helper';
-import { PAGINATION } from '../../configs/pagination.config';
-import { getPagination } from '../../helpers/pagination.helper';
+import { softDeleteMany, restoreMany, permanentlyDeleteMany } from "../../helpers/admin-crud.helper";
+import { paginatedSearch } from "../../helpers/list-query.helper";
 
 export const getCategoryProductList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  const find: {
-    deleted: boolean;
-    search?: RegExp;
-  } = {
-    deleted: false
-  };
-
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
-
-  const limitItems = PAGINATION.ADMIN_LIMIT;
-  const totalRecord = await CategoryProduct.countDocuments(find);
-  const pagination = getPagination(rawPage, limitItems, totalRecord);
-
-  const recordList = await CategoryProduct
-    .find(find)
-    .select("_id name slug parent avatar status view")
-    .sort({ createdAt: "desc" })
-    .limit(limitItems)
-    .skip(pagination.skip);
+  const { recordList, pagination } = await paginatedSearch(CategoryProduct, rawKeyword, rawPage, {
+    select: "_id name slug parent avatar status view",
+  });
 
   const parentIds = [...new Set(recordList.filter((i) => i.parent).map((i) => String(i.parent)))];
   if (parentIds.length > 0) {
@@ -115,17 +94,10 @@ export const getCategoryProductTrash = async () => {
   return recordList;
 };
 
-export const softDeleteManyCategoryProducts = async (ids: string[]) => {
-  await CategoryProduct.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date() });
-  return { success: true, message: `Moved ${ids.length} category(s) to trash!` };
-};
+export const softDeleteManyCategoryProducts = (ids: string[]) => softDeleteMany(CategoryProduct, ids, "category");
 
-export const restoreManyCategoryProducts = async (ids: string[]) => {
-  await CategoryProduct.updateMany({ _id: { $in: ids } }, { deleted: false });
-  return { success: true, message: `Restored ${ids.length} category(s)!` };
-};
+export const restoreManyCategoryProducts = (ids: string[]) => restoreMany(CategoryProduct, ids, "category");
 
 export const permanentlyDeleteManyCategoryProducts = async (ids: string[]) => {
-  await CategoryProduct.deleteMany({ _id: { $in: ids } });
-  return { success: true, message: `Permanently deleted ${ids.length} category(s)!` };
+  return permanentlyDeleteMany(CategoryProduct, ids, "category");
 };

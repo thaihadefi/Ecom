@@ -3,9 +3,7 @@ import AccountUser from '../../models/account-user.model';
 import VerifyOTP from '../../models/verify-otp.model';
 import { toSearchText } from '../../helpers/slugify.helper';
 import UserAddress from '../../models/user-address.model';
-import FormData from 'form-data';
-import axios from 'axios';
-import { domainCDN } from '../../configs/variable.config';
+import { fmUpload, fmDeleteByLink } from '../../helpers/file-manager.client';
 import Order from '../../models/order.model';
 import Review from '../../models/review.model';
 import Product from '../../models/product.model';
@@ -224,49 +222,19 @@ export const updateUserAddress = async (userId: string, addressId: string, addre
 };
 
 export const updateAvatar = async (userId: string, file: Express.Multer.File, oldAvatar?: string) => {
-  const formData = new FormData();
-  formData.append('files', file.buffer, {
-    filename: file.originalname,
-    contentType: file.mimetype
-  });
-  formData.append('folderPath', `users/${userId}`);
-
-  const response = await axios.post(`${domainCDN}/file-manager/upload`, formData, {
-    headers: {
-      ...formData.getHeaders(),
-      Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`
-    }
-  });
-
-  if (response.data.code === "success") {
-    const avatar = response.data.saveLinks[0];
-    const linkAvatar = `${avatar.folder}/${avatar.filename}`;
-
-    await AccountUser.updateOne({ _id: userId }, { avatar: linkAvatar });
-
-    if (oldAvatar) {
-      const lastSlashIndex = oldAvatar.lastIndexOf("/");
-      const folder = oldAvatar.substring(0, lastSlashIndex);
-      const fileName = oldAvatar.substring(lastSlashIndex + 1);
-      const formDataDelete = new FormData();
-      formDataDelete.append("folder", folder);
-      formDataDelete.append("fileName", fileName);
-
-      axios.patch(`${domainCDN}/file-manager/delete-file`, formDataDelete, {
-        headers: {
-          ...formDataDelete.getHeaders(),
-          Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`
-        }
-      }).catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : "unknown error";
-        console.error(`[FileManager] orphan file, old avatar delete failed: ${oldAvatar} (${msg})`);
-      });
-    }
-
-    return { success: true, message: "Avatar updated successfully!", linkAvatar };
+  const upload = await fmUpload([file], `users/${userId}`);
+  if (!upload.success || upload.fileUrls.length === 0) {
+    return { success: false, message: "Upload error!" };
   }
 
-  return { success: false, message: "Upload error!" };
+  const linkAvatar = upload.fileUrls[0];
+  await AccountUser.updateOne({ _id: userId }, { avatar: linkAvatar });
+
+  if (oldAvatar) {
+    fmDeleteByLink(oldAvatar);
+  }
+
+  return { success: true, message: "Avatar updated successfully!", linkAvatar };
 };
 
 export const getOrderHistory = async (userId: string, rawPage: unknown) => {
@@ -365,32 +333,11 @@ export const submitOrderReview = async (
     }
   }
 
-  const imageLinks: string[] = [];
+  let imageLinks: string[] = [];
   if (files && files.length > 0) {
-    const uploadPromises = files.map(async (file) => {
-      const formData = new FormData();
-      formData.append('files', file.buffer, {
-        filename: file.originalname,
-        contentType: file.mimetype
-      });
-      formData.append('folderPath', `reviews/${userId}`);
-      const response = await axios.post(`${domainCDN}/file-manager/upload`, formData, {
-        headers: {
-          ...formData.getHeaders(),
-          Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`
-        }
-      });
-      if (response.data.code === "success") {
-        const savedLink = response.data.saveLinks[0];
-        return `${savedLink.folder}/${savedLink.filename}`;
-      }
-      return null;
-    });
-
-    const uploadedFiles = await Promise.all(uploadPromises);
-    for (const link of uploadedFiles) {
-      if (link) imageLinks.push(link);
-    }
+    // one FileManager call per image keeps a single failure from losing the rest
+    const uploads = await Promise.all(files.map((file) => fmUpload([file], `reviews/${userId}`)));
+    imageLinks = uploads.flatMap((u) => u.fileUrls);
   }
 
   const session = await mongoose.startSession();

@@ -1,14 +1,13 @@
 import mongoose from 'mongoose';
 import { OrderStatus, OrderPaymentStatus } from '../../interfaces/models/order.interface';
 import Order from '../../models/order.model';
-import Product from '../../models/product.model';
-import Coupon from '../../models/coupon.model';
 import AccountUser from '../../models/account-user.model';
 import { pointConfig } from '../../configs/variable.config';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
-import { sendMail, emailTemplates } from '../../helpers/mail.helper';
 import { escapeRegex } from '../../helpers/generate.helper';
+import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
+import { releaseOrderResources, notifyOrderStatusChange } from "../../helpers/order.helper";
 
 export const getOrderList = async (rawKeyword?: unknown, rawPage?: unknown) => {
   const find: Record<string, unknown> = {
@@ -80,33 +79,8 @@ export const updateOrderAdmin = async (
       order.note = note;
       await order.save({ session });
 
-      if (goingTerminal && order.items && order.items.length > 0) {
-        await Product.bulkWrite(
-          order.items.map((item) => ({
-            updateOne: {
-              filter: { _id: item.productId },
-              update: { $inc: { stock: item.quantity || 0 } }
-            }
-          })),
-          { session }
-        );
-      }
-
       if (goingTerminal) {
-        if (order.usedPoint && order.usedPoint > 0) {
-          await AccountUser.updateOne(
-            { _id: order.userId },
-            { $inc: { usedPoint: -order.usedPoint } },
-            { session }
-          );
-        }
-        if (order.coupon) {
-          await Coupon.updateOne(
-            { code: order.coupon, usedCount: { $gt: 0 } },
-            { $inc: { usedCount: -1 } },
-            { session }
-          );
-        }
+        await releaseOrderResources(order, session);
       }
 
       if (wasUnpaid && paymentStatus === "paid" && order.userId) {
@@ -125,14 +99,8 @@ export const updateOrderAdmin = async (
     session.endSession();
   }
 
-  if (statusChanged && order.userId) {
-    AccountUser.findOne({ _id: order.userId }).select("email fullName").then(user => {
-      if (!user?.email) return;
-      return emailTemplates.orderStatusUpdate(
-        { code: order.code || "", fullName: user.fullName || "" },
-        orderStatus
-      ).then(tpl => sendMail(user.email!, tpl.subject, tpl.html));
-    }).catch(console.error);
+  if (statusChanged) {
+    notifyOrderStatusChange(order, orderStatus);
   }
 
   return { success: true, message: "Order updated successfully!", order };
@@ -168,8 +136,7 @@ export const softDeleteManyOrders = async (ids: string[]) => {
     };
   }
 
-  await Order.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date() });
-  return { success: true, message: `Moved ${ids.length} order(s) to trash!` };
+  return softDeleteMany(Order, ids, "order");
 };
 
 export const restoreOrder = async (id: string) => {
@@ -177,10 +144,7 @@ export const restoreOrder = async (id: string) => {
   return { success: true, message: "Restored successfully!" };
 };
 
-export const restoreManyOrders = async (ids: string[]) => {
-  await Order.updateMany({ _id: { $in: ids } }, { deleted: false });
-  return { success: true, message: `Restored ${ids.length} order(s)!` };
-};
+export const restoreManyOrders = (ids: string[]) => restoreMany(Order, ids, "order");
 
 export const permanentlyDeleteOrder = async (id: string) => {
   const activeOrder = await Order.findOne({
@@ -210,15 +174,10 @@ export const permanentlyDeleteManyOrders = async (ids: string[]) => {
     };
   }
 
-  await Order.deleteMany({ _id: { $in: ids } });
-  return { success: true, message: `Permanently deleted ${ids.length} order(s)!` };
+  return permanentlyDeleteMany(Order, ids, "order");
 };
 
-export const getOrderTrash = async () => {
-  return Order.find({ deleted: true })
-    .select("_id code fullName phone total orderStatus paymentStatus deletedAt")
-    .sort({ deletedAt: "desc" });
-};
+export const getOrderTrash = () => getTrash(Order, "_id code fullName phone total orderStatus paymentStatus deletedAt");
 
 export const getOrdersBatchForExport = async (skip: number, limit: number) => {
   return Order.find({ deleted: false }).skip(skip).limit(limit);

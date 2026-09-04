@@ -1,9 +1,7 @@
 import ChatRoom from '../../models/chat-room.model';
 import ChatMessage from '../../models/chat-message.model';
 import { timeAgo } from '../../helpers/format.helper';
-import FormData from 'form-data';
-import axios from 'axios';
-import { domainCDN } from '../../configs/variable.config';
+import { fmUpload } from '../../helpers/file-manager.client';
 
 export const getMessagesByUserId = async (
   userId: string,
@@ -44,32 +42,14 @@ export const uploadChatFiles = async (userId: string, files: Express.Multer.File
     return { success: false, message: "Chat room is locked!" };
   }
 
-  const formData = new FormData();
-  files.forEach(file => {
-    formData.append('files', file.buffer, {
-      filename: file.originalname,
-      contentType: file.mimetype
-    });
-  });
-  formData.append('folderPath', `chats/${userId}`);
-
-  const response = await axios.post(`${domainCDN}/file-manager/upload`, formData, {
-    headers: {
-      ...formData.getHeaders(),
-      Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`
-    }
-  });
-
-  if (response.data.code === "error") {
+  const upload = await fmUpload(files, `chats/${userId}`);
+  if (!upload.success) {
     return { success: false, message: "Upload error!" };
   }
 
-  const saveLinks: Array<{ folder: string; filename: string }> = response.data.saveLinks || [];
-  const fileUrls = saveLinks.map((item) => `${item.folder}/${item.filename}`);
-
   return {
     success: true,
-    fileUrls
+    fileUrls: upload.fileUrls
   };
 };
 
