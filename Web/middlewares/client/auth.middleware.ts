@@ -45,7 +45,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
     await loadAccountIntoLocals(res, account.id, account.email ?? "");
     next();
   } catch (error) {
-    console.log(error);
+    console.error("[Client Auth]", error);
     next();
   }
 }

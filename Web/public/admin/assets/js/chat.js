@@ -99,6 +99,14 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => (
   { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
 ));
 
+// Wrap bare URLs in a link. Runs on already-escaped text; trailing sentence
+// punctuation stays outside the link.
+const linkify = (escaped) => escaped.replace(/\bhttps?:\/\/[^\s<]+/g, (raw) => {
+  const trail = raw.match(/[.,!?)\]]+$/);
+  const url = trail ? raw.slice(0, -trail[0].length) : raw;
+  return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${trail ? trail[0] : ""}`;
+});
+
 // LLM output can be prompt-injected, so escape FIRST, then re-add a small safe
 // subset of markdown on the already-neutralised text (never introduces raw HTML).
 const renderAiText = (raw) => escapeHtml(raw)
@@ -203,7 +211,22 @@ if (formChat) {
       notyf.error("Session expired. Please sign in again.");
     }
   });
-  socket.on("connect", () => { authErrorNotified = false; });
+
+  // Connection status banner — Socket.IO retries silently in the background.
+  const connBanner = document.getElementById("admin-chat-connection-banner");
+  const showConnBanner = (msg) => {
+    if (!connBanner) return;
+    connBanner.textContent = msg;
+    connBanner.classList.remove("d-none");
+  };
+  const hideConnBanner = () => connBanner?.classList.add("d-none");
+  socket.io.on("reconnect_attempt", () => showConnBanner("Reconnecting…"));
+  socket.io.on("reconnect", () => hideConnBanner());
+  socket.on("disconnect", (reason) => {
+    if (reason !== "io client disconnect") showConnBanner("Connection lost. Reconnecting…");
+  });
+
+  socket.on("connect", () => { authErrorNotified = false; hideConnBanner(); });
 
   const emitAdminOpenState = (isOpen) => {
     socket.emit("ADMIN_OPEN_CHAT", { roomId: chatRoomId, isOpen: Boolean(isOpen) });
@@ -255,7 +278,7 @@ if (formChat) {
     }
 
     if (item.content) {
-      inner += `<p>${escapeHtml(item.content).replace(/\n/g, "<br>")}</p>`;
+      inner += `<p>${linkify(escapeHtml(item.content)).replace(/\n/g, "<br>")}</p>`;
     }
 
     if (item.files?.length > 0) {

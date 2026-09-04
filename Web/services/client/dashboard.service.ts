@@ -102,7 +102,10 @@ export const requestChangeEmail = async (
 
   void emailTemplates.emailChangeSecurityAlert(newEmail)
     .then(({ subject, html }) => sendMail(oldEmail, subject, html))
-    .catch(() => {});
+    .catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : "unknown error";
+      console.error(`[changeEmail] security-alert email to ${oldEmail} failed (${msg})`);
+    });
 
   return { success: true, message: "Verification code sent to your new email address!" };
 };
@@ -254,7 +257,10 @@ export const updateAvatar = async (userId: string, file: Express.Multer.File, ol
           ...formDataDelete.getHeaders(),
           Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`
         }
-      }).catch(() => {});
+      }).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : "unknown error";
+        console.error(`[FileManager] orphan file, old avatar delete failed: ${oldAvatar} (${msg})`);
+      });
     }
 
     return { success: true, message: "Avatar updated successfully!", linkAvatar };

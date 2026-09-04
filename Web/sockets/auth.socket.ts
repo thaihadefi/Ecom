@@ -130,7 +130,7 @@ export const authSocket = async (socket: Socket, next: SocketNextFn) => {
     next();
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    console.log("[Socket] Auth error:", errorMsg);
+    console.error("[Socket] Auth error:", errorMsg);
     next(new Error("Authentication failed"));
   }
 }

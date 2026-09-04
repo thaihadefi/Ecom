@@ -3999,6 +3999,19 @@ footer.footer_main, footer .footer_main, .footer_main {
 .msg-status.seen { color: var(--gold) !important; }
 #chat-online-dot.chat-online-dot, .chat-online-dot { background: var(--colorGreen, #15803D) !important; }
 
+/* chat connection-lost banner */
+.chat-connection-banner {
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    color: var(--gold-dim);
+    background: var(--gold-soft);
+    border-bottom: 1px solid var(--line);
+}
+.chat-bubble a, #chat-body .bubble a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.message.admin .bubble a { color: var(--gold-dim); }
+
 /* text links that act as buttons: min ~40px tap height */
 .footer_logo_area span a { display: inline-block; padding: 6px 0; }
 .header_support a { display: inline-block; padding: 9px 0; }

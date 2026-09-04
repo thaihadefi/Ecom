@@ -66,6 +66,14 @@ const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => (
   { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
 ));
 
+// Wrap bare URLs in a link. Runs on already-escaped text, so the match can only
+// contain safe characters; trailing sentence punctuation is left outside the link.
+const linkify = (escaped) => escaped.replace(/\bhttps?:\/\/[^\s<]+/g, (raw) => {
+  const trail = raw.match(/[.,!?)\]]+$/);
+  const url = trail ? raw.slice(0, -trail[0].length) : raw;
+  return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${trail ? trail[0] : ""}`;
+});
+
 const showConfirm = (msg, onOk) => {
   const overlay  = document.getElementById("chat-confirm-modal");
   const msgEl    = overlay?.querySelector(".chat-confirm-msg");
@@ -125,8 +133,30 @@ if (chatButton) {
       notyf.error("Your session has ended. Please log in again to use chat.");
     }
   });
-  socket.on("connect", () => { sessionRecoveryTried = false; sessionEndedNotified = false; });
-  socket.on("disconnect", (r) => console.warn("[Chat] Disconnected:", r));
+  // Connection status banner: Socket.IO retries silently, so tell the visitor
+  // when the link is down instead of leaving them guessing why nothing sends.
+  const connBanner = document.getElementById("chat-connection-banner");
+  const showConnBanner = (msg) => {
+    if (!connBanner) return;
+    connBanner.textContent = msg;
+    connBanner.classList.remove("d-none");
+  };
+  const hideConnBanner = () => connBanner?.classList.add("d-none");
+
+  socket.io.on("reconnect_attempt", () => showConnBanner("Reconnecting…"));
+  socket.io.on("reconnect", () => hideConnBanner());
+
+  socket.on("connect", () => {
+    sessionRecoveryTried = false;
+    sessionEndedNotified = false;
+    hideConnBanner();
+  });
+  socket.on("disconnect", (reason) => {
+    console.warn("[Chat] Disconnected:", reason);
+    // "io client disconnect" = we called socket.disconnect() (auth failure) —
+    // that path shows its own notice, so don't also flash "Reconnecting".
+    if (reason !== "io client disconnect") showConnBanner("Connection lost. Reconnecting…");
+  });
   const chatPopup    = document.getElementById("chat-popup");
   const chatClose    = document.getElementById("chat-close");
   const chatBody     = document.getElementById("chat-body");
@@ -308,7 +338,7 @@ if (chatButton) {
     }
 
     if (item.content) {
-      html += `<div class="bubble">${escapeHtml(item.content).replace(/\n/g, "<br>")}</div>`;
+      html += `<div class="bubble">${linkify(escapeHtml(item.content)).replace(/\n/g, "<br>")}</div>`;
     }
 
     if (item.files?.length > 0) {

@@ -68,7 +68,7 @@ export const verifyToken = async (req: RequestAccount, res: Response, next: Next
     await loadAdminIntoLocals(res, req, existAccount);
     next();
   } catch (error) {
-    console.log(error);
+    console.error("[Admin Auth]", error);
     res.redirect(`/${pathAdmin}/account/login`);
   }
 };

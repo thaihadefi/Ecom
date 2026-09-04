@@ -205,7 +205,10 @@ export const resetUserPassword = async (userId: string, userEmail?: string, newP
   if (userEmail) {
     emailTemplates.passwordChanged(userEmail)
       .then(({ subject, html }) => sendMail(userEmail, subject, html))
-      .catch(() => {});
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : "unknown error";
+        console.error(`[auth] password-changed notification email failed for ${userEmail} (${msg})`);
+      });
   }
 
   return { success: true, message: "Password changed successfully!" };

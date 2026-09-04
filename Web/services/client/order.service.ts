@@ -173,6 +173,15 @@ export const createOrder = async (
     }
   }
 
+  // The loop above skips products that were deleted/deactivated since they were
+  // added to the cart. If nothing survives, there is no order to place.
+  if (dataFinal.items.length === 0) {
+    return { success: false, message: "None of the products in your cart are available anymore." };
+  }
+  if (dataFinal.items.length < itemsInput.length) {
+    return { success: false, message: "Some items are no longer available. Please review your cart and try again." };
+  }
+
   dataFinal.subTotal = dataFinal.items.reduce((total: number, item) => total + (item.price * item.quantity), 0);
 
   dataFinal.discount = 0;
@@ -270,12 +279,25 @@ export const createOrder = async (
   const apiShipping = await getApiShipping();
   const goshipBase = String(apiShipping.goshipApiUrl || "https://sandbox.goship.io/api/v2");
 
-  const goshipRes = await axios.post(`${goshipBase}/shipments`, dataGoShip, {
-    headers: {
-      Authorization: `Bearer ${apiShipping.tokenGoShip}`,
-      "Content-Type": "application/json"
-    }
-  });
+  // Isolate the shipping-provider call so an outage / expired token surfaces as
+  // a clear "shipping" error instead of the generic checkout failure.
+  let goshipRes;
+  try {
+    goshipRes = await axios.post(`${goshipBase}/shipments`, dataGoShip, {
+      headers: {
+        Authorization: `Bearer ${apiShipping.tokenGoShip}`,
+        "Content-Type": "application/json"
+      }
+    });
+  } catch (error: unknown) {
+    console.error("[Checkout] GoShip request failed:", error instanceof Error ? error.message : error);
+    return { success: false, message: "Unable to calculate the shipping fee. Please recheck your delivery address or try again later." };
+  }
+
+  if (typeof goshipRes.data?.fee !== "number") {
+    console.error("[Checkout] GoShip returned an unexpected payload:", goshipRes.data);
+    return { success: false, message: "The shipping service is temporarily unavailable. Please try again later." };
+  }
 
   dataFinal.shipping = {
     goshipOrderId: goshipRes.data.id,

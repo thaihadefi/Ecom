@@ -206,7 +206,10 @@ export async function deleteMessage(messageId: string, senderId: string): Promis
       formData.append('fileName', file.substring(lastSlash + 1));
       axios.patch(`${domainCDN}/file-manager/delete-file`, formData, {
         headers: { ...formData.getHeaders(), Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}` },
-      }).catch(() => {});
+      }).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : "unknown error";
+        console.error(`[FileManager] orphan file, delete failed: ${file} (${msg})`);
+      });
     }
   }
 
@@ -219,10 +222,14 @@ export async function deleteRoom(roomId: string, adminId: string): Promise<{ use
   if (!existRoom) throw new Error('Room not found or unauthorized');
 
   const formData = new FormData();
-  formData.append('folderPath', `/media/chats/${existRoom.userId}`);
+  const folderPath = `/media/chats/${existRoom.userId}`;
+  formData.append('folderPath', folderPath);
   axios.patch(`${domainCDN}/file-manager/folder/delete`, formData, {
     headers: { ...formData.getHeaders(), Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}` },
-  }).catch(() => {});
+  }).catch((err: unknown) => {
+    const msg = err instanceof Error ? err.message : "unknown error";
+    console.error(`[FileManager] orphan folder, delete failed: ${folderPath} (${msg})`);
+  });
 
   await runAtomically(async (session) => {
     await ChatMessage.deleteMany({ roomId }, { session });
