@@ -124,10 +124,15 @@ $(function () {
     // rails finite and init each one on its own.
     $('.flash_sell_slider').each(function () {
         var $rail = $(this);
-        if ($rail.children().length === 0) return;
+        var count = $rail.children().length;
+        if (count === 0) return;
+        // 4 or fewer items fit in one row — render as a plain grid (class hook
+        // for CSS) instead of a slider, so the cards match the other product
+        // grids exactly.
+        if (count <= 4) { $rail.addClass('is-static-grid'); return; }
 
         $rail.slick({
-            slidesToShow: 5,
+            slidesToShow: 4,
             slidesToScroll: 1,
             autoplay: false,
             autoplaySpeed: 3000,
@@ -138,12 +143,6 @@ $(function () {
             prevArrow: '<i class="fas fa-arrow-left prevArrow"></i>',
 
             responsive: [
-                {
-                    breakpoint: 1600,
-                    settings: {
-                        slidesToShow: 4,
-                    }
-                },
                 {
                     breakpoint: 1200,
                     settings: {
@@ -320,87 +319,71 @@ $(function () {
             }
         }
 
-        const BASE_MAX_VND = 50000000;
+        // The slider always operates in VND: fixed min/max/step, and the URL
+        // `price` param (which the backend filters on `priceNew`, stored in VND)
+        // is read and written directly with no rate math. Only the label text is
+        // converted to the viewer's currency, so switching currency never rounds
+        // the range, shifts the max, or drifts the param across round-trips.
+        const MIN_VND = 0;
+        const MAX_VND = 50000000;
+        const STEP_VND = 10000;
 
-        let minVal = 0;
-        let maxVal = BASE_MAX_VND;
-        let stepVal = 10000;
-        let prettifyFn = (number) => {
-            const n = parseInt(number);
-            if (n >= 1000000) return (n / 1000000).toFixed(0) + 'M ₫';
-            if (n >= 1000) return Math.round(n / 1000) + 'K ₫';
-            return n + ' ₫';
-        };
-
-        if (currentCurrency !== "VND" && rate > 0 && rate !== 1) {
-            const rawMax = BASE_MAX_VND * rate;
-            if (rawMax < 100) {
-                maxVal = Math.ceil(rawMax / 10) * 10 || 50;
-                stepVal = 1;
-            } else if (rawMax < 1000) {
-                maxVal = Math.ceil(rawMax / 50) * 50 || 500;
-                stepVal = 5;
-            } else if (rawMax < 10000) {
-                maxVal = Math.ceil(rawMax / 100) * 100 || 2000;
-                stepVal = 10;
-            } else if (rawMax < 100000) {
-                maxVal = Math.ceil(rawMax / 1000) * 1000 || 50000;
-                stepVal = 100;
-            } else {
-                maxVal = Math.ceil(rawMax / 10000) * 10000 || 500000;
-                stepVal = 1000;
-            }
-
-            const formatter = new Intl.NumberFormat("en-US", {
+        // Compact currency notation ("$2K", "₫50M", "€1.9K") keeps both end
+        // labels a similar short width in every currency, so the track spacing
+        // stays stable when the viewer switches currency.
+        let currencyFormatter;
+        try {
+            currencyFormatter = new Intl.NumberFormat("en-US", {
+                notation: "compact",
                 style: "currency",
                 currency: currentCurrency,
-                maximumFractionDigits: 0,
-                minimumFractionDigits: 0
+                maximumFractionDigits: 1
             });
-            prettifyFn = (number) => formatter.format(Math.round(number));
+        } catch (e) {
+            currencyFormatter = new Intl.NumberFormat("en-US", { notation: "compact" });
         }
+        const prettifyFn = (number) => currencyFormatter.format(Math.round(Number(number) * rate));
 
         const initialSelectedValues = {
-            from: 0,
-            to: maxVal
+            from: MIN_VND,
+            to: MAX_VND
         };
 
         const valueCurrent = url.searchParams.get("price");
         if(valueCurrent) {
             const [fromVnd, toVnd] = valueCurrent.split("-").map(Number);
             if (!isNaN(fromVnd)) {
-                initialSelectedValues.from = Math.max(minVal, Math.round(fromVnd * rate));
+                initialSelectedValues.from = Math.min(MAX_VND, Math.max(MIN_VND, fromVnd));
             }
             if (!isNaN(toVnd)) {
-                initialSelectedValues.to = Math.min(maxVal, Math.round(toVnd * rate));
+                initialSelectedValues.to = Math.min(MAX_VND, Math.max(MIN_VND, toVnd));
             }
         }
 
         const options = {
             range: {
-                min: minVal,
-                max: maxVal,
-                step: stepVal
+                min: MIN_VND,
+                max: MAX_VND,
+                step: STEP_VND
             },
             initialSelectedValues: initialSelectedValues,
             prettify: prettifyFn,
             onFinish: (values) => {
-                const fromSelected = Number(values.selectedValues.from);
-                const toSelected = Number(values.selectedValues.to);
+                const fromSelected = Math.round(Number(values.selectedValues.from));
+                const toSelected = Math.round(Number(values.selectedValues.to));
 
-                if (fromSelected <= minVal && toSelected >= maxVal) {
+                if (fromSelected <= MIN_VND && toSelected >= MAX_VND) {
                     url.searchParams.delete("price");
                 } else {
-
-                    const fromVnd = Math.round(fromSelected / rate);
-                    const toVnd = Math.round(toSelected / rate);
-                    url.searchParams.set("price", `${fromVnd}-${toVnd}`);
+                    url.searchParams.set("price", `${fromSelected}-${toSelected}`);
                 }
                 window.location.href = url.href;
             }
         };
 
         $('.range_slider').alRangeSlider(options);
+        $('.range_slider').find('input[name="from"]').attr('aria-label', 'Minimum price');
+        $('.range_slider').find('input[name="to"]').attr('aria-label', 'Maximum price');
     };
 
     window.initPriceRangeSlider = initPriceRangeSlider;

@@ -116,7 +116,7 @@ block main
                           td
                             b #{(orderDetail.total || 0).toLocaleString("vi-VN")} VND
                 div(class="dashboard_invoice_footer")
-                  h4 Note
+                  h2 Note
                   div #{orderDetail.note || 'No note'}
                   div(class="d-flex flex-wrap gap-3 align-items-center mt-4")
                     button.common_btn(type="button" onclick="window.print()") Download Invoice

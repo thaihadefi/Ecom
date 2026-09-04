@@ -6,14 +6,14 @@ block main
       .row.justify-content-center
         .col-xxl-5.col-lg-6.col-md-8.col-sm-10.wow.fadeInUp
           div(class="sign_in_form")
-            h3 #{pageTitle}
+            h1 #{pageTitle}
             if oauthError
               p(style="color:#b91c1c;margin:8px 0 12px;") #{oauthError}
             form(id="loginForm")
               .row
                 .col-xl-12
                   div(class="single_input")
-                    label(for="email") Email
+                    label(for="email") Email *
                     input(
                       placeholder="e.g. johndoe@gmail.com"
                       type="email"
@@ -23,7 +23,7 @@ block main
                       )
                 .col-xl-12
                   div(class="single_input password-input-wrapper")
-                    label(for="password") Password
+                    label(for="password") Password *
                     input(
                       placeholder="••••••••"
                       type="password"

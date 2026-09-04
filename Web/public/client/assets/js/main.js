@@ -38,6 +38,64 @@ const drawNotify = (type, message) => {
   }));
 }
 
+// Disable a submit trigger and show a spinner while an async request is in flight.
+// Returns an unlock() to call when the request settles (skip it when the page navigates on success).
+const lockSubmit = (trigger) => {
+  if(!trigger) return () => {};
+  const originalHtml = trigger.innerHTML;
+  const label = (trigger.textContent || "").trim() || "Please wait";
+  trigger.disabled = true;
+  trigger.setAttribute("aria-busy", "true");
+  trigger.style.pointerEvents = "none";
+  trigger.innerHTML = `<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>${label}`;
+  return () => {
+    trigger.disabled = false;
+    trigger.removeAttribute("aria-busy");
+    trigger.style.pointerEvents = "";
+    trigger.innerHTML = originalHtml;
+  };
+}
+
+// Ask the shared confirm modal before running a destructive action.
+const confirmAction = (message, onConfirm) => {
+  const modalEl = document.querySelector("#modalConfirm");
+  if(!modalEl || typeof bootstrap === "undefined") {
+    if(window.confirm(message)) onConfirm();
+    return;
+  }
+  modalEl.querySelector("#modalConfirmMessage").textContent = message;
+  const okBtn = modalEl.querySelector("#modalConfirmOk");
+  const freshOk = okBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(freshOk, okBtn);
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  freshOk.addEventListener("click", () => {
+    modal.hide();
+    onConfirm();
+  });
+  modal.show();
+}
+
+// Markup for an empty list/collection view (wishlist, compare, cart).
+const emptyStateHTML = (icon, title, text, ctaText, ctaHref) => `
+  <div class="store_empty_state">
+    <i class="fas ${icon}" aria-hidden="true"></i>
+    <p class="store_empty_title">${title}</p>
+    <p class="store_empty_text">${text}</p>
+    <a class="common_btn" href="${ctaHref}">${ctaText}<i class="fas fa-long-arrow-right" aria-hidden="true"></i></a>
+  </div>
+`;
+
+// Highlight the category the viewer is currently browsing in the mega/mobile menu.
+(function() {
+  const path = window.location.pathname;
+  if (!path.startsWith("/product/category/")) return;
+  document.querySelectorAll('.menu_category_area a[href], .mobile_menu_area a[href], .menu_cat_item a[href], .mobile_menu_list a[href]').forEach(a => {
+    if (a.getAttribute("href") === path) {
+      a.setAttribute("aria-current", "page");
+    }
+  });
+})();
+
 const pagination = document.querySelector(".pagination");
 if(pagination) {
   const url = new URL(window.location.href);
@@ -1080,8 +1138,8 @@ const drawCart = () => {
     if(cartTable) {
       cartTable.innerHTML = `
         <tr>
-          <td colspan="7" class="text-center">
-            Your cart is empty.
+          <td colspan="7">
+            ${emptyStateHTML("fa-shopping-bag", "Your cart is empty", "Browse the store and add something you like.", "Continue Shopping", "/product")}
           </td>
         </tr>
       `;
@@ -1587,6 +1645,11 @@ const drawComparePage = () => {
           eventRemoveItemInCompare();
         }
       })
+  } else {
+    const area = document.querySelector(".compare_list_area");
+    if(area) {
+      area.innerHTML = emptyStateHTML("fa-layer-group", "Nothing to compare yet", "Add products from the store to compare them side by side.", "Continue Shopping", "/product");
+    }
   }
 }
 
@@ -1850,6 +1913,11 @@ const drawWishlistPage = () => {
           eventRemoveItemInWishlist();
         }
       })
+  } else {
+    const area = document.querySelector(".wishlist_page .cart_table_area");
+    if(area) {
+      area.innerHTML = emptyStateHTML("fa-heart", "Your wishlist is empty", "Save products you love and find them here later.", "Continue Shopping", "/product");
+    }
   }
 }
 
@@ -1957,6 +2025,8 @@ if(registerForm) {
         password: password,
       };
 
+      const unlock = lockSubmit(event.target.querySelector('button[type="submit"]'));
+
       fetch(`/auth/register`, {
         method: "POST",
         headers: {
@@ -1968,12 +2038,17 @@ if(registerForm) {
         .then(data => {
           if(data.code == "error") {
             notyf.error(data.message);
+            unlock();
           }
 
           if(data.code == "success") {
             drawNotify(data.code, data.message);
             window.location.href = `/`;
           }
+        })
+        .catch(() => {
+          notyf.error("Something went wrong, please try again!");
+          unlock();
         })
     })
   ;
@@ -2011,6 +2086,8 @@ if(loginForm) {
         rememberPassword: rememberPassword
       };
 
+      const unlock = lockSubmit(event.target.querySelector('button[type="submit"]'));
+
       fetch(`/auth/login`, {
         method: "POST",
         headers: {
@@ -2022,12 +2099,17 @@ if(loginForm) {
         .then(data => {
           if(data.code == "error") {
             notyf.error(data.message);
+            unlock();
           }
 
           if(data.code == "success") {
             drawNotify(data.code, data.message);
             window.location.href = `/`;
           }
+        })
+        .catch(() => {
+          notyf.error("Something went wrong, please try again!");
+          unlock();
         })
     })
   ;
@@ -2359,25 +2441,40 @@ if(dashboardAddressCreateForm) {
 
 const listButtonApi = document.querySelectorAll("[button-api]");
 if(listButtonApi.length > 0) {
+  const runButtonApi = (button) => {
+    const method = button.getAttribute("data-method");
+    const api = button.getAttribute("data-api");
+    const unlock = lockSubmit(button);
+
+    fetch(api, {
+      method: method || "GET"
+    })
+      .then(res => res.json())
+      .then(data => {
+        if(data.code == "error") {
+          notyf.error(data.message);
+          unlock();
+        }
+
+        if(data.code == "success") {
+          drawNotify(data.code, data.message);
+          location.reload();
+        }
+      })
+      .catch(() => {
+        notyf.error("Something went wrong, please try again!");
+        unlock();
+      });
+  };
+
   listButtonApi.forEach(button => {
     button.addEventListener("click", () => {
-      const method = button.getAttribute("data-method");
-      const api = button.getAttribute("data-api");
-
-      fetch(api, {
-        method: method || "GET"
-      })
-        .then(res => res.json())
-        .then(data => {
-          if(data.code == "error") {
-            notyf.error(data.message);
-          }
-
-          if(data.code == "success") {
-            drawNotify(data.code, data.message);
-            location.reload();
-          }
-        })
+      const confirmMessage = button.getAttribute("data-confirm");
+      if(confirmMessage) {
+        confirmAction(confirmMessage, () => runButtonApi(button));
+        return;
+      }
+      runButtonApi(button);
     })
   })
 }
@@ -2755,6 +2852,8 @@ if(buttonOrder) {
       usePoint: dataUsePoint
     };
 
+    const unlock = lockSubmit(buttonOrder);
+
     fetch(`/order/create`, {
       method: "POST",
       headers: {
@@ -2766,6 +2865,7 @@ if(buttonOrder) {
       .then(data => {
         if(data.code == "error") {
           notyf.error(data.message);
+          unlock();
         }
 
         if(data.code == "success") {
@@ -2791,6 +2891,10 @@ if(buttonOrder) {
               break;
           }
         }
+      })
+      .catch(() => {
+        notyf.error("Something went wrong, please try again!");
+        unlock();
       })
   })
 }

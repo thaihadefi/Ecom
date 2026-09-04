@@ -48,7 +48,7 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
                 a.user(href="/auth/login" aria-label="Login to your account")
                   b
                     i.fas.fa-user(aria-hidden="true")
-                  h5 Account
+                  span.menu_label Account
                 ul(class="user_dropdown")
                   li
                     a(href="/auth/login")
@@ -68,7 +68,7 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
                       img.rounded-circle(alt=`${accountUser.fullName}` src=getFullUrl(accountUser.avatar) style="width:28px;height:28px;object-fit:cover")
                   else
                     div.avatar-initials.avatar-sm.notranslate(translate="no")= _mi
-                  h5.notranslate(translate="no") #{accountUser.fullName}
+                  span.menu_label.notranslate(translate="no") #{accountUser.fullName}
                 ul(class="user_dropdown")
                   li
                     a(href="/dashboard")

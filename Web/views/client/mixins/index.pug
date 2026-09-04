@@ -117,6 +117,12 @@ mixin page-banner(data, link)
                   a(href=link) #{data.name}
 
 mixin product-item(item)
+  -
+    var disc = item.discount > 0
+      ? item.discount
+      : (item.priceOld && item.priceNew && item.priceOld > item.priceNew
+          ? Math.round((1 - item.priceNew / item.priceOld) * 100)
+          : 0);
   div(class="product_item_2 product_item")
     div(class="product_img")
       a.product_img_link(
@@ -129,10 +135,10 @@ mixin product-item(item)
           loading="lazy"
           )
       ul(class="discount_list")
-        if (item.discount > 0)
+        if (disc > 0)
           li.discount
             b -
-            | #{item.discount}%
+            | #{disc}%
       ul(class="btn_list")
         li
           a(
@@ -177,6 +183,12 @@ mixin product-item(item)
             li(style=`background:${color}`)
 
 mixin product-list-item(item)
+  -
+    var disc = item.discount > 0
+      ? item.discount
+      : (item.priceOld && item.priceNew && item.priceOld > item.priceNew
+          ? Math.round((1 - item.priceNew / item.priceOld) * 100)
+          : 0);
   div(class="product_list_item product_item_2 product_item")
     .row.align-items-center
       .col-md-5.col-sm-6.col-xxl-4
@@ -187,10 +199,10 @@ mixin product-list-item(item)
             loading="lazy"
             )
           ul(class="discount_list")
-            if (item.discount > 0)
+            if (disc > 0)
               li.discount
                 b -
-                | #{item.discount}%
+                | #{disc}%
           ul(class="btn_list")
             li
               a(
@@ -241,7 +253,7 @@ mixin products-slider(title1, title2, productList)
       .row
         .col-xl-6
           div(class="section_heading section_heading")
-            h3
+            h2
               span #{title1}
               |  #{title2}
       .row(class="mt_25 flash_sell_slider")

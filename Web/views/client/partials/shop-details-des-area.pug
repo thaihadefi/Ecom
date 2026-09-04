@@ -43,7 +43,7 @@ div(class="shop_details_des_area")
                 if item.user
                   +avatar(item.user.fullName, item.user.avatar || null, "md").img-fluid.w-100
               .text
-                h5
+                h3
                   | #{item.user ? item.user.fullName : 'Anonymous'}
                   span
                     +stars(item)

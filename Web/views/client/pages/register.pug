@@ -6,12 +6,12 @@ block main
       .row.justify-content-center
         .col-xxl-6.col-lg-7.col-md-9.col-sm-11.wow.fadeInUp
           div(class="sign_in_form")
-            h3 #{pageTitle}
+            h1 #{pageTitle}
             form(id="registerForm")
               .row
                 .col-lg-12
                   div(class="single_input")
-                    label(for="fullName") Full Name
+                    label(for="fullName") Full Name *
                     input(
                       placeholder="e.g. John Doe"
                       type="text"
@@ -21,7 +21,7 @@ block main
                       )
                 .col-lg-12
                   div(class="single_input")
-                    label(for="email") Email
+                    label(for="email") Email *
                     input(
                       placeholder="e.g. johndoe@gmail.com"
                       type="email"
@@ -31,7 +31,7 @@ block main
                       )
                 .col-lg-12
                   div(class="single_input")
-                    label(for="phone") Phone Number
+                    label(for="phone") Phone Number *
                     input(
                       placeholder="e.g. 0987654321"
                       type="tel"
@@ -41,7 +41,7 @@ block main
                       )
                 .col-lg-6
                   div(class="single_input password-input-wrapper")
-                    label(for="password") Password
+                    label(for="password") Password *
                     input(
                       placeholder="••••••••"
                       type="password"
@@ -57,7 +57,7 @@ block main
                       i.far.fa-eye(aria-hidden="true")
                 .col-lg-6
                   div(class="single_input password-input-wrapper")
-                    label(for="confirmPassword") Confirm Password
+                    label(for="confirmPassword") Confirm Password *
                     input(
                       placeholder="••••••••"
                       type="password"

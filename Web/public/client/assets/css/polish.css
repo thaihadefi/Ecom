@@ -1,63 +1,93 @@
 /* ============================================================
-   ECOM — UI REDESIGN
-   Override layer loaded after style.css + responsive.css.
-   Design system: Rubik / Nunito Sans | #2563EB blue | #F97316 CTA
+   Storefront UI override layer. Loaded after style.css and
+   responsive.css. Design tokens in :root below; the appended
+   block at the end of the file carries the component overrides.
    ============================================================ */
 
-/* ── 0. FONTS ── */
-@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;1,6..12,400&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+/* contain the few px of sub-pixel overflow from the grid on small
+   screens without breaking position: sticky */
+html { overflow-x: clip; }
 
-/* ── 1. DESIGN TOKENS ── */
-:root {
-    /* Brand */
-    --themeColoeOne: #0057B7;
-    --themeColoeOneDark: #003F88;
-    --themeColorTwo: #FFD700;
-    --themeColorTwoDark: #E6B800;
+/* ── 0. FONTS ── (also <link>-loaded in views/client/layouts/default.pug) */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
-    /* Palette */
-    --colorGreen:   #10B981;
-    --colorRed:     #EF4444;
-    --colorOlive:   #92856A;
-    --colorYellow:  #FCD34D;
-    --colorBlack:   #1E293B;
-    --paraColor:    #64748B;
+/* design tokens */
+:root{
+    /* Canvas */
+    --paper:     #FAFAF9;   /* page */
+    --surface:   #FFFFFF;   /* cards / panels */
+    --surface-2: #F4F2EF;   /* subtle fill */
+
+    /* Ink */
+    --ink:       #1C1917;   /* primary text, buttons */
+    --ink-2:     #0C0A09;   /* headings */
+    --muted:     #6B6560;   /* secondary text (warm grey) */
+    --faint:     #A8A29E;   /* tertiary / placeholder */
+
+    /* Accent - muted bronze-gold, used sparingly */
+    --gold:      #A16207;
+    --gold-dim:  #854D0E;
+    --gold-soft: #F3ECDD;   /* tint fill for badges */
+
+    /* Lines */
+    --line:      #E7E3DE;   /* hairline */
+    --line-2:    #D6D3D1;   /* visible divider / border */
+
+    /* Semantic */
+    --colorGreen:   #15803D;
+    --colorRed:     #B91C1C;
+    --colorOlive:   #6B6560;
+    --colorYellow:  #A16207;
+    --ratingColor:  #A16207;
+
+    /* Base-template brand hooks */
+    --themeColorOne:     #1C1917;
+    --themeColorOneDark:  #0C0A09;
+    --themeColorTwo:     #A16207;
+    --themeColorTwoDark:  #854D0E;
+    --themeColorOne:     #1C1917; 
+    --themeColorOneDark:  #0C0A09;
+
+    /* Legacy names across style.css */
+    --colorBlack:   #1C1917;
+    --paraColor:    #6B6560;
+    --muted2:       #A8A29E;
     --colorWhite:   #FFFFFF;
-
-    /* Surfaces */
-    --lightBg:      #F8FAFC;
-    --lightBg2:     #F1F5F9;
-    --borderColor:  #E2E8F0;
+    --lightBg:      #FAFAF9;
+    --lightBg2:     #F4F2EF;
+    --borderColor:  #E7E3DE;
 
     /* Typography */
-    --headingFont:  "Rubik", system-ui, sans-serif;
-    --bodyFont:     "Nunito Sans", system-ui, sans-serif;
+    --headingFont:  "Cormorant", Georgia, "Times New Roman", serif;
+    --bodyFont:     "Montserrat", system-ui, -apple-system, sans-serif;
+    --cursiveFont:  "Cormorant", Georgia, serif;
 
-    /* Shape */
-    --radius-sm:    4px;
-    --radius:       8px;
-    --radius-lg:    12px;
-    --radius-xl:    16px;
+    /* Shape - sharp / near-sharp */
+    --radius-sm:    0px;
+    --radius:       0px;
+    --radius-lg:    2px;
+    --radius-xl:    2px;
 
-    /* Elevation */
-    --shadow-sm:  0 1px 2px 0 rgb(0 0 0 / .05);
-    --shadow:     0 1px 3px 0 rgb(0 0 0 / .10), 0 1px 2px -1px rgb(0 0 0 / .10);
-    --shadow-md:  0 4px 6px -1px rgb(0 0 0 / .10), 0 2px 4px -2px rgb(0 0 0 / .10);
-    --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / .10), 0 4px 6px -4px rgb(0 0 0 / .10);
+    /* Elevation - barely there */
+    --shadow-sm:  0 1px 0 var(--line);
+    --shadow:     0 1px 2px rgb(28 25 23 / .04);
+    --shadow-md:  0 10px 40px -12px rgb(28 25 23 / .12);
+    --shadow-lg:  0 20px 60px -16px rgb(28 25 23 / .16);
     --boxShadow:  var(--shadow-md);
 
-    /* Motion */
-    --t: .2s ease-out;
+    /* Motion - slow, refined */
+    --t: .45s cubic-bezier(.4, 0, .2, 1);
+    --t-fast: .28s cubic-bezier(.4, 0, .2, 1);
 }
 
-/* ── 2. BASE ── */
+/* base */
 
 /* Eliminate 300ms tap delay on mobile for all interactive elements */
 a, button, [role="button"], label, input[type="submit"], input[type="button"], input[type="reset"] {
     touch-action: manipulation;
 }
 
-/* Scope img transition to opacity+transform only — animating "all" is expensive */
+/* Scope img transition to opacity+transform only - animating "all" is expensive */
 img {
     transition: opacity var(--t), transform var(--t) !important;
 }
@@ -88,7 +118,7 @@ a {
     transition: color var(--t), background-color var(--t), opacity var(--t);
 }
 
-/* ── 3. BUTTONS ── */
+/* buttons */
 .common_btn {
     display: inline-flex;
     align-items: center;
@@ -101,7 +131,7 @@ a {
     font-weight: 600;
     letter-spacing: .01em;
     border-radius: var(--radius);
-    background: var(--themeColoeOne);
+    background: var(--themeColorOne);
     color: var(--colorWhite) !important;
     border: none;
     cursor: pointer;
@@ -110,13 +140,13 @@ a {
     transition: background var(--t), box-shadow var(--t), transform var(--t);
 }
 
-/* Remove old iMart slide-in overlay */
+/* no slide-in overlay */
 .common_btn::after {
     content: none !important;
 }
 
 .common_btn:hover {
-    background: var(--themeColoeOneDark);
+    background: var(--themeColorOneDark);
     color: var(--colorWhite) !important;
     box-shadow: var(--shadow-md);
     transform: translateY(-1px);
@@ -156,7 +186,7 @@ a {
     background: var(--themeColorTwoDark);
 }
 
-/* Full-width inside sign-in — only the SUBMIT button, not password-toggle */
+/* Full-width inside sign-in - only the SUBMIT button, not password-toggle */
 .sign_in_form form button.common_btn,
 .sign_up .sign_in_form form button.common_btn,
 .forgot_password form button.common_btn {
@@ -167,7 +197,7 @@ a {
     border-radius: var(--radius);
 }
 
-/* ── 4. FORM INPUTS ── */
+/* form inputs */
 .single_input {
     position: relative;
     border: 1.5px solid var(--borderColor);
@@ -178,7 +208,7 @@ a {
 }
 
 .single_input:focus-within {
-    border-color: var(--themeColoeOne);
+    border-color: var(--themeColorOne);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
 }
 
@@ -198,7 +228,7 @@ a {
 }
 
 .single_input:focus-within label {
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
 }
 
 .single_input input,
@@ -206,7 +236,7 @@ a {
     border: none !important;
     background: transparent;
     font-family: var(--bodyFont);
-    font-size: 15px;
+    font-size: 16px;
     padding: 14px 16px;
     color: var(--colorBlack);
     width: 100%;
@@ -234,7 +264,7 @@ a {
     white-space: nowrap;
 }
 
-/* ── 5. PASSWORD TOGGLE ── */
+/* password toggle */
 .password-input-wrapper {
     position: relative;
 }
@@ -243,14 +273,13 @@ a {
     padding-right: 60px !important;
 }
 
-/* ★ FIX: Exclude password-toggle from the generic ".sign_in_form form button" rule
-   that sets width:100%. This is the root cause of the broken toggle button. */
+/* password-toggle opts out of the width:100% on .sign_in_form form button */
 .sign_in_form form button.password-toggle,
 .sign_up .sign_in_form form button.password-toggle,
 .forgot_password form button.password-toggle,
 .info_edit_form button.password-toggle,
 form button.password-toggle {
-    width: auto !important;
+    width: 40px !important;
     margin-top: 0 !important;
     background: none !important;
     box-shadow: none !important;
@@ -280,14 +309,14 @@ form button.password-toggle {
 }
 
 .password-toggle:hover {
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
     background: rgba(37, 99, 235, .10);
 }
 
 .password-toggle:focus-visible {
-    outline: 2px solid var(--themeColoeOne);
+    outline: 2px solid var(--themeColorOne);
     outline-offset: -2px;
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
 }
 
 /* Prevent the common_btn hover effects from leaking into the toggle */
@@ -310,9 +339,9 @@ form button.password-toggle {
     row-gap: 18px;
 }
 
-/* ── 6. SIGN-IN / AUTH FORMS ── */
+/* sign-in / auth forms */
 
-/* Or divider — uses real spans instead of pseudo-elements to avoid cascade conflicts */
+/* Or divider - uses real spans instead of pseudo-elements to avoid cascade conflicts */
 .or-divider {
     display: flex;
     align-items: center;
@@ -338,17 +367,17 @@ form button.password-toggle {
 /* Hide old p.or if still present elsewhere */
 .sign_in_form .or { display: none; }
 
-/* Lock auth form buttons to brand blue — body.default_home would override to orange */
+/* Lock auth form buttons to accent - body.default_home would override to orange */
 .sign_in_form form button.common_btn,
 .sign_up .sign_in_form form button.common_btn,
 .forgot_password form button.common_btn {
-    background: var(--themeColoeOne) !important;
+    background: var(--themeColorOne) !important;
 }
 
 .sign_in_form form button.common_btn:hover,
 .sign_up .sign_in_form form button.common_btn:hover,
 .forgot_password form button.common_btn:hover {
-    background: var(--themeColoeOneDark) !important;
+    background: var(--themeColorOneDark) !important;
 }
 
 .sign_in_form {
@@ -360,7 +389,7 @@ form button.password-toggle {
     border: 1px solid var(--borderColor);
 }
 
-.sign_in_form h3 {
+.sign_in_form h1 {
     font-size: 28px;
     font-weight: 700;
     text-align: center;
@@ -370,14 +399,14 @@ form button.password-toggle {
 }
 
 .sign_in_form .forgot a {
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
     font-weight: 500;
     font-size: 14px;
     transition: color var(--t);
 }
 
 .sign_in_form .forgot a:hover {
-    color: var(--themeColoeOneDark);
+    color: var(--themeColorOneDark);
 }
 
 .sign_in_form .dont_account {
@@ -388,7 +417,7 @@ form button.password-toggle {
 }
 
 .sign_in_form .dont_account a {
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
     font-weight: 600;
     font-size: 14px;
     font-family: var(--bodyFont);
@@ -411,7 +440,7 @@ form button.password-toggle {
     width: 42%;
 }
 
-/* Social login — i18n safe (flex, no fixed width) */
+/* Social login - i18n safe (flex, no fixed width) */
 .sign_in_form ul {
     display: flex;
     flex-wrap: wrap;
@@ -444,8 +473,8 @@ form button.password-toggle {
 
 .sign_in_form ul li a:hover {
     background: var(--colorWhite);
-    border-color: var(--themeColoeOne);
-    color: var(--themeColoeOne);
+    border-color: var(--themeColorOne);
+    color: var(--themeColorOne);
 }
 
 .sign_in_form ul li a span {
@@ -477,11 +506,7 @@ form button.password-toggle {
     color: #1877f2 !important;
 }
 
-.sign_in_form ul li a:hover .fa-twitter {
-    color: #1da1f2 !important;
-}
-
-/* ── 7. DASHBOARD SIDEBAR ── */
+/* dashboard sidebar */
 .dashboard_sidebar {
     box-shadow: var(--shadow-md);
     border-radius: var(--radius-lg);
@@ -501,7 +526,7 @@ form button.password-toggle {
 /* Gradient header for the user block */
 .dashboard_sidebar_user {
     padding: 28px 20px 20px;
-    background: linear-gradient(135deg, var(--themeColoeOne) 0%, var(--themeColoeOneDark) 100%);
+    background: linear-gradient(135deg, var(--themeColorOne) 0%, var(--themeColorOneDark) 100%);
     text-align: center;
 }
 
@@ -537,7 +562,7 @@ form button.password-toggle {
 .dashboard_sidebar_user .img label {
     background: var(--colorWhite);
     border: none;
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
     width: 26px;
     height: 26px;
     line-height: 26px;
@@ -603,7 +628,7 @@ form button.password-toggle {
 .dashboard_sidebar_menu ul li a.active,
 .dashboard_sidebar_menu ul li a:hover span,
 .dashboard_sidebar_menu ul li a.active span {
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
 }
 
 .dashboard_sidebar_menu ul li a:hover,
@@ -622,7 +647,7 @@ form button.password-toggle {
     display: none !important;
 }
 
-/* Dashboard content — reset mt_100 that was paired with the -70px sidebar hack */
+/* Dashboard content - reset mt_100 that was paired with the -70px sidebar hack */
 .dashboard .dashboard_content,
 .dashboard .dashboard_content.mt_100 {
     margin-top: 0 !important;
@@ -638,7 +663,7 @@ form button.password-toggle {
     letter-spacing: -.01em;
 }
 
-/* ── 8. DASHBOARD OVERVIEW CARDS ── */
+/* dashboard overview cards */
 .dashboard_overview_item {
     border-radius: var(--radius-lg) !important;
     border: 1px solid var(--borderColor);
@@ -656,7 +681,7 @@ form button.password-toggle {
     box-shadow: var(--shadow-sm);
 }
 
-/* ── 9. PRODUCT CARDS ── */
+/* product cards */
 .product_item {
     border-radius: var(--radius-lg);
     overflow: hidden;
@@ -682,15 +707,14 @@ form button.password-toggle {
     transform: translateY(-1px);
 }
 
-/* ── 10. HEADER ── */
+/* header */
 header.header_main {
     background: var(--colorWhite);
     box-shadow: var(--shadow-sm);
     border-bottom: 1px solid var(--borderColor);
 }
 
-/* Header is a fixed 90px in the base theme; let it grow instead of letting
-   its content spill over the nav bar below on tighter widths. */
+/* let the header grow instead of overflowing the nav */
 header.header_main,
 header.header_main .container,
 header.header_main .row {
@@ -698,9 +722,8 @@ header.header_main .row {
     min-height: 90px;
 }
 
-/* Between lg and xl the hotline + language + currency don't fit on one row and
-   wrap over the nav. Drop the (secondary) hotline there so the switchers fit. */
-@media (max-width: 1199.98px) {
+/* drop the secondary hotline between lg and xl */
+@media (max-width: 1199.98px){
     header.header_main .header_support {
         display: none !important;
     }
@@ -717,7 +740,7 @@ header.header_main form .input {
     flex: 1 1 auto;
 }
 
-/* Logo — prevent global img 100% height from distorting it */
+/* Logo - prevent global img 100% height from distorting it */
 .header_logo img,
 .header_logo_area img {
     height: auto !important;
@@ -738,7 +761,7 @@ header.header_main form .input {
     object-fit: contain !important;
 }
 
-/* ── 11. NAVIGATION ── */
+/* navigation */
 .menu_item li a {
     font-family: var(--bodyFont);
     font-weight: 500;
@@ -746,7 +769,7 @@ header.header_main form .input {
 }
 
 .menu_item li a:hover {
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
 }
 
 /* Push icon bar to the far right when ul.menu_item is removed */
@@ -758,32 +781,32 @@ header.header_main form .input {
     margin-left: auto !important;
 }
 
-/* ── 12. CART / CHECKOUT BUTTON ── */
+/* cart / checkout button */
 .cart_summary_btn .common_btn,
 .product_list_item .common_btn {
     white-space: nowrap;
 }
 
-/* ── 13. PAGINATION ── */
+/* pagination */
 .pagination_area .page-link {
     border-radius: var(--radius-sm);
     transition: background var(--t), color var(--t);
 }
 
 .pagination_area .page-link:focus {
-    outline: 2px solid var(--themeColoeOne);
+    outline: 2px solid var(--themeColorOne);
     outline-offset: 0;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
 }
 
 /* ── 14. MAIN_MENU ACTIVE INDICATOR ── */
 .menu_item li a:focus-visible {
-    outline: 2px solid var(--themeColoeOne);
+    outline: 2px solid var(--themeColorOne);
     outline-offset: 3px;
     border-radius: 3px;
 }
 
-/* ── 15. AUTOFILL ── */
+/* autofill */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
@@ -792,19 +815,19 @@ input:-webkit-autofill:focus {
     -webkit-text-fill-color: var(--colorBlack);
 }
 
-/* ── 16. ACCESSIBILITY ── */
+/* accessibility */
 :focus-visible {
-    outline: 2px solid var(--themeColoeOne);
+    outline: 2px solid var(--themeColorOne);
     outline-offset: 2px;
 }
 
 .form-check-input:focus {
-    border-color: var(--themeColoeOne);
+    border-color: var(--themeColorOne);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
 }
 
-/* ── 17. REDUCED MOTION ── */
-@media (prefers-reduced-motion: reduce) {
+/* reduced motion */
+@media (prefers-reduced-motion: reduce){
     *, *::before, *::after {
         animation-duration:       .01ms !important;
         animation-iteration-count: 1    !important;
@@ -813,7 +836,7 @@ input:-webkit-autofill:focus {
     }
 }
 
-/* ── 18. NICE-SELECT DROPDOWN FIX ── */
+/* nice-select dropdown fix */
 .nice-select {
     border-radius: var(--radius) !important;
     border: 1px solid var(--borderColor) !important;
@@ -834,7 +857,7 @@ input:-webkit-autofill:focus {
 .nice-select:active,
 .nice-select.open,
 .nice-select:focus {
-    border-color: var(--themeColoeOne) !important;
+    border-color: var(--themeColorOne) !important;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
 }
 
@@ -862,12 +885,12 @@ input:-webkit-autofill:focus {
 .nice-select .option.focus,
 .nice-select .option.selected.focus {
     background: rgba(37, 99, 235, .06);
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
 }
 
 .nice-select .option.selected {
     font-weight: 600;
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
 }
 
 .nice-select:after {
@@ -877,7 +900,7 @@ input:-webkit-autofill:focus {
     width: 6px;
 }
 
-/* ── 20. CURRENCY / LANGUAGE SELECT IN HEADER ── */
+/* currency / language select in header */
 .topbar_right .nice-select {
     height: 40px;
     line-height: 38px;
@@ -896,15 +919,7 @@ input:-webkit-autofill:focus {
     left: auto;
 }
 
-/* Mobile menu currency/language selects */
-.mobile_currency .nice-select {
-    width: 100%;
-    height: 38px;
-    line-height: 36px;
-    border-radius: var(--radius) !important;
-}
-
-/* ── 21. DASHBOARD PASSWORD FIELDS ── */
+/* dashboard password fields */
 /* Ensure dashboard form buttons don't break password toggle */
 .dashboard_profile_info_edit .password-toggle,
 .dashboard_change_password .password-toggle,
@@ -923,7 +938,7 @@ input:-webkit-autofill:focus {
     margin-bottom: 25px;
 }
 
-/* ── 22. MAP & ADDRESS FORM POLISH ── */
+/* map & address form polish */
 #boxMap {
     border-radius: var(--radius);
     border: 1px solid var(--borderColor);
@@ -941,7 +956,7 @@ input:-webkit-autofill:focus {
 }
 
 .input-group .form-control:focus {
-    border-color: var(--themeColoeOne);
+    border-color: var(--themeColorOne);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
 }
 
@@ -953,18 +968,18 @@ input:-webkit-autofill:focus {
     font-weight: 600;
     font-size: 14px;
     color: var(--colorWhite);
-    background: var(--themeColoeOne);
+    background: var(--themeColorOne);
     padding: 10px 20px;
     transition: background var(--t);
 }
 
 .input-group .btn-outline-secondary:hover {
-    background: var(--themeColoeOneDark);
-    border-color: var(--themeColoeOneDark);
+    background: var(--themeColorOneDark);
+    border-color: var(--themeColorOneDark);
     color: var(--colorWhite);
 }
 
-/* ── 23. CHECKOUT ADDRESS CARDS ── */
+/* checkout address cards */
 .checkout_single_address {
     border-radius: var(--radius-lg);
     border: 1.5px solid var(--borderColor);
@@ -972,11 +987,11 @@ input:-webkit-autofill:focus {
 }
 
 .checkout_single_address:has(.form-check-input:checked) {
-    border-color: var(--themeColoeOne);
+    border-color: var(--themeColorOne);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
 }
 
-/* ── 24. SELECT2 POLISH ── */
+/* select2 polish */
 .select2-container--default .select2-selection--single {
     border-radius: var(--radius) !important;
     border: 1.5px solid var(--borderColor) !important;
@@ -987,7 +1002,7 @@ input:-webkit-autofill:focus {
 }
 
 .select2-container--default.select2-container--open .select2-selection--single {
-    border-color: var(--themeColoeOne) !important;
+    border-color: var(--themeColorOne) !important;
 }
 
 .select2-dropdown {
@@ -1004,26 +1019,26 @@ input:-webkit-autofill:focus {
 
 .select2-results__option--highlighted[aria-selected] {
     background: rgba(37, 99, 235, .08) !important;
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
-/* ── 25. RESPONSIVE ── */
+/* responsive */
 
 /* Tablet */
-@media (max-width: 991px) {
+@media (max-width: 991px){
     .dashboard_sidebar {
         margin-bottom: 24px;
     }
 }
 
 /* Mobile */
-@media (max-width: 767px) {
+@media (max-width: 767px){
     .sign_in_form {
         padding: 32px 20px;
         border-radius: var(--radius-lg);
     }
 
-    .sign_in_form h3 {
+    .sign_in_form h1 {
         font-size: 22px;
     }
 
@@ -1048,7 +1063,7 @@ input:-webkit-autofill:focus {
 }
 
 /* Small mobile */
-@media (max-width: 479px) {
+@media (max-width: 479px){
     .sign_in_form {
         padding: 24px 16px;
     }
@@ -1058,7 +1073,7 @@ input:-webkit-autofill:focus {
     }
 }
 
-/* ── 21. VOICE SEARCH EFFECTS ── */
+/* voice search effects */
 header form .input .inner-voice {
     transition: color var(--t), transform var(--t);
     color: var(--paraColor);
@@ -1066,7 +1081,7 @@ header form .input .inner-voice {
 }
 
 header form .input .inner-voice:hover {
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
     transform: scale(1.15);
 }
 
@@ -1075,7 +1090,7 @@ header form .input .inner-voice.recording {
     animation: voicePulse 1.2s infinite ease-in-out;
 }
 
-@keyframes voicePulse {
+@keyframes voicePulse{
     0% {
         transform: scale(1);
         opacity: 1;
@@ -1090,7 +1105,7 @@ header form .input .inner-voice.recording {
     }
 }
 
-/* ── 23. UNIFIED HEADER FONT AWESOME ICONS ── */
+/* unified header font awesome icons */
 .menu_icon li a b {
     display: inline-flex !important;
     align-items: center !important;
@@ -1112,18 +1127,15 @@ header form .input .inner-voice.recording {
 }
 
 .menu_icon li a:hover b {
-    border-color: var(--themeColoeOne) !important;
+    border-color: var(--themeColorOne) !important;
     background: rgba(37, 99, 235, 0.05) !important;
 }
 
 .menu_icon li a:hover b i {
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
-/* Account dropdown — a standard left-aligned icon+label menu. Every row is the
-   same height, the icon sits in one fixed-width column, and all labels start at
-   the same x. Left-aligned (not centered) is the convention for menus: it gives
-   the eye one edge to scan and stops variable-length labels from shifting. */
+/* account dropdown: fixed icon column, left-aligned labels */
 .menu_icon li .user_dropdown {
     padding: 8px !important;
     line-height: normal !important;
@@ -1145,8 +1157,7 @@ header form .input .inner-voice.recording {
     transition: background var(--t), color var(--t) !important;
 }
 
-/* Icon lives in a fixed 20px grid track and is centred in it, so the label
-   column always starts at the same x no matter how wide the glyph draws. */
+/* icon centred in a fixed track */
 .menu_icon li .user_dropdown li a > i,
 .menu_icon li .user_dropdown li a > svg {
     grid-column: 1 !important;
@@ -1165,7 +1176,7 @@ header form .input .inner-voice.recording {
 
 .menu_icon li .user_dropdown li a:hover > i,
 .menu_icon li .user_dropdown li a:hover > svg {
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
 /* Category menu bar Font Awesome icon spacing */
@@ -1197,7 +1208,7 @@ header form .input .inner-voice.recording {
     color: var(--colorBlack) !important;
 }
 
-/* ── 24. UNIFIED FOOTER PAYMENT FONT AWESOME ICONS ── */
+/* unified footer payment font awesome icons */
 .footer_copyright .payment li {
     width: 42px !important;
     height: 28px !important;
@@ -1220,11 +1231,11 @@ header form .input .inner-voice.recording {
 
 .footer_copyright .payment li:hover {
     background: var(--colorWhite) !important;
-    border-color: var(--themeColoeOne) !important;
+    border-color: var(--themeColorOne) !important;
 }
 
 .footer_copyright .payment li:hover i {
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
 .footer_copyright .payment li:first-child {
@@ -1236,7 +1247,7 @@ header form .input .inner-voice.recording {
     color: #94a3b8 !important;
 }
 
-/* ── 26. HIGH-FIDELITY PREMIUM DARK FOOTER (INNOVATION STYLE) ── */
+/* ── 26. dark footer ── */
 .footer_main {
     background: #0B0F19 !important;
     border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -1349,9 +1360,9 @@ header form .input .inner-voice.recording {
 .flash_sell_slider .prevArrow:hover,
 .flash_sell .nextArrow:hover,
 .flash_sell .prevArrow:hover {
-    background: #0057B7 !important;
+    background: var(--gold) !important;
     color: #FFFFFF !important;
-    border-color: #0057B7 !important;
+    border-color: var(--gold) !important;
     transform: translateY(-50%) scale(1.06) !important;
 }
 
@@ -1377,7 +1388,8 @@ header form .input .inner-voice.recording {
 
 .banner_slider .slick-dots li {
     margin: 0 !important;
-    display: inline-block !important;
+    width: 44px !important; height: 44px !important;
+    display: inline-flex !important; align-items: center !important; justify-content: center !important;
 }
 
 .banner_slider .slick-dots li button {
@@ -1403,7 +1415,7 @@ header form .input .inner-voice.recording {
 .banner_slider .slick-dots li button:hover {
     width: 28px !important;
     border-radius: 6px !important;
-    background: #0057B7 !important;
+    background: var(--gold) !important;
 }
 
 /* Symmetric Hero Banner Cards */
@@ -1417,9 +1429,8 @@ header form .input .inner-voice.recording {
     width: 100% !important;
 }
 
-/* Below lg the banner columns lose their grid padding — restore a side
-   gutter so the hero/side cards don't run edge-to-edge on tablet/mobile. */
-@media (max-width: 991.98px) {
+/* restore the hero side gutter below lg */
+@media (max-width: 991.98px){
     .banner_slider_2,
     .banner_add {
         width: auto !important;
@@ -1428,8 +1439,7 @@ header form .input .inner-voice.recording {
     }
 }
 
-/* Guard against a transient horizontal scroll while Slick re-measures the
-   hero slides on load. */
+/* avoid transient h-scroll while Slick re-measures */
 .banner_main {
     overflow-x: hidden;
 }
@@ -1461,20 +1471,6 @@ header form .input .inner-voice.recording {
     color: #FFFFFF !important;
 }
 
-.footer_main .footer_logo_area ul li a .fa-twitter:hover,
-.footer_main .footer_logo_area ul li a:has(.fa-twitter):hover {
-    background: #1DA1F2 !important;
-    border-color: #1DA1F2 !important;
-    color: #FFFFFF !important;
-}
-
-.footer_main .footer_logo_area ul li a .fa-google-plus-g:hover,
-.footer_main .footer_logo_area ul li a:has(.fa-google-plus-g):hover {
-    background: #DB4437 !important;
-    border-color: #DB4437 !important;
-    color: #FFFFFF !important;
-}
-
 .footer_main .footer_logo_area ul li a .fa-linkedin-in:hover,
 .footer_main .footer_logo_area ul li a:has(.fa-linkedin-in):hover {
     background: #0A66C2 !important;
@@ -1483,7 +1479,7 @@ header form .input .inner-voice.recording {
 }
 
 /* Links Columns */
-.footer_link h3 {
+.footer_link h2 {
     color: #FFFFFF !important;
     font-size: 18px !important;
     font-weight: 600 !important;
@@ -1492,7 +1488,7 @@ header form .input .inner-voice.recording {
     margin-bottom: 24px !important;
 }
 
-.footer_link h3::after {
+.footer_link h2::after {
     content: "" !important;
     position: absolute;
     left: 0;
@@ -1543,7 +1539,7 @@ header form .input .inner-voice.recording {
 }
 
 .footer_logo_area span b i {
-    color: var(--themeColorTwo) !important; /* Gold icons */
+    color: var(--themeColorTwo) !important; 
     font-size: 16px !important;
 }
 
@@ -1570,7 +1566,7 @@ header form .input .inner-voice.recording {
 }
 
 .footer_copyright p b {
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
     font-weight: 600;
 }
 
@@ -1614,7 +1610,7 @@ header form .input .inner-voice.recording {
     color: var(--themeColorTwo) !important;
 }
 
-/* ── Skip-to-main ── */
+/* skip-to-main */
 .skip-to-main {
     position: absolute;
     top: -100%;
@@ -1635,7 +1631,7 @@ header form .input .inner-voice.recording {
     outline-offset: 2px;
 }
 
-/* ── Loading Button State ── */
+/* loading button state */
 .common_btn[data-loading="true"],
 .btn[data-loading="true"] {
     pointer-events: none;
@@ -1655,11 +1651,11 @@ header form .input .inner-voice.recording {
     margin-left: 8px;
     vertical-align: -2px;
 }
-@keyframes btn-spin {
+@keyframes btn-spin{
     to { transform: rotate(360deg); }
 }
 
-/* ── Form Field Error State ── */
+/* form field error state */
 .single_input.is-invalid input,
 .single_input.is-invalid textarea,
 .single_input.is-invalid select {
@@ -1683,36 +1679,15 @@ header form .input .inner-voice.recording {
     white-space: nowrap;
     animation: fade-in .15s ease;
 }
-@keyframes fade-in {
+@keyframes fade-in{
     from { opacity: 0; transform: translateY(-4px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Toast Notification Accessibility ── */
-.toast-notification {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    z-index: 9999;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    background: #1e293b;
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(0,0,0,.18);
-    animation: toast-in .25s ease;
-}
-.toast-notification.success { background: #166534; }
-.toast-notification.error   { background: #9b1c1c; }
-@keyframes toast-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Avatar initials — same style as admin chat */
+/* avatar initials */
 .avatar-initials {
-    background: linear-gradient(135deg, #22c5ad 0%, #7367f0 100%);
+    background: var(--ink) !important;
+    color: #fff;
     font-weight: 700;
     letter-spacing: .5px;
 }
@@ -1723,9 +1698,8 @@ header form .input .inner-voice.recording {
     width: 100%; height: 100%; font-size: 22px;
 }
 
-/* ── 27. FEATURES — vertically center icon + equal-height row ── */
-/* Root cause: .icon has position:absolute;left:-45px but no top value → sits at top of card.
-   Fix: top:50% + translateY(-50%) centers it. Flex on columns ensures all cards stretch equally. */
+/* features */
+/* centre the absolutely-positioned .icon; stretch columns to equal height */
 .features [class*="col-"] {
     display: flex;
     align-items: stretch;
@@ -1745,9 +1719,8 @@ header form .input .inner-voice.recording {
     justify-content: center !important;
 }
 
-/* ── 28. CATEGORY 2 — circular images with object-fit:contain ── */
-/* Root cause: global img { object-fit:cover !important } in style.css overrides all inline styles.
-   This rule has higher specificity AND !important so it wins. */
+/* category 2 */
+/* beat style.css global img{object-fit:cover!important} with specificity + !important */
 .category_area .category_item .img {
     padding: 0 !important;   /* theme sets padding:40px which shrinks image area to 90x90 */
     border-radius: 50% !important;
@@ -1786,7 +1759,7 @@ header form .input .inner-voice.recording {
     margin: 0 !important;
 }
 
-/* ── 28. TRENDING — equal height cards ── */
+/* trending */
 .trending_product_2 [class*="col-"] {
     display: flex;
     align-items: stretch;
@@ -1802,17 +1775,15 @@ header form .input .inner-voice.recording {
     flex: 1;
 }
 
-/* ── 29. SECTION HEADINGS — uniform bold + uniform font for all sections ── */
-.section_heading h3,
-.section_heading h3,
-.section_heading h3 span,
-.section_heading h3 span {
+/* section headings */
+.section_heading h2,
+.section_heading h2 span {
     font-family: var(--headingFont) !important;
     font-weight: 700 !important;
     letter-spacing: -0.02em;
 }
 
-/* ── 28. VIEW ALL BUTTON — underline scoped to text only, not arrow padding ── */
+/* view all button */
 .view_all_btn_area .view_all_btn {
     border-bottom: none;
     text-decoration: underline;
@@ -1823,175 +1794,44 @@ header form .input .inner-voice.recording {
 
 .view_all_btn_area .view_all_btn:hover {
     border-bottom: none;
-    text-decoration-color: var(--themeColoeOne);
+    text-decoration-color: var(--themeColorOne);
 }
 
 .view_all_btn_area .view_all_btn i {
     text-decoration: none;
 }
 
-/* ── 30. DESKTOP NAV — Product Categories bar & dropdowns ── */
-
-/* Category bar: override yellow (themeColorTwo) → brand blue */
-.main_menu_2 .menu_category_bar,
-.menu_category_bar {
-    background: var(--themeColoeOne) !important;
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
-}
-
-.menu_category_bar p {
-    font-weight: 600 !important;
-    font-size: 14px !important;
-    letter-spacing: .01em;
-}
-
-/* Category panel drop-down: tighten items, cleaner borders */
-.menu_cat_item {
-    border: 1px solid var(--borderColor) !important;
-    border-top: none !important;
-    border-radius: 0 0 var(--radius) var(--radius) !important;
-    box-shadow: var(--shadow-md) !important;
-    /* no overflow:hidden — fly-out .menu_cat_droapdown is positioned outside this panel */
-}
-
-.menu_cat_item li a {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 10px 14px !important;
-    font-size: 13.5px !important;
-    border-bottom: 1px solid var(--borderColor) !important;
-    transition: background var(--t), color var(--t), padding-left var(--t) !important;
-    position: relative !important;
-    text-decoration: none !important;
-}
-
-.menu_cat_item li a::after {
-    display: none !important;
-    content: none !important;
-}
-
-.menu_cat_item li a i {
-    font-size: 11px !important;
-    color: #94A3B8 !important;
-    margin-left: auto !important;
-    transition: transform var(--t), color var(--t) !important;
-}
-
+/* desktop nav - category panel structure only
+   (colours + typography live in the "Category menu" block near EOF) */
+.menu_cat_item li a { position: relative !important; text-decoration: none !important; }
+.menu_cat_item li a::after { display: none !important; content: none !important; }
+.menu_cat_item li a i { margin-left: auto !important; }
 .menu_cat_item li a span.cat_icon,
 .menu_cat_item li a span:has(img) {
     display: inline-flex !important;
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 6px !important;
-    background: var(--lightBg2, #f1f5f9) !important;
-    padding: 3px !important;
-    margin-right: 10px !important;
-    flex-shrink: 0 !important;
+    width: 28px !important; height: 28px !important;
+    padding: 3px !important; margin-right: 10px !important; flex-shrink: 0 !important;
 }
-
 .menu_cat_item li a span:not(.cat_icon):not(:has(img)) {
-    width: auto !important;
-    height: auto !important;
-    background: transparent !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: visible !important;
-    border-radius: 0 !important;
-    display: inline !important;
+    width: auto !important; height: auto !important; background: transparent !important;
+    padding: 0 !important; margin: 0 !important; overflow: visible !important; display: inline !important;
 }
 
-.menu_cat_item > li:hover > a {
-    padding-left: 18px !important;
-    background: rgba(0, 87, 183, 0.05) !important;
-    color: var(--themeColoeOne) !important;
-}
-
-.menu_cat_item > li:hover > a span.cat_icon {
-    background: rgba(0, 87, 183, 0.12) !important;
-}
-
-/* Fly-out Submenu Dropdown for Categories */
+/* fly-out submenu: positioning + reveal */
 .menu_cat_droapdown {
     width: 250px !important;
-    background: #FFFFFF !important;
-    position: absolute !important;
-    z-index: 9999 !important;
-    top: 0 !important;
-    left: 100% !important;
-    padding: 6px 0 !important;
-    border-radius: 8px !important;
-    border: 1px solid #E2E8F0 !important;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    transition: all 0.2s ease-in-out !important;
+    position: absolute !important; z-index: 9999 !important;
+    top: 0 !important; left: 100% !important;
+    opacity: 0 !important; visibility: hidden !important; pointer-events: none !important;
+    transition: opacity .2s ease, visibility .2s ease !important;
 }
-
 .menu_cat_item li:hover > .menu_cat_droapdown {
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
+    opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
 }
 
-.menu_cat_droapdown li a {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 10px 16px !important;
-    font-size: 13.5px !important;
-    font-weight: 500 !important;
-    color: #334155 !important;
-    border-bottom: 1px solid #F1F5F9 !important;
-    transition: all 0.2s ease !important;
-}
-
-.menu_cat_droapdown li:last-child a {
-    border-bottom: none !important;
-}
-
-.menu_cat_droapdown li:hover > a {
-    background: rgba(0, 87, 183, 0.06) !important;
-    color: #0057B7 !important;
-    padding-left: 20px !important;
-}
-
-/* "View All" — sticky CTA pinned to bottom of category panel */
-.menu_cat_item li.all_category {
-    position: sticky;
-    bottom: 0;
-    background: var(--colorWhite);
-    z-index: 1;
-}
-
-.menu_cat_item li.all_category a {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 10px 14px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    color: var(--themeColoeOne) !important;
-    background: rgba(0, 87, 183, 0.05) !important;
-    border-top: 2px solid rgba(0, 87, 183, 0.15) !important;
-    border-radius: 0 !important;
-    transition: background var(--t) !important;
-}
-
-.menu_cat_item li.all_category a:hover {
-    background: rgba(0, 87, 183, 0.10) !important;
-}
-
-.menu_cat_item li.all_category a i {
-    font-size: 12px !important;
-    margin-left: 6px !important;
-    transition: transform var(--t) !important;
-}
-
-.menu_cat_item li.all_category a:hover i {
-    transform: translateX(3px) !important;
-}
+/* "View All" - sticky at the bottom of the panel */
+.menu_cat_item li.all_category { position: sticky; bottom: 0; z-index: 1; }
+.menu_cat_item li.all_category a:hover i { transform: translateX(3px) !important; }
 
 /* Products / Articles hover dropdowns */
 .menu_droapdown {
@@ -2000,7 +1840,7 @@ header form .input .inner-voice.recording {
     box-shadow: var(--shadow-md) !important;
     padding: 6px 0 !important;
     top: 110% !important;
-    /* no overflow:hidden — child .menu_droapdown2 fly-outs position outside this panel */
+    /* no overflow:hidden - child .menu_droapdown2 fly-outs position outside this panel */
 }
 
 .menu_droapdown > li > a {
@@ -2013,25 +1853,25 @@ header form .input .inner-voice.recording {
 .menu_droapdown > li:hover > a,
 .main_menu_2 .menu_droapdown > li:hover > a,
 .menu_droapdown > li .active {
-    color: var(--themeColoeOne) !important;
-    background: rgba(0, 87, 183, 0.05) !important;
+    color: var(--themeColorOne) !important;
+    background: rgba(161, 98, 7, 0.05) !important;
     padding-left: 28px !important;
 }
 
-/* Hover indicator dot: use brand blue */
+/* Hover indicator dot */
 .main_menu_2 .menu_droapdown > li > a::after {
-    background: var(--themeColoeOne) !important;
+    background: var(--themeColorOne) !important;
 }
 
-/* Main nav link hover/active: override yellow → blue */
+/* Main nav link hover/active: override yellow */
 .main_menu_2 .menu_item > li:hover > a,
 .main_menu_2 .menu_item li a.active {
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
-/* ── 31. MOBILE OFFCANVAS MENU POLISH ── */
+/* mobile offcanvas menu polish */
 
-/* Tab buttons — Categories / Menu */
+/* Tab buttons - Categories / Menu */
 .mobile_menu_item_area .nav .nav-item button {
     font-size: 14px !important;
     font-weight: 600 !important;
@@ -2043,7 +1883,7 @@ header form .input .inner-voice.recording {
 .mobile_menu_item_area .nav .nav-item button:hover,
 .mobile_menu_item_area .nav .nav-item button.active {
     color: var(--colorWhite) !important;
-    background: var(--themeColoeOne) !important;
+    background: var(--themeColorOne) !important;
 }
 
 /* Mobile menu items: lift color + font */
@@ -2055,7 +1895,7 @@ header form .input .inner-voice.recording {
 
 .main_mobile_menu li:hover > a,
 .main_mobile_menu li.active > a {
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
 /* Sub-items: visually lighter */
@@ -2067,7 +1907,7 @@ header form .input .inner-voice.recording {
 }
 
 .main_mobile_menu .inner_menu li:hover > a {
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
 /* Mobile icon header: align icons evenly */
@@ -2082,7 +1922,7 @@ header form .input .inner-voice.recording {
     font-size: 16px;
 }
 
-/* ── 32. MOBILE ACCORDION — admin-style chevron (click-to-toggle, one-at-a-time) ── */
+/* mobile accordion */
 
 /* Hide old plus/minus image indicators */
 .main_mobile_menu .mobile_dropdown::after,
@@ -2111,12 +1951,12 @@ header form .input .inner-voice.recording {
 /* Rotate chevron and highlight when open */
 .main_mobile_menu .mobile_dropdown.active > a .accordion-chevron {
     transform: rotate(90deg) !important;
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
-/* Active parent link: brand blue */
+/* Active parent link: accent */
 .main_mobile_menu .mobile_dropdown.active > a {
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
 /* Submenu indent */
@@ -2124,9 +1964,8 @@ header form .input .inner-voice.recording {
     padding-left: 12px !important;
 }
 
-/* ── 33. PRODUCT CARD — price layout: new price + old price wrap cleanly ── */
-/* Structure: <p class="price">text-node VND<del>old VND</del></p>
-   Both are flex items. When space is tight, <del> wraps to the next line. */
+/* product card */
+/* price + old price wrap cleanly as flex items */
 .product_item .price,
 .product_item_2 .price {
     display: flex !important;
@@ -2143,7 +1982,7 @@ header form .input .inner-voice.recording {
     flex-shrink: 0 !important;
 }
 
-/* Title: 2-line clamp (user confirmed title can truncate, price cannot) */
+/* title: 2-line clamp */
 .product_item .title,
 .product_item_2 .title {
     display: -webkit-box !important;
@@ -2153,7 +1992,7 @@ header form .input .inner-voice.recording {
     white-space: normal !important;
 }
 
-/* ── 34. WISHLIST BUTTONS — hierarchy: primary Add to Cart vs ghost Delete ── */
+/* wishlist buttons */
 .wishlist_page .cart_page_action {
     display: flex;
     flex-direction: column;
@@ -2161,7 +2000,7 @@ header form .input .inner-voice.recording {
     align-items: flex-start;
 }
 
-/* Delete button: smaller ghost/outline — visually subordinate to Add to Cart */
+/* Delete button: smaller ghost/outline - visually subordinate to Add to Cart */
 .wishlist_page .cart_page_action a.remove.common_btn {
     background: transparent !important;
     color: var(--colorRed) !important;
@@ -2180,7 +2019,7 @@ header form .input .inner-voice.recording {
     box-shadow: var(--shadow-sm) !important;
 }
 
-/* ── 35. SHOP / CATEGORY PAGE — equal-height cards & filter sidebar polish ── */
+/* shop / category page */
 
 /* Equal-height cards at ALL breakpoints (col-6 mobile through col-xxl-3 desktop) */
 .shop_page #nav-home .row {
@@ -2206,7 +2045,7 @@ header form .input .inner-voice.recording {
     flex-direction: column !important;
 }
 
-/* Filter sidebar — card container */
+/* Filter sidebar - card container */
 #sticky_sidebar {
     background: var(--colorWhite) !important;
     border: 1px solid var(--borderColor) !important;
@@ -2216,7 +2055,7 @@ header form .input .inner-voice.recording {
 }
 
 /* Filter section headings */
-.shop_filter_area h3 {
+.shop_filter_area h2 {
     font-family: var(--headingFont) !important;
     font-size: 14px !important;
     font-weight: 700 !important;
@@ -2245,12 +2084,12 @@ header form .input .inner-voice.recording {
     color: var(--colorBlack) !important;
 }
 
-/* Checkboxes: brand blue when checked */
+/* Checkboxes: accent when checked */
 .sidebar_status .form-check-input:checked,
 .sidebar_rating .form-check-input:checked,
 .sidebar_color .form-check-input:checked {
-    background-color: var(--themeColoeOne) !important;
-    border-color: var(--themeColoeOne) !important;
+    background-color: var(--themeColorOne) !important;
+    border-color: var(--themeColorOne) !important;
 }
 
 /* Category links */
@@ -2263,12 +2102,12 @@ header form .input .inner-voice.recording {
 
 .sidebar_category ul li a:hover,
 .sidebar_category ul li a.active {
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
 }
 
-/* Mobile filter button: brand blue instead of yellow */
+/* Mobile filter button: accent */
 .shop_filter_btn {
-    background: var(--themeColoeOne) !important;
+    background: var(--themeColorOne) !important;
     color: var(--colorWhite) !important;
     border-radius: var(--radius) !important;
     font-size: 15px !important;
@@ -2276,7 +2115,7 @@ header form .input .inner-voice.recording {
 }
 
 /* Gap between filter sidebar and product grid on desktop */
-@media (min-width: 992px) {
+@media (min-width: 992px){
     .shop_page .col-lg-8,
     .shop_page .col-xl-9,
     .shop_page .col-xxl-9 {
@@ -2327,7 +2166,7 @@ header form .input .inner-voice.recording {
 .sidebar_related_product .text .price {
     font-size: 12px !important;
     font-weight: 600 !important;
-    color: var(--themeColoeOne) !important;
+    color: var(--themeColorOne) !important;
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 2px 4px !important;
@@ -2402,7 +2241,7 @@ header form .input .inner-voice.recording {
     justify-content: space-between !important;
 }
 
-/* ── 32. TRENDING PRODUCTS BACKGROUND & TABS FIX ── */
+/* trending products background & tabs fix */
 .trending_product_2 .pws_tabs_list {
     background-color: transparent !important;
 }
@@ -2434,18 +2273,18 @@ header form .input .inner-voice.recording {
 }
 
 .error_text a.common_btn {
-    background: var(--themeColoeOne) !important;
+    background: var(--themeColorOne) !important;
     color: var(--colorWhite) !important;
 }
 
 .error_text a.common_btn:hover {
-    background: var(--themeColoeOneDark) !important;
+    background: var(--themeColorOneDark) !important;
     color: var(--colorWhite) !important;
 }
 
-/* ── 35. RESPONSIVE SYMMETRY FOR Custom 5-COLUMN GRID ── */
+/* responsive symmetry for custom 5-column grid */
 /* 5 columns per row on screens 1400px and up */
-@media (min-width: 1400px) {
+@media (min-width: 1400px){
     .col-xl-1-5 {
         width: 20% !important;
         flex: 0 0 20% !important;
@@ -2453,7 +2292,7 @@ header form .input .inner-voice.recording {
     }
 }
 /* 4 columns per row on screens 1200px - 1399px */
-@media (min-width: 1200px) and (max-width: 1399px) {
+@media (min-width: 1200px) and (max-width: 1399px){
     .col-xl-1-5 {
         width: 25% !important;
         flex: 0 0 25% !important;
@@ -2461,7 +2300,7 @@ header form .input .inner-voice.recording {
     }
 }
 
-/* ── 36. CLS PREVENTION — Reserve image space before load ── */
+/* cls prevention */
 .product_img {
     display: block;
     aspect-ratio: 1 / 1;
@@ -2505,23 +2344,19 @@ header form .input .inner-voice.recording {
     object-fit: cover !important;
 }
 
-/* ── 37. TABULAR NUMERALS — Prevent price column width jitter ── */
-/* font-variant-numeric: tabular-nums ensures all digits have equal width
-   so prices don't cause surrounding text to shift as they render. */
+/* tabular numerals */
+/* tabular figures so prices do not shift text */
 .price,
 .price span,
 .price del,
 .cart_page_price h3,
-.product_text .price,
-.order_item_price,
-.checkout_summary_price {
+.product_text .price {
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
 }
 
-/* ── 38. ARIA LIVE REGION — Screen reader toast announcements ── */
-/* Visually hidden but readable by screen readers.
-   JS writes toast text here so assistive tech hears it. */
+/* aria live region */
+/* visually hidden, screen-reader only */
 .sr-only-live {
     position: absolute !important;
     width: 1px !important;
@@ -2534,9 +2369,9 @@ header form .input .inner-voice.recording {
     border: 0 !important;
 }
 
-/* ── 39. CONTACT PAGE ── */
+/* contact page */
 .contact-section-title {
-    color: var(--themeColoeOne);
+    color: var(--themeColorOne);
     font-weight: 700;
     margin-bottom: 24px;
     font-size: clamp(20px, 3vw, 28px);
@@ -2546,45 +2381,7 @@ header form .input .inner-voice.recording {
     margin-top: 24px;
 }
 
-.contact-info-item {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 20px;
-}
-
-.contact-info-item .contact-icon {
-    color: var(--themeColorTwo);
-    font-size: 20px;
-    margin-right: 16px;
-    margin-top: 3px;
-    flex-shrink: 0;
-    width: 24px;
-    text-align: center;
-}
-
-.contact-info-item h6 {
-    font-weight: 600;
-    margin-bottom: 4px;
-    font-size: 15px;
-}
-
-.contact-info-item p,
-.contact-info-item a {
-    color: var(--paraColor);
-    margin: 0;
-    font-size: 14px;
-}
-
-.contact-info-item a {
-    color: var(--themeColoeOne);
-    transition: color var(--t);
-}
-
-.contact-info-item a:hover {
-    color: var(--themeColoeOneDark);
-}
-
-/* ── 40. READONLY / DISABLED INPUT DISTINCTION ── */
+/* readonly / disabled input distinction */
 /* Readonly inputs look visually different from editable ones */
 input[readonly],
 textarea[readonly] {
@@ -2602,35 +2399,7 @@ button[disabled] {
     pointer-events: none !important;
 }
 
-/* ── 41. EMPTY STATE ── */
-.empty-state {
-    text-align: center;
-    padding: 60px 24px;
-    color: var(--paraColor);
-}
-
-.empty-state .empty-state-icon {
-    font-size: 48px;
-    color: var(--borderColor);
-    margin-bottom: 16px;
-    display: block;
-}
-
-.empty-state h4 {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--colorBlack);
-    margin-bottom: 8px;
-}
-
-.empty-state p {
-    font-size: 14px;
-    max-width: 320px;
-    margin: 0 auto 20px;
-    line-height: 1.6;
-}
-
-/* ── 42. CURSOR POINTER — missing interactive elements ── */
+/* cursor pointer */
 .btn_list li a,
 .details_list_btn li a,
 .details_variant_color li,
@@ -2648,12 +2417,12 @@ button[disabled] {
     cursor: pointer !important;
 }
 
-/* ── 43. BLOG FORM INPUT — use single_input styles for blog comment form ── */
+/* blog form input */
 .blog_details_comment_input .single_input {
     margin-top: 20px;
 }
 
-/* ── 44. PRODUCT DETAIL SHARE BUTTONS ── */
+/* product detail share buttons */
 .shop_details_shate li a {
     display: inline-flex;
     align-items: center;
@@ -2662,7 +2431,7 @@ button[disabled] {
     cursor: pointer;
 }
 
-/* ── 45. TOUCH TARGET MINIMUM for product variant selectors ── */
+/* touch target minimum for product variant selectors */
 .details_variant_color li {
     min-width: 32px;
     min-height: 32px;
@@ -2681,7 +2450,7 @@ button[disabled] {
     transition: background var(--t), color var(--t), border-color var(--t);
 }
 
-/* ── 46. FAQ PAGE — token-based accordion styling ── */
+/* faq page */
 .faq-item {
     margin-bottom: 12px;
     border: 1px solid var(--borderColor);
@@ -2695,7 +2464,7 @@ button[disabled] {
     font-size: 15px;
 }
 
-/* ── 47. PROGRESS WRAP / SCROLL-TO-TOP ── */
+/* progress wrap / scroll-to-top */
 /* Converted from div to button so it's keyboard-accessible */
 .progress-wrap {
     background: none;
@@ -2705,12 +2474,12 @@ button[disabled] {
 }
 
 .progress-wrap:focus-visible {
-    outline: 3px solid var(--themeColoeOne);
+    outline: 3px solid var(--themeColorOne);
     outline-offset: 3px;
     border-radius: 50%;
 }
 
-/* ── 48. SUBSCRIPTION FORM ── */
+/* subscription form */
 .subscription_form .visually-hidden {
     position: absolute !important;
     width: 1px !important;
@@ -2723,21 +2492,21 @@ button[disabled] {
     border: 0 !important;
 }
 
-/* ── 49. PRODUCT DETAIL SHARE BUTTONS — aria + focus ── */
+/* product detail share buttons */
 .shop_details_shate li a:focus-visible {
-    outline: 2px solid var(--themeColoeOne);
+    outline: 2px solid var(--themeColorOne);
     outline-offset: 3px;
     border-radius: var(--radius-sm);
 }
 
-/* ── 50. MODAL CLOSE BUTTON — prevent duplicate X icon ── */
-/* Bootstrap btn-close already renders the × via CSS background-image;
-   the <i> inside is purely decorative — hide it */
+/* modal close button */
+.btn-close { width: 44px !important; height: 44px !important; padding: 12px !important; background-size: 16px !important; }
+/* hide the decorative <i>; btn-close draws its own X */
 .btn-close i {
     display: none !important;
 }
 
-/* ── 51. WISHLIST/COMPARE/CART ICON LINKS — 44px min touch target ── */
+/* wishlist/compare/cart icon links */
 .menu_icon li a,
 .mobile_menu_header li a {
     min-width: 44px;
@@ -2747,9 +2516,8 @@ button[disabled] {
     justify-content: center;
 }
 
-/* ── 52. FLASH SALE / TRENDING PRODUCT — consistent card sizing ── */
-/* style.css set margin:0 12px on .flash_sell .product_item globally;
-   that breaks grid-mode cards. Reset to 0 and re-apply only inside Slick slides. */
+/* flash sale / trending product */
+/* reset the global card margin; re-apply inside slick slides only */
 .flash_sell .product_item {
     margin: 0;
 }
@@ -2762,20 +2530,20 @@ button[disabled] {
     padding: 12px 0;
 }
 
-/* ── PRINT: order detail page ── */
-@media print {
+/* print: order detail page */
+@media print{
   * { animation: none !important; transition: none !important; }
   html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
 
-  /* Flatten Bootstrap grid — must come before specific hide rules */
-  .container, .container-fluid { max-width: 100% !important; width: 100% !important; padding: 0 12px !important; margin: 0 !important; }
+  /* Flatten Bootstrap grid - must come before specific hide rules */
+  .container { max-width: 100% !important; width: 100% !important; padding: 0 12px !important; margin: 0 !important; }
   .row { display: block !important; margin: 0 !important; }
   [class*="col-"] { display: block !important; width: 100% !important; max-width: 100% !important; flex: none !important; padding: 0 !important; float: none !important; }
 
   /* Stop wow animations without hiding */
   .wow { visibility: visible !important; animation-name: none !important; }
 
-  /* Hide non-invoice elements — must come AFTER flatten rules to win */
+  /* Hide non-invoice elements - must come AFTER flatten rules to win */
   .header_main,
   .footer_main,
   .page_banner,
@@ -2796,7 +2564,7 @@ button[disabled] {
   .dashboard_order_invoice_area { padding: 0 !important; }
 }
 
-/* ── Inline Message Stream Typing Bubble (Client & Admin) ── */
+/* inline message stream typing bubble (client & admin) */
 #chat-body .chat-typing-indicator,
 .chat-detail .admin-chat-typing-indicator {
   display: none;
@@ -2822,7 +2590,7 @@ button[disabled] {
 .chat-detail .admin-chat-typing-indicator span {
   width: 6px !important;
   height: 6px !important;
-  background: #0057B7 !important;
+  background: var(--gold) !important;
   border-radius: 50% !important;
   animation: typing-bounce 0.9s infinite ease-in-out !important;
 }
@@ -2835,4 +2603,1474 @@ button[disabled] {
 #chat-body .chat-typing-indicator span:nth-child(3),
 .chat-detail .admin-chat-typing-indicator span:nth-child(3) {
   animation-delay: 0.3s !important;
+}
+
+/* Component overrides, appended last. */
+
+/* ---- Base ---- */
+body, body.default_home {
+    background: var(--paper) !important;
+    color: var(--ink) !important;
+    font-family: var(--bodyFont);
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: .01em;
+}
+::selection { background: var(--ink); color: var(--surface); }
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--headingFont) !important;
+    color: var(--ink-2) !important;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.15;
+}
+h1 { font-weight: 500; }
+p { color: var(--muted); }
+
+a { color: var(--ink); transition: color var(--t-fast), opacity var(--t-fast); }
+a:hover { color: var(--gold); }
+
+:focus-visible { outline: 2px solid var(--gold) !important; outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce){
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    .product_item:hover img, .product_item_2:hover img,
+    .category_item:hover img { transform: none !important; }
+}
+
+/* small uppercase tracked label - used widely below */
+.section_heading h2 span,
+.view_all_btn,
+.banner_eyebrow,
+.discount_list li {
+    font-family: var(--bodyFont) !important;
+    text-transform: uppercase;
+    letter-spacing: .22em;
+    font-weight: 500;
+    font-size: 11px;
+}
+
+/* ---- Buttons - sharp ink rectangle, wide-tracked ---- */
+.common_btn, a.common_btn, button.common_btn,
+.default_home .common_btn, .home_grocery .common_btn, .home_beauty .common_btn {
+    display: inline-flex !important;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 15px 34px !important;
+    background: var(--ink) !important;
+    color: var(--surface) !important;
+    font-family: var(--bodyFont) !important;
+    font-weight: 500 !important;
+    font-size: 12px !important;
+    letter-spacing: .2em !important;
+    text-transform: uppercase !important;
+    border: 1px solid var(--ink) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast) !important;
+}
+.common_btn::after { content: none !important; }
+.common_btn:hover, a.common_btn:hover, button.common_btn:hover,
+.default_home .common_btn:hover, .home_grocery .common_btn:hover, .home_beauty .common_btn:hover {
+    background: transparent !important;
+    color: var(--ink) !important;
+    border-color: var(--ink) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+.common_btn i { font-size: 11px; transform: none !important; transition: transform var(--t-fast) !important; }
+.common_btn:hover i { transform: translateX(4px) !important; }
+
+/* ghost / subordinate = underlined text link */
+.common_btn.ghost, a.ghost.common_btn, a.common_btn.remove {
+    background: transparent !important; color: var(--ink) !important;
+    border: none !important; border-bottom: 1px solid var(--ink) !important;
+    padding: 6px 2px !important;
+}
+.common_btn.ghost:hover, a.common_btn.remove:hover {
+    color: var(--gold) !important; border-bottom-color: var(--gold) !important;
+}
+
+/* "View all" - hairline underline text link */
+.view_all_btn_area .view_all_btn {
+    color: var(--muted) !important; text-decoration: none !important;
+    border-bottom: 1px solid var(--line-2) !important;
+    display: inline-block; padding: 10px 0;
+}
+.view_all_btn_area .view_all_btn:hover { color: var(--gold) !important; border-bottom-color: var(--gold) !important; }
+.view_all_btn_area .view_all_btn i { display: none; }
+
+/* ---- Section headings - centered serif, thin gold rule ---- */
+.section_heading { text-align: left; }
+.section_heading h2 {
+    font-family: var(--headingFont) !important;
+    font-weight: 500 !important;
+    font-size: clamp(28px, 3.4vw, 44px) !important;
+    letter-spacing: 0 !important;
+    color: var(--ink-2) !important;
+    line-height: 1.15;
+    text-transform: none;
+}
+.section_heading h2 span {
+    display: block;
+    color: var(--gold) !important;
+    background: none !important;
+    margin-bottom: 4px;
+}
+
+/* ---- Product cards - no chrome, just the goods ---- */
+.product_item, .product_item_2 {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transition: none !important;
+}
+.product_item:hover, .product_item_2:hover { transform: none !important; box-shadow: none !important; }
+.product_item .product_img, .product_item_2 .product_img {
+    background: var(--surface-2) !important;
+    border: none !important;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 3 / 4;
+}
+.product_item .product_img img, .product_item_2 .product_img img {
+    transition: transform 1.1s cubic-bezier(.4,0,.2,1) !important;
+    height: 100% !important; width: 100% !important; object-fit: cover !important;
+}
+.product_item:hover .product_img img, .product_item_2:hover .product_img img { transform: scale(1.05); }
+.product_item .product_text, .product_item_2 .product_text {
+    background: transparent !important;
+    padding: 16px 2px 4px !important;
+    text-align: left;
+}
+.product_item .title, .product_item_2 .title {
+    font-family: var(--bodyFont) !important;
+    font-weight: 400 !important;
+    font-size: 13px !important;
+    letter-spacing: .01em;
+    color: var(--ink) !important;
+    text-transform: none;
+}
+.product_item .title:hover, .product_item_2 .title:hover { color: var(--gold) !important; }
+.product_item .price, .product_item_2 .price {
+    font-family: var(--bodyFont) !important;
+    font-weight: 400 !important;
+    font-size: 13px !important;
+    color: var(--ink) !important;
+    letter-spacing: .02em;
+    margin-top: 4px;
+}
+.product_item .price del, .product_item_2 .price del { color: var(--faint) !important; margin-left: 8px; }
+.product_item .price span, .product_item_2 .price span:first-child { color: var(--gold) !important; }
+.product_item .rating, .product_item_2 .rating { display: none; }  /* cards stay quiet; rating lives on detail */
+
+/* discount → tiny tracked label, no box */
+.discount_list { top: 12px !important; left: 12px !important; }
+.discount_list li, .discount_list li.discount,
+.product_item .discount_list li, .product_item_2 .discount_list li {
+    background: var(--surface) !important;
+    color: var(--ink) !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4px 8px !important;
+}
+
+/* card quick actions - thin outline squares, appear on hover
+   (identical in every rail: flash-sale, trending, related) */
+.product_item .btn_list, .product_item_2 .btn_list { opacity: 0; transition: opacity var(--t-fast); }
+.product_item:hover .btn_list, .product_item_2:hover .btn_list { opacity: 1; }
+.product_item .btn_list li a, .product_item_2 .btn_list li a {
+    position: relative;
+    background: var(--surface) !important; color: var(--ink) !important;
+    border: 1px solid var(--line-2) !important; border-radius: 0 !important;
+    box-shadow: none !important;
+    width: 36px !important; height: 36px !important; padding: 0 !important; line-height: 34px !important;
+}
+/* expand the tap target to 44px without growing the visual */
+.product_item .btn_list li a::before, .product_item_2 .btn_list li a::before {
+    content: ""; position: absolute; top: 50%; left: 50%;
+    width: 44px; height: 44px; transform: translate(-50%, -50%);
+}
+.product_item .btn_list li a i, .product_item_2 .btn_list li a i {
+    font-size: 14px !important; color: inherit !important;
+}
+.product_item .btn_list li a:hover, .product_item_2 .btn_list li a:hover {
+    background: var(--ink) !important; color: var(--surface) !important; border-color: var(--ink) !important; transform: none !important;
+}
+/* touch devices have no hover - keep the quick actions (incl. add to cart) visible */
+@media (hover: none), (pointer: coarse){
+    .product_item .btn_list, .product_item_2 .btn_list,
+    .product_item .product_img .btn_list, .product_item_2 .product_img .btn_list {
+        opacity: 1 !important;
+        top: 12px !important;
+    }
+}
+.product_item .color li, .product_item_2 .color li { border: 1px solid var(--line-2) !important; border-radius: 0 !important; }
+
+/* ---- Forms - hairline, sharp, gold focus ---- */
+.single_input {
+    border: 1px solid var(--line-2) !important;
+    border-radius: 0 !important;
+    background: var(--surface) !important;
+    box-shadow: none !important;
+}
+.single_input:focus-within { border-color: var(--gold) !important; box-shadow: none !important; }
+.single_input label {
+    background: var(--surface) !important; color: var(--muted) !important;
+    font-family: var(--bodyFont) !important; font-weight: 500 !important; font-size: 10px !important;
+    letter-spacing: .18em; text-transform: uppercase; top: -8px !important; border: none;
+}
+.single_input:focus-within label { color: var(--gold) !important; }
+.single_input input, .single_input textarea { color: var(--ink) !important; background: transparent !important; font-family: var(--bodyFont) !important; }
+.single_input input::placeholder, .single_input textarea::placeholder { color: var(--faint) !important; }
+
+input:not([type="checkbox"]):not([type="radio"]), select, textarea,
+.nice-select, .form-control, .form-select {
+    background: var(--surface) !important; color: var(--ink) !important;
+    border: 1px solid var(--line-2) !important; border-radius: 0 !important; box-shadow: none !important;
+}
+input:focus, select:focus, textarea:focus, .nice-select.open, .form-control:focus {
+    outline: none !important; border-color: var(--gold) !important; box-shadow: none !important;
+}
+.nice-select .list { background: var(--surface) !important; border: 1px solid var(--line-2) !important; border-radius: 0 !important; box-shadow: var(--shadow-md) !important; }
+.nice-select .option:hover, .nice-select .option.selected { background: var(--surface-2) !important; color: var(--gold) !important; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--gold); }
+
+/* ---- Header / nav ---- */
+header.header_main, .main_menu, .main_menu.menu_fix {
+    background: var(--paper) !important;
+    border-bottom: 1px solid var(--line) !important;
+    box-shadow: none !important;
+}
+.main_menu.menu_fix { background: rgba(250,250,249,.9) !important; backdrop-filter: saturate(180%) blur(10px); }
+header.header_main form {
+    background: var(--surface) !important; border: 1px solid var(--line-2) !important;
+    border-radius: 0 !important; box-shadow: none !important;
+    display: flex !important; flex-wrap: nowrap !important; align-items: stretch !important;
+    height: 48px !important; position: relative !important; overflow: visible !important;
+}
+header.header_main form .input {
+    flex: 1 1 auto !important; width: auto !important;
+    display: flex !important; align-items: center !important; gap: 8px !important;
+    border: none !important; background: transparent !important; padding-left: 14px !important;
+}
+header.header_main form .input .inner-voice { margin: 0 !important; flex-shrink: 0; color: var(--muted) !important; }
+header.header_main form .input input,
+header.header_main form input:not([type="checkbox"]):not([type="radio"]) {
+    background: transparent !important; color: var(--ink) !important;
+    border: 0 !important; box-shadow: none !important; outline: none !important;
+    flex: 1 1 auto !important; height: 100% !important;
+    padding: 0 12px !important; font-size: 14px !important;
+}
+header.header_main form input::placeholder { color: var(--faint) !important; }
+header.header_main form button {
+    position: static !important; top: auto !important; right: auto !important;
+    background: var(--ink) !important; color: var(--surface) !important; border: none !important;
+    border-radius: 0 !important; width: 52px !important; height: auto !important;
+    align-self: stretch !important; flex-shrink: 0 !important; margin: 0 !important; line-height: 1 !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+}
+header.header_main form button:hover { background: var(--ink-2) !important; }
+header.header_main form .inner-suggest {
+    position: absolute !important; left: -1px !important; right: -1px !important; top: 100% !important; margin-top: 4px !important;
+}
+header.header_main form .inner-suggest:empty { display: none !important; }
+.menu_icon li a b {
+    background: transparent !important; border: none !important; border-radius: 0 !important;
+    box-shadow: none !important; width: 38px !important; height: 38px !important;
+}
+.menu_icon li a:hover b { background: transparent !important; transform: none !important; box-shadow: none !important; }
+.menu_icon li a b i { color: var(--ink) !important; font-size: 17px; }
+.menu_icon li a:hover b i { color: var(--gold) !important; }
+.menu_icon li a span[mini-cart-quantity], .menu_icon li a .badge {
+    background: var(--gold) !important; color: var(--surface) !important; border: none !important;
+    border-radius: 999px !important; font-family: var(--bodyFont); font-weight: 600; font-size: 10px;
+}
+.menu_icon li a .menu_label, .header_support p.header_hotline, .header_support a { color: var(--muted) !important; font-family: var(--bodyFont); font-weight: 400; }
+.header_support p.header_hotline span, .header_support a span { color: var(--ink) !important; }
+
+/* category bar → understated */
+.menu_category_bar {
+    background: var(--ink) !important; color: var(--surface) !important;
+    border-radius: 0 !important; border: none !important;
+    font-family: var(--bodyFont) !important; text-transform: uppercase; letter-spacing: .18em; font-size: 11px; font-weight: 500;
+}
+.menu_category_bar p, .menu_category_bar i { color: var(--surface) !important; }
+.menu_cat_item, .menu_cat_droapdown, .sub_category, .user_dropdown, .inner-suggest {
+    background: var(--surface) !important; border: 1px solid var(--line-2) !important; border-radius: 0 !important; box-shadow: var(--shadow-md) !important;
+}
+.menu_cat_item li a, .user_dropdown li a, .menu_cat_droapdown li a { color: var(--muted) !important; font-size: 13px; }
+.menu_cat_item li a:hover, .user_dropdown li a:hover, .menu_cat_droapdown li a:hover { background: var(--surface-2) !important; color: var(--gold) !important; }
+.menu_item li a { color: var(--ink) !important; font-family: var(--bodyFont); font-weight: 400; text-transform: uppercase; letter-spacing: .1em; font-size: 12px; }
+.menu_item li a:hover, .menu_item li a.active { color: var(--gold) !important; }
+
+/* ---- Hero ---- */
+.banner_content :is(h1,h2), .banner_slider_2 :is(h1,h2), .banner_area :is(h1,h2) {
+    font-family: var(--headingFont) !important;
+    font-size: clamp(40px, 6.5vw, 88px) !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.05 !important;
+    color: #fff !important;
+    text-transform: none;
+}
+.banner_eyebrow {
+    color: rgba(255,255,255,.85) !important; background: none !important; border: none !important; padding: 0 !important;
+}
+.banner_content p, .banner_slider_2 p { color: rgba(255,255,255,.8) !important; }
+.banner_slider_2, .banner_add {
+    border: none !important; border-radius: 0 !important; box-shadow: none !important; position: relative;
+}
+.banner_slider_2::after, .banner_add::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(12,10,9,.1) 0%, rgba(12,10,9,.55) 100%);
+}
+.banner_slider_2 > *, .banner_add > * { position: relative; z-index: 1; }
+.banner_slider_2_text, .banner_content { padding: clamp(24px, 5vw, 72px) !important; }
+
+/* ---- Feature strip ---- */
+.features_item {
+    background: transparent !important; border: none !important; box-shadow: none !important;
+    border-top: 1px solid var(--line) !important; padding-top: 22px !important;
+}
+.features_item .icon { background: transparent !important; border: none !important; }
+.features_item .icon i { color: var(--gold) !important; font-size: 1.6rem !important; }
+.features_item .text h3 { font-size: 18px !important; font-weight: 500 !important; }
+.features_item .text p { color: var(--muted) !important; font-size: 12px !important; }
+
+/* ---- Category circles → sharp portrait tiles ---- */
+.category_item .img, .category_area .category_item .img {
+    background: var(--surface-2) !important; border: none !important; border-radius: 0 !important;
+    box-shadow: none !important; overflow: hidden; aspect-ratio: 4/5; padding: 0 !important;
+}
+.category_item .img img { border-radius: 0 !important; object-fit: cover !important; height: 100% !important; width: 100% !important; transition: transform 1.1s cubic-bezier(.4,0,.2,1); }
+.category_item:hover .img img { transform: scale(1.05); }
+.category_item .title, .category_item h3, .category_item > a {
+    font-family: var(--headingFont) !important; font-weight: 500 !important; font-size: 20px !important;
+    text-transform: none; letter-spacing: 0; color: var(--ink) !important;
+}
+
+/* ---- Countdown ---- */
+.simply-countdown .simply-section {
+    background: transparent !important; border: 1px solid var(--line-2) !important; border-radius: 0 !important;
+    box-shadow: none !important; padding: 8px 12px !important; margin: 0 4px !important;
+}
+.simply-countdown .simply-amount { color: var(--ink) !important; font-family: var(--headingFont) !important; font-weight: 500 !important; font-size: 20px; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.simply-countdown .simply-word { color: var(--muted) !important; font-family: var(--bodyFont); text-transform: uppercase; font-size: 11px; letter-spacing: .14em; }
+
+/* ---- Page banner ---- */
+.page_banner { background: var(--surface-2) !important; border-bottom: 1px solid var(--line) !important; }
+.page_banner_overlay { background: transparent !important; }
+.page_banner_text h1 { color: var(--ink-2) !important; font-family: var(--headingFont) !important; font-weight: 500 !important; text-transform: none; letter-spacing: 0; }
+.page_banner_text ul li a, .page_banner_text ul li a::after { color: var(--muted) !important; }
+.page_banner_text ul li:last-child a { color: var(--gold-dim) !important; }
+
+/* ---- Shop filter sidebar ---- */
+.shop_filter_area .sidebar_category, .shop_filter_area .sidebar_range,
+.shop_filter_area .sidebar_rating, .shop_filter_area .sidebar_status,
+.shop_filter_area .sidebar_related_product {
+    background: transparent !important; border: none !important;
+    border-top: 1px solid var(--line) !important; border-radius: 0 !important;
+    padding: 22px 0 !important; margin: 0 !important; box-shadow: none !important;
+}
+.shop_filter_area h2 {
+    font-family: var(--bodyFont) !important; text-transform: uppercase; letter-spacing: .16em;
+    font-size: 11px !important; font-weight: 600 !important; color: var(--ink) !important; margin-bottom: 16px !important;
+}
+.sidebar_category ul li a, .sidebar_status label, .sidebar_rating label { color: var(--muted) !important; font-size: 13px; }
+.sidebar_category ul li a { display: block !important; padding: 8px 0 !important; }
+.sidebar_status .form-check, .sidebar_rating .form-check { min-height: 40px; display: flex; align-items: center; }
+.sidebar_category ul li a:hover { color: var(--gold) !important; }
+
+/* grid/list toggle + sort */
+.product_page_top_button nav .nav-tabs button {
+    background: transparent !important; border: 1px solid var(--line-2) !important; color: var(--muted) !important; border-radius: 0 !important;
+}
+.product_page_top_button nav .nav-tabs button.active { background: var(--ink) !important; color: var(--surface) !important; border-color: var(--ink) !important; }
+.product_page_sorting .select_js, .product_page_sorting .nice-select {
+    font-family: var(--bodyFont) !important; font-size: 11px !important; text-transform: uppercase; letter-spacing: .12em;
+}
+.product_page_top p { color: var(--muted) !important; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+
+/* ---- Pagination ---- */
+.pagination .page-item .page-link, .pagination-area a, .pagination-area span {
+    background: transparent !important; border: none !important; color: var(--muted) !important;
+    border-radius: 0 !important; font-family: var(--bodyFont); box-shadow: none !important;
+    border-bottom: 1px solid transparent !important;
+}
+.pagination .page-item.active .page-link, .pagination-area .active, .pagination-area a:hover {
+    background: transparent !important; color: var(--ink) !important; border-bottom: 1px solid var(--gold) !important;
+}
+
+/* ---- Generic panels / modals / tabs ---- */
+.card,
+.modal-content,
+.chat-popup,
+.checkout_shipping,
+.contact_form,
+.accordion-item {
+    background: var(--surface) !important; color: var(--ink) !important;
+    border: 1px solid var(--line) !important; border-radius: 0 !important; box-shadow: none !important;
+}
+/* destructive confirm dialog - matches the storefront's flat, squared, serif language */
+.confirm_modal.modal-content { padding: 8px; text-align: center; }
+.confirm_modal .modal-body { padding: 32px 28px 20px; }
+.confirm_modal .modal-footer { border: 0 !important; padding: 0 28px 28px; justify-content: center; gap: 12px; }
+.confirm_modal_icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; margin-bottom: 18px;
+    border: 1px solid var(--line-2); color: var(--gold-dim);
+}
+.confirm_modal_icon i { font-size: 18px; }
+.confirm_modal_title {
+    font-family: var(--headingFont) !important; font-weight: 500 !important;
+    font-size: 24px !important; color: var(--ink-2) !important; margin: 0 0 8px !important;
+}
+.confirm_modal_text { font-size: 13px !important; line-height: 1.6 !important; color: var(--muted) !important; margin: 0 !important; }
+.confirm_modal_cancel, .confirm_modal_ok {
+    flex: 1; max-width: 160px; padding: 13px 20px;
+    font-family: var(--bodyFont); font-size: 11px; font-weight: 500;
+    letter-spacing: .18em; text-transform: uppercase;
+    border-radius: 0; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.confirm_modal_cancel { background: transparent; border: 1px solid var(--line-2); color: var(--ink); }
+.confirm_modal_cancel:hover { border-color: var(--ink); }
+.confirm_modal_ok { background: var(--gold-dim); border: 1px solid var(--gold-dim); color: var(--surface); }
+.confirm_modal_ok:hover { background: transparent; color: var(--gold-dim); }
+
+.pwstabs .tab_button, .nav-tabs .nav-link {
+    background: transparent !important; border: none !important; border-bottom: 1px solid transparent !important;
+    color: var(--muted) !important; border-radius: 0 !important;
+    font-family: var(--bodyFont); text-transform: uppercase; font-size: 11px; letter-spacing: .16em;
+}
+.pwstabs .tab_button.active, .nav-tabs .nav-link.active {
+    background: transparent !important; color: var(--ink) !important; border-bottom-color: var(--gold) !important;
+}
+.pwstabs .tab_content, .shop_details_des_area, .tab-content {
+    background: transparent !important; border: none !important; border-top: 1px solid var(--line) !important;
+    color: var(--muted) !important; padding-top: 24px !important;
+}
+.shop_details_des_area h4, .tab-content h4 { color: var(--ink) !important; font-family: var(--headingFont); font-weight: 500; }
+
+/* Tables */
+.table th, .table td, table th, table td { border-color: var(--line) !important; color: var(--ink) !important; }
+.table thead th, table thead th { background: transparent !important; color: var(--muted) !important; font-family: var(--bodyFont); text-transform: uppercase; font-size: 10px; letter-spacing: .14em; border-bottom: 1px solid var(--line-2) !important; }
+
+/* ---- Product detail ---- */
+.shop_details_text .title, .shop_details_text h1, .shop_details_text h2 {
+    font-family: var(--headingFont) !important; font-weight: 500 !important; color: var(--ink-2) !important;
+    font-size: clamp(26px, 3vw, 38px) !important; text-transform: none; letter-spacing: 0;
+}
+.shop_details_text .price {
+    font-family: var(--bodyFont) !important; font-weight: 400 !important; color: var(--ink) !important; font-size: 20px !important;
+}
+.shop_details_text .price del { color: var(--muted) !important; }
+.shop_details_text .price ins { color: var(--gold) !important; text-decoration: none; }
+.shop_details_text .short_description, .shop_details_text p { color: var(--muted) !important; }
+.shop_details_slider, .shop_details_slider .slick-slide img { background: var(--surface-2) !important; }
+.rating .fa-star, .rating .fa-star-half-alt, .shop_details_text .rating i { color: var(--gold) !important; }
+.quantity { border: 1px solid var(--line-2) !important; border-radius: 0 !important; background: var(--surface) !important; }
+.quantity button, .quantity input { color: var(--ink) !important; background: transparent !important; border: none !important; }
+.availability {
+    background: transparent !important; color: var(--colorGreen) !important; border: none !important;
+}
+.shop_details_text .category a {
+    background: transparent !important; color: var(--gold) !important; border: none !important;
+    border-bottom: 1px solid var(--gold) !important; border-radius: 0 !important; padding: 1px 0; margin-right: 12px;
+    font-family: var(--bodyFont); font-size: 12px; text-transform: uppercase; letter-spacing: .1em;
+}
+.sticky-sidebar-shop-detail, .shop_details_sidebar {
+    background: var(--surface) !important; border: 1px solid var(--line) !important; border-radius: 0 !important;
+}
+
+/* ---- Footer - deep charcoal + gold ---- */
+footer, .footer_main {
+    background: var(--ink-2) !important; color: rgba(255,255,255,.6) !important; border-top: 1px solid var(--gold) !important;
+}
+.footer_main h2 {
+    font-family: var(--headingFont) !important; text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 20px !important; color: #fff !important;
+}
+.footer_main a { color: rgba(255,255,255,.6) !important; }
+.footer_main a:hover { color: var(--gold) !important; }
+
+/* ---- Scroll-to-top ---- */
+.progress-wrap, #scroll-button, .scroll_button a {
+    background: var(--ink) !important; border: none !important; color: var(--surface) !important; border-radius: 0 !important; box-shadow: none !important;
+}
+
+/* fixes */
+
+/* hero copy box sizing */
+.banner_slider_2_text {
+    max-width: 78% !important;
+    padding: clamp(28px, 4.5vw, 60px) !important;
+}
+.banner_content { padding: 0 !important; }
+.banner_content :is(h1,h2), .banner_slider_2 :is(h1,h2), .banner_slider_2_text :is(h1,h2), .banner_area :is(h1,h2) {
+    font-size: clamp(32px, 4.4vw, 60px) !important;
+    margin-bottom: 24px !important;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
+}
+.banner_slider_2 { margin-left: clamp(0px, 3vw, 40px) !important; overflow: hidden !important; }
+
+/* Discount badge: kill the wide tracking inherited from the kicker rule */
+.discount_list li, .discount_list li.discount,
+.product_item .discount_list li, .product_item_2 .discount_list li {
+    letter-spacing: .04em !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+}
+.discount_list li b { margin-right: 1px; }
+
+/* Category tag on product detail - gold underline, not a coloured pill */
+.shop_details_text .category a,
+.shop_details_text a[href*="/category/"] {
+    background: transparent !important;
+    color: var(--gold) !important;
+    border: none !important;
+    border-bottom: 1px solid var(--gold) !important;
+    border-radius: 0 !important;
+    padding: 0 0 1px !important;
+    font-family: var(--bodyFont) !important;
+    font-size: 12px !important;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+}
+
+/* Sale price gold across contexts */
+.shop_details_text .price > span:first-child { color: var(--gold) !important; }
+
+/* Side "Summer Offers" banner readability */
+.banner_add .text { padding: clamp(20px, 4vw, 40px) !important; }
+.banner_add .banner_eyebrow { text-transform: uppercase; letter-spacing: .2em; font-size: 11px !important; color: rgba(255,255,255,.9) !important; }
+.banner_add h3 { font-family: var(--headingFont) !important; font-weight: 500 !important; font-size: clamp(22px, 2.4vw, 32px) !important; color: #fff !important; }
+
+/* "All / Men / Women" trending tabs */
+.trending_product_2 .pwstabs .pwstabs_list li a,
+.product_tabs .nav-link {
+    font-family: var(--bodyFont) !important; text-transform: uppercase; letter-spacing: .14em; font-size: 11px !important;
+    border: none !important; border-bottom: 1px solid transparent !important; border-radius: 0 !important; background: transparent !important; color: var(--muted) !important;
+}
+.trending_product_2 .pwstabs .pwstabs_list li a.active,
+.product_tabs .nav-link.active { color: var(--ink) !important; border-bottom-color: var(--gold) !important; }
+
+/* Header account icon: sit inline with the rest */
+.main_menu .menu_icon { gap: 6px !important; }
+.main_menu .menu_icon li a.user b { width: 38px !important; height: 38px !important; }
+
+/* Blog card on home */
+.blog_item {
+    background: var(--surface) !important; border: 1px solid var(--line) !important; border-radius: 0 !important; box-shadow: none !important;
+}
+.blog_item .title { font-family: var(--headingFont) !important; font-weight: 500 !important; }
+
+/* mobile */
+@media (max-width: 991.98px){
+    .banner_slider_2_text, .banner_add .text { max-width: 100% !important; }
+    .banner_slider_2::after, .banner_add::after {
+        background: linear-gradient(180deg, rgba(12,10,9,.35) 0%, rgba(12,10,9,.7) 100%) !important;
+    }
+    .banner_content :is(h1,h2), .banner_slider_2 :is(h1,h2), .banner_slider_2_text :is(h1,h2) {
+        font-size: clamp(26px, 8vw, 40px) !important;
+    }
+    .banner_add h3 { font-size: clamp(20px, 6vw, 28px) !important; }
+    .simply-countdown { flex-wrap: wrap; gap: 8px; }
+    .flash_sell .view_all_btn_area { margin-top: 8px; }
+}
+@media (max-width: 575.98px){
+    body { font-size: 15px; }
+    .section_heading h2 { font-size: clamp(24px, 8vw, 32px) !important; }
+    .common_btn { padding: 13px 24px !important; font-size: 11px !important; letter-spacing: .18em !important; }
+}
+
+/* reported bugs */
+
+/* Mini-cart / off-canvas / any panel that inherited the gold header */
+.mini_cart, .offcanvas, .offcanvas-body, #offcanvasRight, .offcanvas-end {
+    background: var(--surface) !important; color: var(--ink) !important;
+}
+.mini_cart .offcanvas-header, .offcanvas-header, .default_home .mini_cart .offcanvas-header {
+    background: var(--surface) !important;
+    border-bottom: 1px solid var(--line) !important;
+    color: var(--ink) !important;
+}
+.offcanvas-header .offcanvas-title, .mini_cart .offcanvas-title {
+    font-family: var(--headingFont) !important; font-weight: 500 !important; color: var(--ink) !important;
+}
+.offcanvas-header .btn-close { filter: none !important; opacity: .6; }
+
+/* Hero: keep the copy on its own dark column, readable over any image */
+.banner_slider_2_text { max-width: 56% !important; }
+.banner_slider_2::after, .banner_add::after {
+    background: linear-gradient(105deg, rgba(12,10,9,.62) 0%, rgba(12,10,9,.38) 42%, rgba(12,10,9,.06) 70%) !important;
+}
+@media (max-width: 991.98px){
+    .banner_slider_2_text { max-width: 100% !important; }
+    .banner_slider_2::after, .banner_add::after {
+        background: linear-gradient(180deg, rgba(12,10,9,.4) 0%, rgba(12,10,9,.72) 100%) !important;
+    }
+}
+/* Kill the stray hidden logo / category strip bleeding left of the hero */
+.menu_logo, .main_menu .menu_logo { display: none !important; }
+.banner_main .menu_category_area .menu_cat_item { display: none !important; }
+.banner_main, .banner_area { overflow: hidden; }
+
+/* section heading highlight word: keep inline */
+.section_heading h2 span {
+    display: inline !important;
+    color: var(--gold) !important;
+    background: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    font-family: var(--bodyFont) !important;
+    font-weight: 600 !important;
+    font-size: .34em !important;
+    letter-spacing: .22em !important;
+    text-transform: uppercase !important;
+    vertical-align: middle;
+    position: relative;
+    top: -0.15em;
+    margin-right: .4em !important;
+}
+
+/* Flash-sale countdown vs "View All" - stop the overlap */
+.flash_sell .row.align-items-center { align-items: center !important; }
+.flash_sell .view_all_btn_area { display: block; margin-top: 10px; text-align: right; }
+.flash_sell .simply-countdown { justify-content: flex-end; }
+
+/* Feature dividers: sharp, not pill */
+.features_item { border-radius: 0 !important; }
+.features_item::before { border-radius: 0 !important; }
+
+/* Footer bottom bar: lift the low-contrast copyright text */
+.footer_copyright {
+    background: var(--ink-2) !important; border-top: 1px solid rgba(255,255,255,.08) !important;
+    color: rgba(255,255,255,.55) !important;
+}
+.footer_copyright p { color: rgba(255,255,255,.55) !important; }
+.footer_copyright a { color: var(--gold) !important; }
+
+/* Scroll-to-top: visible icon on the ink button */
+.progress-wrap svg .progress-wrap__path { stroke: var(--gold) !important; }
+.progress-wrap::after, #scroll-button i, .scroll_button a i { color: var(--surface) !important; }
+#scroll-button, .scroll_button a { display: flex; align-items: center; justify-content: center; }
+
+/* Social icons in footer */
+.footer_social a, .footer_copyright .social li a {
+    border: 1px solid rgba(255,255,255,.2) !important; background: transparent !important; color: rgba(255,255,255,.7) !important; border-radius: 0 !important;
+}
+.footer_social a:hover { border-color: var(--gold) !important; color: var(--gold) !important; background: transparent !important; }
+
+/* "All / Men / Women" active pill → underline, not oval */
+.trending_product_2 .pwstabs_list li a.active,
+.nav-pills .nav-link.active {
+    background: transparent !important; border: none !important;
+    border-bottom: 1px solid var(--gold) !important; border-radius: 0 !important; color: var(--ink) !important;
+}
+
+/* Home page structure */
+
+/* uniform gap between top-level sections */
+main#main-content > section,
+.default_home main > section {
+    margin: 0 !important;
+    padding-top: clamp(56px, 7vw, 96px) !important;
+    padding-bottom: 0 !important;
+}
+main#main-content > section:first-child,
+.default_home main > section:first-child { padding-top: clamp(24px, 3vw, 40px) !important; }
+main#main-content > section:last-child { padding-bottom: clamp(56px, 7vw, 96px) !important; }
+
+/* zero the utility classes so nothing stacks on top of the uniform padding */
+[class*="mt_"], [class*="mb_"], [class*="pt_"], [class*="pb_"] { margin-top: 0 !important; margin-bottom: 0 !important; }
+.mt_15, .mt_20, .mt_25 { margin-top: 20px !important; }   /* small in-block gaps kept */
+.mb_15 { margin-bottom: 14px !important; }
+.section_heading, .section_heading.mb_15 { margin-bottom: 32px !important; }
+
+.container { max-width: 1280px !important; }
+img { transition: none !important; }
+
+/* ---- Category block: full-bleed portrait tiles, label outside ---- */
+.category_area .row.category_slider { gap: 0; }
+a.category_item, .category_item, .category_item.color_1, .category_item[class*="color_"] {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 8px !important;
+    border: none !important;
+    text-align: center;
+}
+.category_item .img, .category_area .category_item .img {
+    aspect-ratio: 3 / 4 !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    background: var(--surface-2) !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+}
+.category_item .img img, .category_area .category_item .img img {
+    width: 100% !important; height: 100% !important;
+    object-fit: cover !important; border-radius: 0 !important;
+    transition: transform 1.1s cubic-bezier(.4,0,.2,1) !important;
+}
+.category_item:hover .img img { transform: scale(1.05) !important; }
+.category_item h3, .category_item .title {
+    font-family: var(--headingFont) !important;
+    font-weight: 500 !important; font-size: 22px !important;
+    color: var(--ink) !important; margin-top: 18px !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+.category_item:hover h3 { color: var(--gold) !important; }
+
+/* ---- Cart page - hairline list, generous, right-aligned ---- */
+.cart_table_area { border: none !important; }
+.cart_table_area .table-responsive + .table-responsive { margin-top: 0; }
+.cart_table_area table.table, .cart_table_area table { width: 100% !important; border: none !important; }
+.cart_table_area thead th {
+    background: transparent !important;
+    border: none !important; border-bottom: 1px solid var(--line-2) !important;
+    font-family: var(--bodyFont) !important; font-weight: 600 !important;
+    text-transform: uppercase !important; letter-spacing: .14em !important; font-size: 10px !important;
+    color: var(--muted) !important; padding: 0 16px 14px !important;
+}
+.cart_table_area tbody td, .cart_table_area td {
+    border: none !important; border-bottom: 1px solid var(--line) !important;
+    padding: 22px 16px !important; vertical-align: middle !important; color: var(--ink) !important;
+}
+.cart_table_area .cart_page_img img, .cart_table_area td img {
+    width: 84px !important; height: 108px !important; object-fit: cover !important;
+    background: var(--surface-2) !important; border-radius: 0 !important;
+}
+.cart_table_area .cart_page_price, .cart_table_area .cart_page_total,
+.cart_table_area .cart_page_action { text-align: right !important; }
+.cart_table_area .cart_page_total { font-weight: 500 !important; }
+.cart_table_area .quantity {
+    display: inline-flex !important; border: 1px solid var(--line-2) !important;
+}
+.cart_table_area .remove,
+.cart_table_area td .fa-trash,
+.cart_table_area .cart_page_action a {
+    color: var(--muted) !important; background: transparent !important; border: none !important; font-size: 13px;
+}
+.cart_table_area .cart_page_action a:hover { color: var(--colorRed) !important; }
+
+/* Order summary - clean hairline ledger, not a grey card */
+.checkout_shipping,
+.checkout_point_row,
+.cart_page_summary,
+.cart-summary {
+    background: transparent !important;
+    border: 1px solid var(--line-2) !important;
+    border-radius: 0 !important;
+    padding: 32px !important;
+    box-shadow: none !important;
+}
+.cart_page_summary h2 {
+    font-family: var(--headingFont) !important; font-weight: 500 !important; font-size: 24px !important;
+    margin-bottom: 24px !important; padding-bottom: 16px !important; border-bottom: 1px solid var(--line) !important;
+}
+.summary_row, .cart_page_summary li {
+    display: flex !important; justify-content: space-between !important; align-items: baseline !important;
+    padding: 12px 0 !important; border-bottom: 1px solid var(--line) !important;
+    font-size: 13px !important; color: var(--muted) !important;
+}
+.summary_total, .cart_page_summary .total {
+    font-family: var(--headingFont) !important; font-weight: 500 !important; font-size: 18px !important; color: var(--ink) !important;
+    border-bottom: none !important;
+}
+
+/* Empty-cart row */
+.cart_table_area tbody td[colspan] {
+    text-align: center !important; padding: 60px 16px !important;
+    font-family: var(--headingFont) !important; font-size: 18px !important; color: var(--muted) !important;
+}
+
+/* ---- Checkout: same ledger treatment ---- */
+.checkout_form_area, .checkout_address_area, .checkout_payment {
+    background: transparent !important;
+}
+.checkout_address_area .single_address {
+    border: 1px solid var(--line-2) !important; border-radius: 0 !important; background: var(--surface) !important; padding: 20px !important;
+}
+
+/* ---- Dashboard ---- */
+.dashboard_sidebar {
+    background: transparent !important; border: 1px solid var(--line-2) !important; border-radius: 0 !important;
+}
+.dashboard_sidebar a {
+    color: var(--muted) !important; border-bottom: 1px solid var(--line) !important;
+    text-transform: uppercase; letter-spacing: .08em; font-size: 12px; padding: 14px 18px !important;
+}
+.dashboard_sidebar a.active { color: var(--ink) !important; border-left: 2px solid var(--gold) !important; }
+
+/* ---- Auth pages - centred, serif, minimal ---- */
+.sign_in_form, .sign_up .sign_in_form {
+    background: var(--surface) !important; border: 1px solid var(--line-2) !important;
+    border-radius: 0 !important; box-shadow: none !important; padding: clamp(32px, 5vw, 56px) !important;
+}
+.sign_in_form h1 { font-family: var(--headingFont) !important; font-weight: 500 !important; font-size: 30px !important; }
+.sign_in_form .dont_account { color: var(--muted) !important; }
+.sign_in_form .dont_account a { color: var(--gold) !important; }
+.or-text, .sign_in_form .or { color: var(--faint) !important; }
+
+/* ---- "Summer Offers" side banner: brighter kicker ---- */
+.banner_add .banner_eyebrow, .banner_add .text .banner_eyebrow { color: rgba(255,255,255,.92) !important; }
+
+/* ---- Hide the redundant in-banner category column entirely ---- */
+.banner_main .col-xxl-2, .banner_main .menu_cat_item { display: none !important; }
+.banner_main .col-lg-8, .banner_main .col-xxl-7 { flex: 0 0 auto; max-width: 66% !important; }
+
+/* ---- - kill the hero left-column bleed ---- */
+.banner_main .row > .col-xxl-2,
+.banner_main [class*="col-xxl-2"],
+.banner_main .menu_category_area,
+.banner_main .menu_cat_item,
+.banner_main .menu_category_bar { display: none !important; }
+.banner_main .row > .col-12.col-lg-8.col-xxl-7,
+.banner_main .row > [class*="col-xxl-7"] {
+    flex: 0 0 68% !important; max-width: 68% !important; width: 68% !important;
+}
+.banner_main .row > [class*="col-xxl-3"] {
+    flex: 0 0 32% !important; max-width: 32% !important; width: 32% !important;
+}
+@media (max-width: 991.98px){
+    .banner_main .row > [class*="col-xxl-7"],
+    .banner_main .row > [class*="col-xxl-3"] { flex: 0 0 100% !important; max-width: 100% !important; width: 100% !important; }
+}
+.banner_main, .banner_main .container, .banner_main .row,
+.banner_content, .banner_slider, .banner_slider .slick-list, .banner_slider .slick-track {
+    overflow: hidden !important;
+}
+.banner_slider_2 { margin-left: 0 !important; }
+
+/* --- */
+
+/* Footer brand name - was gold-on-near-black, unreadable */
+.footer_copyright p b, .footer_copyright p .notranslate {
+    color: #E0B978 !important;   /* brightened gold for AA on the dark footer */
+    font-weight: 600 !important;
+}
+.footer_copyright p { color: rgba(255,255,255,.62) !important; }
+
+/* Back-to-top: light glyph on the ink disc, gold progress ring */
+.progress-wrap::after, .progress-wrap::before { color: var(--surface) !important; }
+.progress-wrap svg.progress-circle path { stroke: var(--gold) !important; }
+.progress-wrap { background: var(--ink) !important; box-shadow: none !important; }
+
+/* .col-xl-1-5 width per breakpoint; centre short rows */
+.flash_sell_slider, .trending_product_2 .product_tabs .row,
+.related_products .row.flash_sell_slider { justify-content: center; }
+.col-xl-1-5 { flex: 0 0 20% !important; max-width: 20% !important; width: 20% !important; padding: 0 12px !important; }
+@media (max-width: 1199.98px){ .col-xl-1-5 { flex-basis: 25% !important; max-width: 25% !important; } }
+@media (max-width: 991.98px){ .col-xl-1-5 { flex-basis: 33.333% !important; max-width: 33.333% !important; } }
+@media (max-width: 767.98px){ .col-xl-1-5 { flex-basis: 50% !important; max-width: 50% !important; } }
+
+/* never force display on pwstabs panes; just kill phantom height */
+.product_tabs, .pws_tabs_container { min-height: 0 !important; }
+
+/* Section heading vs the grid below - align left edges */
+.section_heading { padding-left: 12px; }
+.product_item .product_text, .product_item_2 .product_text { padding-left: 0 !important; padding-right: 0 !important; }
+
+/* Trim the dead space the sliders leave between sections */
+.flash_sell, .trending_product_2, .related_products { padding-bottom: 0 !important; }
+.flash_sell_slider .slick-list, .trending_product_2 .slick-list { margin-bottom: 0 !important; }
+
+/* --- */
+
+/* never let WOW.js hide content permanently; keep it visible */
+.wow { visibility: visible !important; }
+.wow:not(.animated) { opacity: 1 !important; animation: none !important; transform: none !important; }
+
+/* fallback when pwstabs never ran: first pane visible */
+.product_tabs > div[data-pws-tab]:not([style]) ~ div[data-pws-tab]:not([style]) { display: none; }
+
+/* ---- - section titles + card definition ---- */
+
+/* section titles: centred serif, single line */
+.section_heading { text-align: center !important; padding-left: 0 !important; margin-bottom: 44px !important; }
+.section_heading h2,
+.trending_product_2 .section_heading h2,
+.related_products .section_heading h2 {
+    font-family: var(--headingFont) !important;
+    font-weight: 500 !important;
+    font-size: clamp(30px, 3.6vw, 46px) !important;
+    letter-spacing: 0 !important;
+    line-height: 1.15 !important;
+    color: var(--ink-2) !important;
+    text-transform: none !important;
+    display: block !important;
+}
+.section_heading h2 span {
+    display: inline !important;
+    font: inherit !important;
+    color: var(--ink-2) !important;
+    background: none !important; box-shadow: none !important;
+    text-transform: none !important; letter-spacing: 0 !important;
+    position: static !important; top: auto !important; margin: 0 !important;
+    vertical-align: baseline !important;
+}
+/* thin centred rule under the title */
+.section_heading h2::after {
+    content: ""; display: block; width: 44px; height: 1px;
+    background: var(--gold); margin: 18px auto 0;
+}
+.view_all_btn_area { text-align: right; }
+
+/* product cards: hairline frame on white */
+.product_item, .product_item_2 {
+    background: var(--surface) !important;
+    border: 1px solid var(--line) !important;
+    transition: border-color var(--t-fast) !important;
+}
+.product_item:hover, .product_item_2:hover { border-color: var(--line-2) !important; }
+.product_item .product_text, .product_item_2 .product_text {
+    padding: 16px 16px 18px !important; background: var(--surface) !important;
+}
+.product_item .product_img, .product_item_2 .product_img { border-bottom: 1px solid var(--line) !important; }
+
+/* ---- - heading consistency ---- */
+
+/* One consistent treatment regardless of the col width the template gave it */
+.section_heading, div.section_heading.section_heading {
+    text-align: left !important;
+    padding: 0 !important;
+    margin-bottom: 36px !important;
+    width: 100%;
+}
+.section_heading h2::after { margin: 16px 0 0 !important; }
+
+/* Flash-sale heading row: title left, countdown + "View all" right, one line */
+.flash_sell .row.align-items-center { flex-wrap: wrap; align-items: flex-end !important; }
+.flash_sell .row.align-items-center > [class*="col-"]:first-child { flex: 1 1 auto !important; max-width: none !important; }
+.flash_sell .row.align-items-center > [class*="col-"]:last-child { flex: 0 0 auto !important; max-width: none !important; }
+.flash_sell .row.align-items-center > [class*="col-"]:last-child .d-flex {
+    align-items: center !important; gap: 20px; flex-wrap: wrap; justify-content: flex-end !important;
+}
+.flash_sell .simply-countdown { margin: 0 !important; }
+.flash_sell .view_all_btn_area { margin: 0 !important; }
+
+/* Trending heading row only (NOT the product rows inside the tab panes) */
+.trending_product_2 > .container > .row:first-child > [class*="col-"] {
+    flex: 0 0 100% !important; max-width: 100% !important;
+}
+/* Trending product grid: 5-up like the rest */
+.trending_product_2 .product_tabs .row > [class*="col-xl-1-5"],
+.trending_product_2 .product_tabs .row > .col-6 {
+    flex: 0 0 20% !important; max-width: 20% !important; padding: 0 12px !important;
+}
+@media (max-width: 1199.98px){ .trending_product_2 .product_tabs .row > [class*="col-"] { flex-basis: 25% !important; max-width: 25% !important; } }
+@media (max-width: 991.98px){ .trending_product_2 .product_tabs .row > [class*="col-"] { flex-basis: 33.333% !important; max-width: 33.333% !important; } }
+@media (max-width: 575.98px){ .trending_product_2 .product_tabs .row > [class*="col-"] { flex-basis: 50% !important; max-width: 50% !important; } }
+
+/* Trending tab menu: the pwstabs menu is .pws_tabs_controll (styled below).
+   Do NOT target ".pws_tabs_list li a" - that class sits on the tabs
+   CONTAINER, so it would also hit the product cards' action buttons. */
+.trending_product_2 .pws_tabs_controll { margin-bottom: 28px !important; }
+
+/* Blog card - align with the system */
+.blog_item {
+    background: var(--surface) !important; border: 1px solid var(--line) !important; box-shadow: none !important;
+}
+.blog_item .blog_text { padding: 18px 16px 20px !important; }
+.blog_item .title { font-family: var(--headingFont) !important; font-weight: 500 !important; font-size: 17px !important; color: var(--ink) !important; }
+.blog_item .top li, .blog_item .bottom li, .blog_item ul li { color: var(--faint) !important; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.blog_item .bottom a { color: var(--gold) !important; }
+.blog_item .blog_img { aspect-ratio: 4/3; overflow: hidden; }
+.blog_item .blog_img img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Footer "@Ecom" brand - readable gold */
+.footer_copyright p b, .footer_copyright p .notranslate { color: #E6C185 !important; }
+
+/* Feature strip: sharp hairline, gold icon, tight */
+.features_item::before { display: none !important; }
+
+/* ---- - round elements that must stay round ---- */
+.progress-wrap, #scroll-button, .scroll_button a,
+.progress-wrap svg, .progress-circle {
+    border-radius: 50% !important;
+    border: none !important;
+    background: var(--ink) !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.progress-wrap { width: 46px !important; height: 46px !important; }
+.progress-wrap svg.progress-circle path { stroke: var(--gold) !important; stroke-width: 3 !important; }
+.progress-wrap::after, .progress-wrap::before { color: #fff !important; }
+
+.rounded-circle,
+.avatar,
+.avatar-initials,
+[class*="avatar-"],
+.chat-avatar,
+.menu_icon li a span[mini-cart-quantity],
+.menu_icon li a .badge,
+.footer_social a,
+.footer_copyright .social li a,
+.chat-online-dot {
+    border-radius: 50% !important;
+}
+
+/* ---- - pwstabs menu ---- */
+.pws_tabs_controll, ul.pws_tabs_controll {
+    background: transparent !important; border: none !important; box-shadow: none !important;
+    display: flex !important; gap: 26px !important; padding: 0 !important; margin: 0 0 26px !important;
+    justify-content: flex-start !important;
+}
+.pws_tabs_controll li { margin: 0 !important; background: transparent !important; border: none !important; }
+.pws_tabs_controll li a, .pws_tabs_controll li a:link {
+    background: transparent !important; border: none !important;
+    border-bottom: 1px solid transparent !important; border-radius: 0 !important;
+    padding: 4px 0 !important; margin: 0 !important; color: var(--muted) !important;
+    font-family: var(--bodyFont) !important; text-transform: uppercase !important;
+    letter-spacing: .14em !important; font-size: 11px !important; box-shadow: none !important;
+    min-width: 0 !important; text-align: left !important;
+}
+.pws_tabs_controll li a.pws_tab_active, .pws_tabs_controll li a.active {
+    background: transparent !important; color: var(--ink) !important;
+    border-bottom-color: var(--gold) !important; border-radius: 0 !important;
+}
+
+/* ---- - card size parity + gap parity ---- */
+
+/* Trending grid must match the flash-sale rail: 4 per row */
+.trending_product_2 .product_tabs .row > [class*="col-xl-1-5"],
+.trending_product_2 .product_tabs .row > [class*="col-"] {
+    flex: 0 0 25% !important; max-width: 25% !important; padding: 0 12px !important;
+}
+@media (max-width: 1199.98px){ .trending_product_2 .product_tabs .row > [class*="col-"] { flex-basis: 33.333% !important; max-width: 33.333% !important; } }
+@media (max-width: 767.98px){ .trending_product_2 .product_tabs .row > [class*="col-"] { flex-basis: 50% !important; max-width: 50% !important; } }
+.trending_product_2 .product_tabs .row { justify-content: flex-start !important; }
+
+/* Flash-sale rail: same 12px gutter, left-aligned, no trailing slider space */
+.flash_sell_slider .slick-slide { padding: 0 12px !important; }
+.flash_sell_slider .slick-track { margin-left: -12px !important; }
+.flash_sell .slick-slider, .flash_sell_slider, .flash_sell_slider .slick-list { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+.flash_sell_slider .slick-arrow { display: none !important; }   /* : no chunky arrows */
+
+/* the section padding-top is the only vertical gap */
+main#main-content > section { padding-bottom: 0 !important; margin: 0 !important; }
+main#main-content > section > .container > .row:last-child,
+.flash_sell .container > .row:last-child,
+.trending_product_2 .product_tabs > div:last-child .row,
+.blog_area .container > .row:last-child { margin-bottom: 0 !important; }
+/* zero every product card's own margin so flash-sale, trending and
+   related rails are identical; spacing comes from the grid gap / slick padding */
+.product_item, .product_item_2 { margin: 0 !important; }
+
+/* ---- - even gaps + tab panes + discount badge ---- */
+
+/* zero the ad-hoc padding utilities */
+[class*="pt_"], [class*="pb_"] { padding-top: 0 !important; padding-bottom: 0 !important; }
+main#main-content > section { padding-top: clamp(56px, 7vw, 96px) !important; padding-bottom: 0 !important; }
+main#main-content > section:first-child { padding-top: clamp(20px, 3vw, 36px) !important; }
+main#main-content > section:last-child { padding-bottom: clamp(56px, 7vw, 96px) !important; }
+
+/* base state: first pane visible, rest hidden */
+.product_tabs > div[data-pws-tab] ~ div[data-pws-tab] { display: none; }
+
+/* Discount badge - visible again: gold hairline chip, top-left of the image */
+.discount_list { position: absolute; top: 12px; left: 12px; z-index: 2; margin: 0; padding: 0; }
+.discount_list li, .discount_list li.discount,
+.product_item .discount_list li, .product_item_2 .discount_list li {
+    display: inline-flex; align-items: center;
+    background: var(--surface) !important;
+    color: var(--gold) !important;
+    border: 1px solid var(--gold) !important;
+    box-shadow: none !important;
+    padding: 4px 8px !important;
+    font-family: var(--bodyFont) !important;
+    font-size: 11px !important; font-weight: 600 !important;
+    letter-spacing: .06em !important; text-transform: uppercase;
+    line-height: 1 !important;
+}
+.discount_list li b { margin-right: 1px; }
+
+/* Card size parity: nudge the trending grid gutter to match the slick rail */
+.trending_product_2 .product_tabs .row { margin-left: -12px !important; margin-right: -12px !important; }
+
+/* ---- - discount badge anchoring ---- */
+.product_item, .product_item_2, .product_item .product_img, .product_item_2 .product_img { position: relative; }
+.product_item .discount_list:empty, .product_item_2 .discount_list:empty { display: none !important; }
+
+/* ---- - one identical product grid everywhere ---- */
+/* one shared 4-column grid for flash / trending / related */
+.flash_sell_slider.is-static-grid,
+.trending_product_2 .product_tabs > div[data-pws-tab] > .row,
+.related_products .row.flash_sell_slider {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 28px 24px !important;
+    margin: 0 !important;
+}
+.flash_sell_slider.is-static-grid > [class*="col-"],
+.trending_product_2 .product_tabs > div[data-pws-tab] > .row > [class*="col-"],
+.related_products .row.flash_sell_slider > [class*="col-"] {
+    width: 100% !important; max-width: 100% !important; flex: none !important; padding: 0 !important; margin: 0 !important;
+}
+@media (max-width: 1199.98px){
+    .flash_sell_slider.is-static-grid,
+    .trending_product_2 .product_tabs > div[data-pws-tab] > .row { grid-template-columns: repeat(3, 1fr) !important; }
+}
+@media (max-width: 767.98px){
+    .flash_sell_slider.is-static-grid,
+    .trending_product_2 .product_tabs > div[data-pws-tab] > .row { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* Internal spacing */
+
+/* footer gap comes from its own margin-top */
+main#main-content > section:last-child { padding-bottom: 0 !important; }
+footer.footer_main, footer .footer_main, .footer_main {
+    margin-top: clamp(56px, 7vw, 96px) !important;
+    padding-top: clamp(48px, 6vw, 76px) !important;
+    padding-bottom: 0 !important;
+}
+.footer_main .row { row-gap: 36px !important; }
+.footer_link ul li { margin-bottom: 12px !important; }
+.footer_link ul li a { margin-top: 0 !important; display: block !important; }
+.footer_link h2 { margin-bottom: 22px !important; }
+.footer_logo_area p { margin-bottom: 16px !important; }
+.footer_copyright { margin-top: clamp(40px, 5vw, 64px) !important; padding: 22px 0 !important; }
+
+/* Section heading → the content under it */
+.section_heading, .section_heading.mb_15, div.section_heading.section_heading {
+    margin-bottom: 34px !important;
+}
+
+/* 34px step between heading/tab row and the grid */
+.flash_sell_slider, .flash_sell_slider.is-static-grid { margin-top: 34px !important; }
+.flash_sell .row.align-items-center { margin-bottom: 0 !important; align-items: center !important; }
+
+.trending_product_2 .section_heading,
+.trending_product_2 div.section_heading.section_heading { margin-bottom: 0 !important; }
+.trending_product_2 .section_heading h2 { margin-bottom: 0 !important; }
+.trending_product_2 .row.wow, .trending_product_2 .row:nth-child(2) { margin-top: 34px !important; }
+.trending_product_2 .product_tabs { margin-top: 0 !important; }
+.trending_product_2 .pws_tabs_controll { margin-top: 0 !important; margin-bottom: 34px !important; }
+.trending_product_2 .product_tabs > div[data-pws-tab] { padding-top: 0 !important; margin-top: 0 !important; }
+.trending_product_2 .product_tabs > div[data-pws-tab] > .row { margin-top: 0 !important; }
+
+/* Blog grid: same 34px step under the heading row */
+.blog_area .row:first-child { align-items: center !important; }
+.blog_area .section_heading,
+.blog_area div.section_heading.section_heading { margin-bottom: 0 !important; }
+.blog_area .section_heading h2 { margin-bottom: 0 !important; }
+.blog_area .row.mt_15, .blog_area .container > .row + .row { margin-top: 34px !important; }
+
+/* Related / Viewed rails on the product page */
+.related_products .row.flash_sell_slider, .related_products .row:nth-child(2) { margin-top: 34px !important; }
+
+/* Category menu: bar, panel, fly-outs, View All CTA */
+.main_menu_2 .menu_category_bar,
+.default_home .menu_category_bar,
+.menu_category_bar {
+    background: var(--ink-2) !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 16px 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+.menu_category_bar p {
+    margin: 0 !important;
+    font-family: var(--bodyFont) !important;
+    font-weight: 500 !important;
+    font-size: 11px !important;
+    letter-spacing: .16em !important;
+    text-transform: uppercase !important;
+    color: var(--surface) !important;
+    white-space: nowrap !important;
+}
+/* keep the bar hidden in the sticky header */
+.main_menu.menu_fix .menu_category_bar,
+.main_menu.menu_fix .menu_cat_item { display: none !important; }
+
+/* drop the redundant hamburger glyph - the bar reads as one clean label */
+.menu_category_bar p span { display: none !important; }
+.menu_category_bar > i {
+    position: static !important;
+    margin: 0 !important;
+    color: var(--surface) !important;
+    font-size: 12px !important;
+    flex-shrink: 0 !important;
+}
+
+.default_home .menu_cat_item,
+.menu_cat_item {
+    border: 1px solid var(--line-2) !important;
+    border-top: none !important;
+    border-radius: 0 !important;
+    box-shadow: 0 24px 48px -24px rgba(28, 25, 23, .22) !important;
+}
+.default_home .menu_cat_item li a,
+.menu_cat_item li a {
+    padding: 14px 20px !important;
+    font-family: var(--bodyFont) !important;
+    font-size: 11.5px !important;
+    font-weight: 400 !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+    color: var(--ink) !important;
+    background: transparent !important;
+    border-bottom: 1px solid var(--line) !important;
+}
+.menu_cat_item li:last-child a { border-bottom: none !important; }
+.menu_cat_item li a i { color: var(--faint) !important; font-size: 10px !important; }
+.menu_cat_item li a span.cat_icon,
+.menu_cat_item li a span:has(img) {
+    background: var(--surface-2) !important;
+    border-radius: 0 !important;
+}
+.default_home .menu_cat_item > li:hover > a,
+.menu_cat_item > li:hover > a {
+    background: var(--surface-2) !important;
+    color: var(--gold) !important;
+    padding-left: 24px !important;
+}
+.menu_cat_item > li:hover > a i { color: var(--gold) !important; }
+.menu_cat_item > li:hover > a span.cat_icon { background: var(--gold-soft) !important; }
+
+.default_home .menu_cat_droapdown,
+.menu_cat_droapdown,
+.sub_category {
+    padding: 0 !important;
+    border: 1px solid var(--line-2) !important;
+    border-radius: 0 !important;
+    box-shadow: 0 24px 48px -24px rgba(28, 25, 23, .22) !important;
+}
+.menu_cat_droapdown li a,
+.sub_category li a {
+    padding: 14px 20px !important;
+    font-size: 11.5px !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+    color: var(--ink) !important;
+    border-bottom: 1px solid var(--line) !important;
+}
+.menu_cat_droapdown li:last-child a,
+.sub_category li:last-child a { border-bottom: none !important; }
+.default_home .menu_cat_droapdown li:hover > a,
+.menu_cat_droapdown li:hover > a,
+.default_home .menu_cat_droapdown li:hover > a i,
+.sub_category li:hover > a {
+    background: var(--surface-2) !important;
+    color: var(--gold) !important;
+    padding-left: 24px !important;
+}
+
+.default_home .menu_cat_item li.all_category a,
+.menu_cat_item li.all_category a {
+    background: var(--ink-2) !important;
+    color: var(--surface) !important;
+    border-top: none !important;
+    border-radius: 0 !important;
+    font-weight: 500 !important;
+    letter-spacing: .18em !important;
+}
+.menu_cat_item li.all_category a i { color: var(--surface) !important; }
+.default_home .menu_cat_item li.all_category a:hover,
+.menu_cat_item li.all_category a:hover {
+    background: var(--gold) !important;
+    color: var(--surface) !important;
+}
+.menu_cat_item li.all_category a:hover i { color: var(--surface) !important; transform: translateX(4px) !important; }
+
+/* Content pages: FAQ, product description, static pages */
+
+/* FAQ - Bootstrap accordion ships a light-blue active state */
+.accordion, .accordion-item { border-radius: 0 !important; }
+.accordion-item { border-color: var(--line) !important; background: var(--surface) !important; }
+.accordion-button {
+    border-radius: 0 !important;
+    font-family: var(--headingFont) !important;
+    font-size: 17px !important;
+    color: var(--ink) !important;
+    background: var(--surface) !important;
+}
+.accordion-button:not(.collapsed) {
+    background: var(--surface-2) !important;
+    color: var(--ink) !important;
+    box-shadow: inset 0 -1px 0 var(--line) !important;
+}
+.accordion-button:focus { box-shadow: none !important; border-color: var(--line-2) !important; }
+.accordion-button::after { filter: grayscale(1) brightness(.35) !important; }
+.accordion-body { color: var(--muted) !important; }
+
+/* Product-detail Description tab reads as an article, not centered copy */
+.shop_details_description,
+.shop_details_des_area .tab-content,
+.shop_details_des_area .tab-pane,
+.shop_details_description * { text-align: left !important; }
+.shop_details_description ul { padding-left: 1.2em !important; list-style: disc !important; }
+.shop_details_description ol { padding-left: 1.2em !important; }
+.shop_details_description h1, .shop_details_description h2,
+.shop_details_description h3, .shop_details_description h4 {
+    font-family: var(--headingFont) !important; color: var(--ink) !important; font-weight: 500 !important;
+}
+
+/* Footer brand word - sits in its sentence, no gold call-out */
+.footer_copyright p b,
+.footer_copyright p .notranslate {
+    color: rgba(255, 255, 255, .62) !important;
+    font-weight: 400 !important;
+}
+
+/* Discount chip - square tag, not a pill */
+.discount_list li, .discount_list li.discount,
+.product_item .discount_list li, .product_item_2 .discount_list li {
+    border-radius: 0 !important;
+}
+
+/* shop filter rail: borderless */
+#sticky_sidebar {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 24px 0 0 !important;
+}
+
+/* Account dashboard + chat launcher */
+
+/* sidebar user name: force white on the dark panel */
+.dashboard_sidebar_user { background: var(--ink-2) !important; }
+.dashboard_sidebar_user h3,
+.dashboard_sidebar_user h3 span { color: #fff !important; }
+.dashboard_sidebar_user p { color: rgba(255, 255, 255, .72) !important; }
+.dashboard_sidebar_user .img { border-color: rgba(255, 255, 255, .32) !important; }
+.dashboard_sidebar_user .img label { background: var(--gold) !important; color: #fff !important; }
+
+/* Overview stat cards - one calm neutral, gold icon only (was green/blue/olive) */
+.dashboard_overview_item,
+.dashboard_overview_item.green, .dashboard_overview_item.blue,
+.dashboard_overview_item.olive, .dashboard_overview_item.orange {
+    border: 1px solid var(--line) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: var(--surface) !important;
+}
+.dashboard_overview_item .icon,
+.dashboard_overview_item.green .icon, .dashboard_overview_item.blue .icon,
+.dashboard_overview_item.olive .icon {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: var(--surface-2) !important;
+    color: var(--gold) !important;
+}
+.dashboard_overview_item .icon svg { color: var(--gold) !important; stroke: currentColor !important; }
+.dashboard_overview_item h3 { color: var(--ink) !important; }
+.dashboard_overview_item h3 span {
+    color: var(--muted) !important; font-family: var(--bodyFont) !important;
+    text-transform: uppercase; letter-spacing: .1em; font-size: 11px;
+}
+.dashboard_overview_item:hover {
+    box-shadow: none !important; transform: none !important; border-color: var(--line-2) !important;
+}
+
+/* Account content panels */
+.dashboard_recent_order { border-radius: 0 !important; }
+
+/* Chat launcher + widget - off the stock teal, onto charcoal + gold */
+#chat-button {
+    background: var(--ink-2) !important;
+    color: var(--gold) !important;
+    box-shadow: 0 8px 24px rgba(28, 25, 23, .28) !important;
+    border: 1px solid rgba(255, 255, 255, .08) !important;
+}
+#chat-button:hover { box-shadow: 0 10px 30px rgba(28, 25, 23, .36) !important; }
+#chat-count.chat-count, .chat-count { background: var(--gold) !important; color: #fff !important; }
+.message.user .bubble {
+    background: var(--ink) !important; color: #fff !important;
+    box-shadow: none !important;
+}
+.chat-send-btn, .chat-rate-submit {
+    background: var(--ink) !important; color: #fff !important;
+}
+.chat-send-btn:hover, .chat-rate-submit:hover { background: var(--ink-2) !important; }
+#chat-input:focus, #rate-content:focus { border-color: var(--gold) !important; }
+.chat-footer-icon:hover { color: var(--gold) !important; }
+.msg-status.seen { color: var(--gold) !important; }
+#chat-online-dot.chat-online-dot, .chat-online-dot { background: var(--colorGreen, #15803D) !important; }
+
+/* text links that act as buttons: min ~40px tap height */
+.footer_logo_area span a { display: inline-block; padding: 6px 0; }
+.header_support a { display: inline-block; padding: 9px 0; }
+.blog_item .bottom a, .blog_item .bottom li { display: inline-block; padding: 8px 0; }
+a[href^="tel:"], a[href^="mailto:"] { display: inline-block; padding: 8px 0; }
+.contact-section-title + div a { display: inline-block; padding: 6px 0; }
+
+/* footer + breadcrumb link lists: ~40px tap rows */
+.footer_link ul li { margin-bottom: 2px !important; }
+.footer_link ul li a { display: inline-block !important; padding: 9px 0 !important; }
+.page_banner_text ul { display: flex !important; flex-wrap: wrap !important; align-items: center !important; }
+.page_banner_text ul li a { display: inline-block; padding: 9px 4px; }
+
+/* remaining text-link / small-badge tap targets -> ~40px */
+.password-toggle { width: 40px !important; }
+.details_list_btn li a { display: inline-flex !important; align-items: center; padding: 9px 4px !important; }
+.details_tags_sku li a.badge, .shop_details_text a.badge { display: inline-block; padding: 8px 6px !important; }
+.sign_in_form .forgot a, .sign_in_form .dont_account a { display: inline-block; padding: 9px 2px; }
+
+/* current category highlighted in the mega menu / mobile menu */
+.menu_cat_item > li > a[aria-current],
+.menu_cat_droapdown > li > a[aria-current],
+.sub_category > li > a[aria-current],
+.mobile_menu_list a[aria-current],
+.menu_category_area a[aria-current] {
+    color: var(--gold) !important;
+    font-weight: 500 !important;
+}
+
+/* empty state for wishlist / compare / cart */
+.store_empty_state {
+    text-align: center;
+    padding: clamp(48px, 8vw, 88px) 20px;
+}
+.store_empty_state i {
+    font-size: 30px;
+    color: var(--line-2);
+    margin-bottom: 18px;
+    display: block;
+}
+.store_empty_title {
+    font-family: var(--headingFont);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--ink-2);
+    margin: 0 0 6px;
+}
+.store_empty_text {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 24px;
+}
+.store_empty_state .common_btn { display: inline-flex; }
+
+/* chat: own-message delete - visible on touch, larger tap target, on-brand */
+.message .delete-message {
+    display: none;
+    position: absolute; top: -8px; right: -8px;
+    width: 22px !important; height: 22px !important; padding: 0 !important;
+    align-items: center; justify-content: center;
+    background: var(--surface) !important; color: var(--muted) !important;
+    border: 1px solid var(--line-2) !important; border-radius: 999px !important;
+    font-size: 12px; line-height: 1; cursor: pointer;
+}
+.message .delete-message::before {
+    content: ""; position: absolute; top: 50%; left: 50%;
+    width: 40px; height: 40px; transform: translate(-50%, -50%);
+}
+.message .delete-message:hover, .message .delete-message:focus-visible {
+    background: var(--gold-dim) !important; color: #fff !important; border-color: var(--gold-dim) !important;
+}
+.message:hover .delete-message, .message:focus-within .delete-message { display: inline-flex; }
+@media (hover: none), (pointer: coarse){
+    .message .delete-message { display: inline-flex; }
 }

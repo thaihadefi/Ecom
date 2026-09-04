@@ -6,14 +6,14 @@ block main
     .container
       .row
         .col-12
-          h2.mb-4
+          h1.mb-4
             | Search results for:
             strong.ms-2 "#{keyword}"
 
       if (productList.length > 0)
         .row.mb-5
           .col-12
-            h4.mb-3 Products (#{pagination.totalRecord})
+            h2.mb-3 Products (#{pagination.totalRecord})
           each item in productList
             .col-xxl-3.col-6.col-md-4.col-lg-3.wow.fadeInUp
               +product-item(item)
@@ -28,7 +28,7 @@ block main
       if (articleList.length > 0)
         .row
           .col-12
-            h4.mb-3 Articles
+            h2.mb-3 Articles
           each item in articleList
             .col-xl-4.col-md-6.wow.fadeInUp
               +blog-item(item)
@@ -38,5 +38,5 @@ block main
           .col-12
             .text-center.py-5
               i.fas.fa-search.fa-3x.text-muted.mb-3(aria-hidden="true")
-              h5.text-muted No results found for "#{keyword}"
+              p.text-muted No results found for "#{keyword}"
               a.btn.btn-primary.mt-3(href="/") Back to Home

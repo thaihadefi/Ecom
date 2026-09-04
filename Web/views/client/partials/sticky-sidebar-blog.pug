@@ -2,7 +2,7 @@ div(id="sticky_sidebar")
   .wow.fadeInRight(class="blog_details_right")
 
     div(class="blog_details_right_header sidebar_blog")
-      h3 Popular Articles
+      h2 Popular Articles
       each item in popularBlogList
         .d-flex.flex-wrap(class="popular_blog")
           div(class="popular_blog_img")
@@ -19,7 +19,7 @@ div(id="sticky_sidebar")
             a.title.w-100(href=`/article/detail/${item.slug}`)
               | #{item.name}
     div(class="blog_details_right_header")
-      h3 Popular Categories
+      h2 Popular Categories
       ul(class="sidebar_blog_category")
         each item in popularCategoryBlogList
           li

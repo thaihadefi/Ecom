@@ -304,7 +304,7 @@ if (chatButton) {
     let html = "";
 
     if (item.senderRole === "user") {
-      html += `<span class="delete-message" data-id="${item._id}" title="Delete">×</span>`;
+      html += `<button type="button" class="delete-message" data-id="${item._id}" aria-label="Delete message" title="Delete">×</button>`;
     }
 
     if (item.content) {

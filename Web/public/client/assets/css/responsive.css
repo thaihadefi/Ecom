@@ -274,7 +274,7 @@
         height: 475px;
     }
 
-    .payment_success_text h3 {
+    .payment_success_text h1 {
         font-size: 34px;
     }
 
@@ -444,7 +444,7 @@
         width: 100%;
     }
 
-    .main_menu_2 .menu_icon li a.user h5 {
+    .main_menu_2 .menu_icon li a.user .menu_label {
         display: none;
     }
 
@@ -677,7 +677,7 @@
         top: 7px;
     }
 
-    .payment_success_text h3 {
+    .payment_success_text h1 {
         font-size: 32px;
     }
 
@@ -753,7 +753,7 @@
         padding: 15px;
     }
 
-    .dashboard_recent_review .single_review .text h5 span {
+    .dashboard_recent_review .single_review .text h3 span {
         display: block;
         width: 100%;
         margin-top: 5px;
@@ -807,8 +807,8 @@
         gap: 10px 10px;
     }
 
-    header .header_support h3 a span,
-    header .header_support h3 a {
+    header .header_support p.header_hotline a span,
+    header .header_support p.header_hotline a {
         font-size: 13px;
     }
 
@@ -949,7 +949,7 @@
         gap: 6px;
     }
 
-    .main_menu_2 .menu_icon li a.user h5 {
+    .main_menu_2 .menu_icon li a.user .menu_label {
         display: none;
     }
 
@@ -1526,7 +1526,7 @@
         margin-top: 50px;
     }
 
-    .footer_link h3 {
+    .footer_link h2 {
         margin-bottom: 20px;
     }
 
@@ -1970,7 +1970,7 @@
         height: 330px;
     }
 
-    .payment_success_text h3 {
+    .payment_success_text h1 {
         font-size: 34px;
     }
 
@@ -2284,7 +2284,7 @@
         margin-top: 50px;
     }
 
-    .footer_link h3 {
+    .footer_link h2 {
         margin-bottom: 20px;
     }
 
@@ -2757,11 +2757,11 @@
         height: 350px;
     }
 
-    .error_text h2 {
+    .error_text .error_code {
         font-size: 140px;
     }
 
-    .error_text h4 {
+    .error_text h1 {
         font-size: 36px;
     }
 
@@ -2805,7 +2805,7 @@
         height: 330px;
     }
 
-    .payment_success_text h3 {
+    .payment_success_text h1 {
         font-size: 34px;
     }
 
@@ -3161,7 +3161,7 @@
         margin-top: 50px;
     }
 
-    .footer_link h3 {
+    .footer_link h2 {
         margin-bottom: 20px;
     }
 
@@ -3555,8 +3555,8 @@
         height: auto;
     }
 
-    .blog_shear_area_left h5,
-    .blog_shear_area_right h5 {
+    .blog_shear_area_left .shear_label,
+    .blog_shear_area_right .shear_label {
         width: 100%;
         margin-bottom: 10px;
     }
@@ -3628,11 +3628,11 @@
         height: 300px;
     }
 
-    .error_text h2 {
+    .error_text .error_code {
         font-size: 140px;
     }
 
-    .error_text h4 {
+    .error_text h1 {
         font-size: 36px;
     }
 
@@ -3673,7 +3673,7 @@
         height: auto;
     }
 
-    .payment_success_text h3 {
+    .payment_success_text h1 {
         font-size: 28px;
     }
 
@@ -3878,7 +3878,7 @@
         margin-top: 25px;
     }
 
-    .dashboard_recent_review .single_review .text h5 span {
+    .dashboard_recent_review .single_review .text h3 span {
         display: block;
         width: 100%;
         margin-top: 5px;

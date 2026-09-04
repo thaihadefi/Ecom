@@ -1,26 +1,25 @@
 div(class="cart_page_summary")
-  h3 Order Summary
+  h2 Order Summary
   ul(cart-summary)
-  h6
-
+  p.summary_row
     | Subtotal
     span
       span(sub-total) 0
   div(class="checkout_shipping")
-    h6 Shipping Method
+    p.summary_row.summary_row_head Shipping Method
     div(shipping-list)
-  h6
+  p.summary_row
     | Discount
     span
       span(discount) 0
-  h6(class="checkout_point_row" style="display: none;" point-row)
+  p.summary_row(class="checkout_point_row" style="display: none;" point-row)
     label(style="display: flex; align-items: center; gap: 6px; cursor: pointer;")
       input(type="checkbox" id="usePointCheckbox" use-point-checkbox)
       | Use Points
       span(style="font-weight: normal; font-size: 13px;" available-point)
     span
       span(point-discount) 0
-  h4
+  p.summary_total
     | Total
     span
       span(total) 0

@@ -28,8 +28,8 @@ section(class="banner_main")
                     )
                       source(src=getFullUrl(slider.background))
                     div(class="banner_slider_2_text position-relative" style="z-index: 2;")
-                      h3 #{slider.subtitle}
-                      h1 #{slider.title}
+                      p.banner_eyebrow #{slider.subtitle}
+                      h2 #{slider.title}
                       a(
                         href=slider.button.link
                         class="common_btn"
@@ -42,8 +42,8 @@ section(class="banner_main")
                     class="banner_slider_2"
                   )
                     div(class="banner_slider_2_text")
-                      h3 #{slider.subtitle}
-                      h1 #{slider.title}
+                      p.banner_eyebrow #{slider.subtitle}
+                      h2 #{slider.title}
                       a(
                         href=slider.button.link
                         class="common_btn"
@@ -67,8 +67,8 @@ section(class="banner_main")
                 )
                   source(src=getFullUrl(blockData.sideBanner.background))
                 .text.position-relative(style="z-index: 2;")
-                  h4 #{blockData.sideBanner.subtitle}
-                  h2 #{blockData.sideBanner.title}
+                  p.banner_eyebrow #{blockData.sideBanner.subtitle}
+                  h3 #{blockData.sideBanner.title}
                   a(
                     href=blockData.sideBanner.button.link
                     class="common_btn"
@@ -81,8 +81,8 @@ section(class="banner_main")
                 class="banner_add"
               )
                 .text
-                  h4 #{blockData.sideBanner.subtitle}
-                  h2 #{blockData.sideBanner.title}
+                  p.banner_eyebrow #{blockData.sideBanner.subtitle}
+                  h3 #{blockData.sideBanner.title}
                   a(
                     href=blockData.sideBanner.button.link
                     class="common_btn"

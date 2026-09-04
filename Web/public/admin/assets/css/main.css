@@ -535,9 +535,9 @@ label[for] {
 .badge-returned  { background-color: rgba(253, 126, 20,  .15); color: #974a0a; }
 
 :root {
-  --primary-blue: #0057B7;
-  --primary-yellow: #FFD700;
-  --primary-blue-dark: #003F88;
+  --primary-blue: #2563EB;
+  --primary-yellow: #F59E0B;
+  --primary-blue-dark: #1D4ED8;
 }
 
 .btn-primary {

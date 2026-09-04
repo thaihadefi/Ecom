@@ -4,10 +4,10 @@ div(id="sticky_sidebar")
   .d-lg-none(class="shop_filter_btn") Filters
   div(class="shop_filter_area")
     div(class="sidebar_range")
-      h3 Price Range
+      h2 Price Range
       div(class="range_slider")
     div(class="sidebar_status")
-      h3 Product Status
+      h2 Product Status
       .form-check
         input#filterOnSale.form-check-input(
           filter-product-status
@@ -23,7 +23,7 @@ div(id="sticky_sidebar")
           )
         label.form-check-label(for="filterInStock") In Stock
     div(class="sidebar_category")
-      h3 Category
+      h2 Category
       ul
         each item in categoryProductList
           li
@@ -31,7 +31,7 @@ div(id="sticky_sidebar")
               | #{item.name}
     each attribute in attributeProductList
       div(class=`${attribute.type == "color" ? "sidebar_color" : "sidebar_status"}`)
-        h3 #{attribute.name}
+        h2 #{attribute.name}
         ul(filter-attribute=attribute.id)
           each option in attribute.options
             li
@@ -46,7 +46,7 @@ div(id="sticky_sidebar")
                   for=`${attribute.type}-${attribute.id}-${option.value}`
                 ) #{option.label}
     div(class="sidebar_rating")
-      h3 Reviews
+      h2 Reviews
       each star in [5,4,3,2,1]
         .form-check
           input.form-check-input(
@@ -59,7 +59,7 @@ div(id="sticky_sidebar")
             i.fas.fa-star.me-1(aria-hidden="true")
             | #{star} stars
     div(class="sidebar_related_product")
-      h3 Top Rated Products
+      h2 Top Rated Products
       .related_product_list.mt-3
         each item in topRatedProducts
           .related_product_item.mb-4
