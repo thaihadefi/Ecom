@@ -884,7 +884,6 @@ button, a, [button-api], [button-soft-delete-many], [button-delete-many], .btn, 
   }
 }
 
-/* Admin Chat Inline Typing Bubble */
 .admin-chat-typing-indicator {
   display: none;
   align-items: center;
@@ -923,7 +922,6 @@ button, a, [button-api], [button-soft-delete-many], [button-delete-many], .btn, 
   30% { transform: translateY(-4px); opacity: 1; }
 }
 
-/* chat connection-lost banner */
 .admin-chat-connection-banner {
   padding: 7px 14px;
   font-size: 12px;

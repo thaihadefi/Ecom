@@ -16,16 +16,12 @@ const MAX_CONTENT_LENGTH = 5000;
 const MAX_FILES_PER_MESSAGE = 10;
 const MAX_FILE_PATH_LENGTH = 512;
 
-// Per-socket sliding-window rate limit for write actions (send / delete).
 const RATE_WINDOW_MS = 10_000;
 const RATE_MAX_WRITES = 25;
 
 const isObjectId = (value: unknown): value is string =>
   typeof value === 'string' && /^[0-9a-fA-F]{24}$/.test(value);
 
-// Chat uploads always land under `/media/chats/<roomUserId>/` (FileManager
-// prefixes `/media` + the `chats/<userId>` folder path). Only accept paths
-// inside this room's own folder so a client can't attach a file it doesn't own.
 const sanitizeFiles = (raw: unknown, roomUserId: string): string[] => {
   if (!Array.isArray(raw) || !roomUserId) return [];
   const prefix = `/media/chats/${roomUserId}/`;
@@ -49,8 +45,7 @@ export const chatSocket = async (
 
   const chatRoom = await chatSocketService.initChatRoom(account, listAdminOnline, io);
   if (!chatRoom) {
-    // Admins on the chat-list page connect without a roomId purely for presence
-    // updates — that is expected, not a warning.
+    
     if (!(account.role === 'admin' && !account.roomId)) {
       console.warn(`[Socket] chatRoom not found for account: ${account.id} (${account.role})`);
     }
@@ -61,9 +56,7 @@ export const chatSocket = async (
   const roomUserId = account.role === 'user' ? account.id : (chatRoom.userId ?? '');
   socket.join(roomId);
 
-  // Now that the room (and any admin assignment) is settled, tell the connecting
-  // user whether their admin is online. Done here — not in handleUserConnect —
-  // because that runs before initChatRoom has created / reassigned the room.
+  
   if (account.role === 'user') {
     const assignedAdminId = chatRoom.adminId || '';
     const adminOnline = assignedAdminId ? listAdminOnline.has(assignedAdminId) : false;

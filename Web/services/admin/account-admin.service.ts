@@ -182,7 +182,7 @@ export const softDeleteAdminAccount = async (id: string) => {
 };
 
 export const softDeleteManyAdminAccounts = async (ids: string[]) => {
-  // never trash a superadmin, even in a bulk selection
+  
   await AccountAdmin.updateMany({ _id: { $in: ids }, isSuperAdmin: false }, { deleted: true, deletedAt: new Date() });
   return { success: true, message: `Moved ${ids.length} account(s) to trash!` };
 };

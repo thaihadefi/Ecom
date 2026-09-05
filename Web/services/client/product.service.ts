@@ -279,6 +279,7 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
       .sort({ createdAt: "desc" })
   ]);
 
+  formatProductItem(productDetail);
   for (const item of relatedProducts) formatProductItem(item);
   for (const item of boughtTogetherProducts) formatProductItem(item);
   for (const item of viewedProducts) formatProductItem(item);

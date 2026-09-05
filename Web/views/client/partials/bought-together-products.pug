@@ -1,13 +1,14 @@
 include ../mixins/index.pug
 
-section.wow.fadeInUp(class="mt_90")
-  .row
-    .col-xl-6
-      div(class="section_heading section_heading")
-        h2
-          span Suggested
-          |  Buy With
-  .row(class="")
-    each item in boughtTogetherProducts
-      .col-xxl-3.col-6.col-md-4.col-lg-6.col-xl-4.wow.fadeInUp
-        +product-item(item)
+if (boughtTogetherProducts && boughtTogetherProducts.length > 0)
+  section.wow.fadeInUp.bought_together_products(class="mt_90")
+    .row
+      .col-xl-6
+        div(class="section_heading section_heading")
+          h2
+            span Suggested
+            |  Buy With
+    .row(class="")
+      each item in boughtTogetherProducts
+        .col-6.col-md-4.col-lg-3.wow.fadeInUp
+          +product-item(item)

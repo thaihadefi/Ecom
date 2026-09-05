@@ -49,8 +49,6 @@ const updateDateDividers = () => {
   });
 };
 
-// `offset` = serverNow - clientNow, so the elapsed time is measured against the
-// server clock and stays right even when the visitor's device clock is wrong.
 const fmtLastSeen = (ts, offset = 0) => {
   if (!ts) return "Offline";
   const diff = Math.max(0, Math.floor((Date.now() + offset - ts) / 1000));
@@ -61,13 +59,10 @@ const fmtLastSeen = (ts, offset = 0) => {
   return `Last seen ${new Date(ts).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
 };
 
-// Chat content is user-authored and rendered via innerHTML — always escape it.
 const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => (
   { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
 ));
 
-// Wrap bare URLs in a link. Runs on already-escaped text, so the match can only
-// contain safe characters; trailing sentence punctuation is left outside the link.
 const linkify = (escaped) => escaped.replace(/\bhttps?:\/\/[^\s<]+/g, (raw) => {
   const trail = raw.match(/[.,!?)\]]+$/);
   const url = trail ? raw.slice(0, -trail[0].length) : raw;
@@ -95,10 +90,6 @@ const showConfirm = (msg, onOk) => {
 
 const chatButton = document.querySelector("#chat-button");
 
-// The chat UI is only rendered for logged-in visitors. Guests have no chat
-// session, so opening the socket just fails the auth handshake and fires a
-// misleading "session expired" toast on every page — skip it entirely when
-// there is no chat button in the DOM.
 if (chatButton) {
   const socket = io({ auth: { role: "user" } });
 
@@ -115,10 +106,6 @@ if (chatButton) {
 
     socket.disconnect(); // pointless to keep retrying a rejected handshake
 
-    // One silent recovery attempt: a same-origin GET runs the HTTP verifyToken
-    // middleware, which rotates an expired access token from the refresh
-    // cookie. If that restores the session, reconnect once with the fresh
-    // cookie — the visitor never sees an error.
     if (!sessionRecoveryTried) {
       sessionRecoveryTried = true;
       try {
@@ -133,8 +120,6 @@ if (chatButton) {
       notyf.error("Your session has ended. Please log in again to use chat.");
     }
   });
-  // Connection status banner: Socket.IO retries silently, so tell the visitor
-  // when the link is down instead of leaving them guessing why nothing sends.
   const connBanner = document.getElementById("chat-connection-banner");
   const showConnBanner = (msg) => {
     if (!connBanner) return;
@@ -153,8 +138,6 @@ if (chatButton) {
   });
   socket.on("disconnect", (reason) => {
     console.warn("[Chat] Disconnected:", reason);
-    // "io client disconnect" = we called socket.disconnect() (auth failure) —
-    // that path shows its own notice, so don't also flash "Reconnecting".
     if (reason !== "io client disconnect") showConnBanner("Connection lost. Reconnecting…");
   });
   const chatPopup    = document.getElementById("chat-popup");
@@ -175,7 +158,6 @@ if (chatButton) {
   let adminUnreadCount = 0;
   let isAdminOnline = false;
 
-  // Presence / "last seen"
   let serverClockOffset = 0;   // serverNow - clientNow
   let adminLastSeenAt   = null; // epoch ms, kept so the label can re-render live
   let lastSeenTimer     = null;
@@ -220,7 +202,6 @@ if (chatButton) {
     if (lastSeenAt) adminLastSeenAt = lastSeenAt;
     renderLastSeen();
     if (onlineDot) onlineDot.classList.remove("is-online");
-    // Re-render every 30s so "Last seen 2m ago" keeps counting up without a reload.
     stopLastSeenTicker();
     lastSeenTimer = setInterval(renderLastSeen, 30000);
   };
@@ -415,7 +396,6 @@ if (chatButton) {
 
   document.addEventListener("visibilitychange", () => {
     emitChatOpenState(isChatVisible());
-    // Background tabs freeze timers — refresh the label on the way back.
     if (document.visibilityState === "visible" && !isAdminOnline && adminLastSeenAt) renderLastSeen();
   });
 

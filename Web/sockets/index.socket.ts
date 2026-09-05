@@ -4,21 +4,13 @@ import { authSocket } from "./auth.socket";
 import ChatRoom from "../models/chat-room.model";
 import { touchLastSeen, touchLastSeenMany, getLastSeenMany } from "../helpers/presence.helper";
 
-// Presence is tracked in-process: this app runs as a single Node instance
-// (see README — NodeCache, no Redis). Horizontal scaling would need the
-// Socket.IO Redis adapter plus a shared presence store in place of these Maps.
 const listAdminOnline = new Map<string, Set<string>>();
 const listUserOnline  = new Map<string, Set<string>>();
 
-// Every admin socket joins this room so user-presence events reach only staff,
-// never other customers.
 const ADMINS_ROOM = "admins";
 
-/** Refresh last-seen for every connected account so an ungraceful crash never
- *  leaves a timestamp staler than this interval. */
 const PRESENCE_HEARTBEAT_MS = 60_000;
 
-/** Connection lifecycle chatter — useful in dev, noise in production. */
 const socketDebug = (...args: unknown[]): void => {
   if (process.env.NODE_ENV !== "production") console.log(...args);
 };
@@ -27,7 +19,6 @@ let _io: Server | null = null;
 let _heartbeat: ReturnType<typeof setInterval> | null = null;
 export const getIO = (): Server | null => _io;
 
-/** Stop background timers before the process exits (called from graceful shutdown). */
 export const stopSocket = (): void => {
   if (_heartbeat) {
     clearInterval(_heartbeat);
@@ -56,8 +47,7 @@ const notifyAdminStatus = async (io: Server, adminId: string, status: "online" |
 
 const handleAdminConnect = async (io: Server, socket: import("socket.io").Socket, adminId: string) => {
   const sockets = listAdminOnline.get(adminId) ?? new Set<string>();
-  // Decide before any await — a concurrent second socket for the same admin
-  // must not make both handlers think they are not the first.
+  
   const isFirstSocket = sockets.size === 0;
   sockets.add(socket.id);
   listAdminOnline.set(adminId, sockets);
@@ -90,8 +80,7 @@ const handleUserConnect = (io: Server, socket: import("socket.io").Socket, userI
 
   void touchLastSeen("user", userId); // best-effort; presence events go out first
   io.to(ADMINS_ROOM).emit("USER_STATUS_ONLINE", { id: userId, status: "online", serverNow: Date.now() });
-  // The user's SERVER_ADMIN_STATUS is emitted from chatSocket() once the room
-  // (and its admin assignment) is resolved — doing it here races the room upsert.
+  
 };
 
 export const initSocket = (io: Server) => {

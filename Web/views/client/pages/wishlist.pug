@@ -6,7 +6,7 @@ block main
     {
       name: pageTitle
     },
-    `/compare`
+    `/wishlist`
   )
 
   section(class="wishlist_page cart_page mt_100 mb_100")
@@ -24,6 +24,5 @@ block main
                     th(class="cart_page_quantity") Quantity
                     th(class="cart_page_price") Subtotal
                     th(class="cart_page_action") Action
-            .table-responsive
-              table.table
                 tbody(wishlist-table)
+

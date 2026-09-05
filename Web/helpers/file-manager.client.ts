@@ -2,12 +2,6 @@ import FormData from "form-data";
 import axios from "axios";
 import { domainCDN } from "../configs/variable.config";
 
-/**
- * Thin client for the FileManager microservice. The base URL, bearer auth and
- * the fire-and-forget delete + orphan logging live here instead of being
- * re-typed in every service that touches uploads (chat, avatar, review images).
- */
-
 const authHeaders = (form: FormData) => ({
   ...form.getHeaders(),
   Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`,
@@ -15,7 +9,6 @@ const authHeaders = (form: FormData) => ({
 
 type SavedLink = { folder: string; filename: string };
 
-/** Upload file buffers and return their stored "folder/filename" links. */
 export const fmUpload = async (
   files: Express.Multer.File[],
   folderPath: string,
@@ -33,7 +26,6 @@ export const fmUpload = async (
   return { success: true, fileUrls: saveLinks.map((l) => `${l.folder}/${l.filename}`) };
 };
 
-/** Fire-and-forget delete of one file; logs the path if the FileManager is down. */
 export const fmDeleteFile = (folder: string, fileName: string): void => {
   const form = new FormData();
   form.append("folder", folder);
@@ -46,13 +38,11 @@ export const fmDeleteFile = (folder: string, fileName: string): void => {
     });
 };
 
-/** Delete a file by its stored "folder/filename" link. */
 export const fmDeleteByLink = (link: string): void => {
   const i = link.lastIndexOf("/");
   fmDeleteFile(link.slice(0, i), link.slice(i + 1));
 };
 
-/** Fire-and-forget delete of a whole folder. */
 export const fmDeleteFolder = (folderPath: string): void => {
   const form = new FormData();
   form.append("folderPath", folderPath);

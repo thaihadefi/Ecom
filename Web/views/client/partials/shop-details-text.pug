@@ -16,8 +16,10 @@ div(class="shop_details_text")
       i.fas.fa-eye.me-1(aria-hidden="true" style="color: var(--themeColorTwo);")
       span #{productDetail.view || 0} Views
   p.price
-    div.price-new #{(productDetail.priceNew || 0).toLocaleString("vi-VN")} VND
+    span.price-new #{(productDetail.priceNew || 0).toLocaleString("vi-VN")} VND
     del.price-old #{(productDetail.priceOld || 0).toLocaleString("vi-VN")} VND
+    if (productDetail.discount > 0)
+      span.discount -#{productDetail.discount}%
   div(class="short_description") !{productDetail.description}
   each attribute in attributeList
     div(class="details_single_variant")

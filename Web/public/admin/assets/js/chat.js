@@ -49,8 +49,6 @@ const updateDateDividers = () => {
   });
 };
 
-// `offset` = serverNow - clientNow, so elapsed time follows the server clock
-// and stays correct even if the admin's device clock is off.
 const fmtLastSeen = (ts, offset = 0) => {
   if (!ts) return "";
   const diff = Math.max(0, Math.floor((Date.now() + offset - ts) / 1000));
@@ -61,8 +59,6 @@ const fmtLastSeen = (ts, offset = 0) => {
   return `Last seen ${new Date(ts).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
 };
 
-// --- shared presence painters (conversation view + list landing page) ---
-// `offset` = serverNow - clientNow.
 const paintPresenceRow = (rowEl, isOnline, lastSeenMs, offset = 0) => {
   const dot = rowEl.querySelector("[user-status]");
   if (dot) dot.classList.toggle("d-none", !isOnline);
@@ -86,29 +82,22 @@ const paintPresenceRoster = (listUserOnline = [], lastSeenMap = {}, offset = 0) 
   });
 };
 
-// Re-render every stored "last seen" label so the elapsed time keeps counting
-// up without a reload.
 const tickPresenceLabels = (offset = 0) => {
   document.querySelectorAll(".user-lastseen[data-ts]").forEach(el => {
     el.textContent = fmtLastSeen(Number(el.dataset.ts), offset);
   });
 };
 
-// Chat content is user-authored and rendered via innerHTML — always escape it.
 const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => (
   { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
 ));
 
-// Wrap bare URLs in a link. Runs on already-escaped text; trailing sentence
-// punctuation stays outside the link.
 const linkify = (escaped) => escaped.replace(/\bhttps?:\/\/[^\s<]+/g, (raw) => {
   const trail = raw.match(/[.,!?)\]]+$/);
   const url = trail ? raw.slice(0, -trail[0].length) : raw;
   return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${trail ? trail[0] : ""}`;
 });
 
-// LLM output can be prompt-injected, so escape FIRST, then re-add a small safe
-// subset of markdown on the already-neutralised text (never introduces raw HTML).
 const renderAiText = (raw) => escapeHtml(raw)
   .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
   .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>")
@@ -153,15 +142,12 @@ if (formChat) {
   let userUnreadCount = 0;
   let isUserOnline = false;
 
-  // Presence / "last seen"
   let serverClockOffset = 0;    // serverNow - clientNow
   let headerLastSeenAt  = null; // epoch ms for the conversation header
   const applyServerNow = (serverNow) => {
     if (typeof serverNow === "number") serverClockOffset = serverNow - Date.now();
   };
 
-  // Keep every visible "last seen" label counting up without a reload — the
-  // conversation header plus each row in the list.
   const tickLastSeenLabels = () => {
     if (headerLastSeenAt && !isUserOnline && statusText) {
       statusText.textContent = fmtLastSeen(headerLastSeenAt, serverClockOffset) || "Offline";
@@ -212,7 +198,6 @@ if (formChat) {
     }
   });
 
-  // Connection status banner — Socket.IO retries silently in the background.
   const connBanner = document.getElementById("admin-chat-connection-banner");
   const showConnBanner = (msg) => {
     if (!connBanner) return;
@@ -531,7 +516,6 @@ if (formChat) {
     window.location.href = `/${pathAdmin}/chat/list/my-chat`;
   });
 
-  // Keeps a second admin viewing the same room in sync when someone locks/opens it.
   socket.on("SERVER_ROOM_STATUS", (data) => {
     if (data?.roomId !== chatRoomId) return;
     const locked = data.status === "locked";
@@ -581,14 +565,9 @@ if (formChat) {
   }
 }
 
-// Chat list landing page (no conversation open): a presence-only socket so the
-// online dots and "last seen" labels in the list stay live, same as a real
-// marketplace inbox.
 if (!formChat && document.querySelector(".chat-body-left")) {
   const socket = io();
 
-  // Presence-only socket — no toast needed, but a rejected handshake must not
-  // reconnect forever. Stop once the session is gone.
   const PRESENCE_AUTH_ERRORS = [
     "Account not available", "Authentication failed",
     "No token", "No cookies", "Invalid token payload", "Session expired",
@@ -613,8 +592,6 @@ if (!formChat && document.querySelector(".chat-body-left")) {
     if (rowEl) paintPresenceRow(rowEl, data.status === "online", data.lastSeenAt, offset);
   });
 
-  // A room was reassigned off a deactivated admin — refresh the inbox once
-  // (debounced so a burst of reassignments is a single reload).
   let assignReloadTimer;
   socket.on("SERVER_ROOM_ASSIGNED", () => {
     clearTimeout(assignReloadTimer);

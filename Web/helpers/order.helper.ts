@@ -5,14 +5,6 @@ import AccountUser from "../models/account-user.model";
 import { sendMail, emailTemplates } from "./mail.helper";
 import { IOrder } from "../interfaces/models/order.interface";
 
-/**
- * Roll back everything an order consumed when it moves to a terminal state
- * (cancelled / returned): restore product stock, refund used loyalty points,
- * and give back one coupon use. Runs inside the caller's transaction session.
- *
- * Used by both the admin status-change flow and the auto-cancel cron job, which
- * previously carried byte-identical copies of this block.
- */
 export const releaseOrderResources = async (
   order: Pick<IOrder, "items" | "usedPoint" | "coupon" | "userId">,
   session: ClientSession,
@@ -56,10 +48,6 @@ export const releaseOrderResources = async (
   await Promise.all(tasks);
 };
 
-/**
- * Email the customer that their order status changed. Fire-and-forget: a mail
- * failure must not roll back the status change, but it is logged.
- */
 export const notifyOrderStatusChange = (
   order: Pick<IOrder, "userId" | "code">,
   newStatus: string,

@@ -41,8 +41,6 @@
   -o-border-radius: 6px;
 }
 
-/* The solid red background covers Bootstrap's built-in × SVG, and the global
-   `.btn-close i { display:none }` hides the fallback — re-show it here. */
 .mobile_menu_area .btn-close i {
   display: inline-block !important;
   color: var(--colorWhite);

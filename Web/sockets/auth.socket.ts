@@ -15,8 +15,6 @@ interface ResolvedIdentity {
   role: SocketRole;
 }
 
-/** The JWT lives for days; confirm the account still exists and is allowed in
- *  so deactivation / ban / deletion takes effect on the socket immediately. */
 const accountIsActive = async (role: SocketRole, id: string, email: string): Promise<boolean> => {
   const filter = { _id: id, email, deleted: false, status: "active" };
   const found = role === "admin"
@@ -25,8 +23,6 @@ const accountIsActive = async (role: SocketRole, id: string, email: string): Pro
   return !!found;
 };
 
-/** Resolve identity from an access-token JWT. Returns null when the token is
- *  missing, malformed, or expired — the caller then tries the refresh token. */
 const identityFromAccessToken = (token: string | undefined, role: SocketRole): ResolvedIdentity | null => {
   if (!token) return null;
   try {
@@ -34,17 +30,11 @@ const identityFromAccessToken = (token: string | undefined, role: SocketRole): R
     if (!decoded?.id || !decoded?.email) return null;
     return { id: decoded.id, email: decoded.email, role };
   } catch {
-    // Expired or invalid — fall through to the refresh-token path.
+    
     return null;
   }
 };
 
-/** Resolve identity from a refresh token the same way the HTTP verifyToken
- *  middleware does, so a socket that reconnects after the short-lived access
- *  token lapses is not rejected while the 30-day session is still valid. This
- *  is read-only: the access token is rotated by the next HTTP request, not here
- *  (rotating on the WS handshake cannot reliably set the new cookie and would
- *  race the HTTP rotation's reuse-detection). */
 const identityFromRefreshToken = async (
   refreshTokenValue: string | undefined,
   role: SocketRole,
@@ -68,12 +58,6 @@ const identityFromRefreshToken = async (
   return { id: String(account._id), email: account.email ?? "", role };
 };
 
-// The rejection messages below ("No cookies", "No token", "Session expired",
-// "Account not available", "Authentication failed") are matched literally by the
-// AUTH_ERRORS lists in the socket clients — Web/public/client/assets/js/chat.js
-// and Web/public/admin/assets/js/chat.js (two lists). A client that does not
-// recognise the message keeps reconnecting forever, so keep those lists in sync
-// when adding or renaming one here.
 export const authSocket = async (socket: Socket, next: SocketNextFn) => {
   try {
     const cookieString = socket.handshake.headers.cookie;
@@ -84,8 +68,7 @@ export const authSocket = async (socket: Socket, next: SocketNextFn) => {
     const cookies = cookie.parse(cookieString);
     const intendedRole: unknown = socket.handshake.auth.role;
 
-    // Pick which credential set to check. A user tab explicitly asks for the
-    // "user" role; anything else prefers an admin credential when present.
+    
     let role: SocketRole;
     let accessToken: string | undefined;
     let refreshToken: string | undefined;

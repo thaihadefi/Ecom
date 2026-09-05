@@ -1,46 +1,36 @@
-/* ============================================================
-   Storefront UI override layer. Loaded after style.css and
-   responsive.css. Design tokens in :root below; the appended
-   block at the end of the file carries the component overrides.
-   ============================================================ */
-
-/* contain the few px of sub-pixel overflow from the grid on small
-   screens without breaking position: sticky */
 html { overflow-x: clip; }
 
-/* ── 0. FONTS ── (also <link>-loaded in views/client/layouts/default.pug) */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
-/* design tokens */
 :root{
-    /* Canvas */
-    --paper:     #FAFAF9;   /* page */
-    --surface:   #FFFFFF;   /* cards / panels */
-    --surface-2: #F4F2EF;   /* subtle fill */
+    
+    --paper:     #FAFAF9;   
+    --surface:   #FFFFFF;   
+    --surface-2: #F4F2EF;   
 
-    /* Ink */
-    --ink:       #1C1917;   /* primary text, buttons */
-    --ink-2:     #0C0A09;   /* headings */
-    --muted:     #6B6560;   /* secondary text (warm grey) */
-    --faint:     #A8A29E;   /* tertiary / placeholder */
+    
+    --ink:       #1C1917;   
+    --ink-2:     #0C0A09;   
+    --muted:     #6B6560;   
+    --faint:     #A8A29E;   
 
-    /* Accent - muted bronze-gold, used sparingly */
+    
     --gold:      #A16207;
     --gold-dim:  #854D0E;
-    --gold-soft: #F3ECDD;   /* tint fill for badges */
+    --gold-soft: #F3ECDD;   
 
-    /* Lines */
-    --line:      #E7E3DE;   /* hairline */
-    --line-2:    #D6D3D1;   /* visible divider / border */
+    
+    --line:      #E7E3DE;   
+    --line-2:    #D6D3D1;   
 
-    /* Semantic */
+    
     --colorGreen:   #15803D;
     --colorRed:     #B91C1C;
     --colorOlive:   #6B6560;
     --colorYellow:  #A16207;
     --ratingColor:  #A16207;
 
-    /* Base-template brand hooks */
+    
     --themeColorOne:     #1C1917;
     --themeColorOneDark:  #0C0A09;
     --themeColorTwo:     #A16207;
@@ -48,7 +38,7 @@ html { overflow-x: clip; }
     --themeColorOne:     #1C1917; 
     --themeColorOneDark:  #0C0A09;
 
-    /* Legacy names across style.css */
+    
     --colorBlack:   #1C1917;
     --paraColor:    #6B6560;
     --muted2:       #A8A29E;
@@ -57,37 +47,33 @@ html { overflow-x: clip; }
     --lightBg2:     #F4F2EF;
     --borderColor:  #E7E3DE;
 
-    /* Typography */
+    
     --headingFont:  "Cormorant", Georgia, "Times New Roman", serif;
     --bodyFont:     "Montserrat", system-ui, -apple-system, sans-serif;
     --cursiveFont:  "Cormorant", Georgia, serif;
 
-    /* Shape - sharp / near-sharp */
+    
     --radius-sm:    0px;
     --radius:       0px;
     --radius-lg:    2px;
     --radius-xl:    2px;
 
-    /* Elevation - barely there */
+    
     --shadow-sm:  0 1px 0 var(--line);
     --shadow:     0 1px 2px rgb(28 25 23 / .04);
     --shadow-md:  0 10px 40px -12px rgb(28 25 23 / .12);
     --shadow-lg:  0 20px 60px -16px rgb(28 25 23 / .16);
     --boxShadow:  var(--shadow-md);
 
-    /* Motion - slow, refined */
+    
     --t: .45s cubic-bezier(.4, 0, .2, 1);
     --t-fast: .28s cubic-bezier(.4, 0, .2, 1);
 }
 
-/* base */
-
-/* Eliminate 300ms tap delay on mobile for all interactive elements */
 a, button, [role="button"], label, input[type="submit"], input[type="button"], input[type="reset"] {
     touch-action: manipulation;
 }
 
-/* Scope img transition to opacity+transform only - animating "all" is expensive */
 img {
     transition: opacity var(--t), transform var(--t) !important;
 }
@@ -109,7 +95,6 @@ p, span, li, a {
     font-family: var(--bodyFont);
 }
 
-/* Heading spans must inherit headingFont, not bodyFont */
 h1 span, h2 span, h3 span, h4 span, h5 span, h6 span {
     font-family: inherit;
 }
@@ -118,7 +103,6 @@ a {
     transition: color var(--t), background-color var(--t), opacity var(--t);
 }
 
-/* buttons */
 .common_btn {
     display: inline-flex;
     align-items: center;
@@ -140,7 +124,6 @@ a {
     transition: background var(--t), box-shadow var(--t), transform var(--t);
 }
 
-/* no slide-in overlay */
 .common_btn::after {
     content: none !important;
 }
@@ -173,7 +156,6 @@ a {
     transform: translateX(3px) !important;
 }
 
-/* Orange / CTA variant used in default_home */
 .default_home .common_btn,
 .home_grocery .common_btn,
 .home_beauty .common_btn {
@@ -186,7 +168,6 @@ a {
     background: var(--themeColorTwoDark);
 }
 
-/* Full-width inside sign-in - only the SUBMIT button, not password-toggle */
 .sign_in_form form button.common_btn,
 .sign_up .sign_in_form form button.common_btn,
 .forgot_password form button.common_btn {
@@ -197,7 +178,6 @@ a {
     border-radius: var(--radius);
 }
 
-/* form inputs */
 .single_input {
     position: relative;
     border: 1.5px solid var(--borderColor);
@@ -254,7 +234,6 @@ a {
     color: #CBD5E1;
 }
 
-/* error label */
 .single_input .just-validate-error-label {
     position: absolute;
     bottom: -20px;
@@ -264,7 +243,6 @@ a {
     white-space: nowrap;
 }
 
-/* password toggle */
 .password-input-wrapper {
     position: relative;
 }
@@ -273,7 +251,6 @@ a {
     padding-right: 60px !important;
 }
 
-/* password-toggle opts out of the width:100% on .sign_in_form form button */
 .sign_in_form form button.password-toggle,
 .sign_up .sign_in_form form button.password-toggle,
 .forgot_password form button.password-toggle,
@@ -319,7 +296,6 @@ form button.password-toggle {
     color: var(--themeColorOne);
 }
 
-/* Prevent the common_btn hover effects from leaking into the toggle */
 .password-toggle:hover {
     transform: none !important;
 }
@@ -334,14 +310,10 @@ form button.password-toggle {
     transform: none !important;
 }
 
-/* Auth forms: keep layout breathing room between grid rows */
 .sign_in_form .row {
     row-gap: 18px;
 }
 
-/* sign-in / auth forms */
-
-/* Or divider - uses real spans instead of pseudo-elements to avoid cascade conflicts */
 .or-divider {
     display: flex;
     align-items: center;
@@ -364,10 +336,8 @@ form button.password-toggle {
     white-space: nowrap;
 }
 
-/* Hide old p.or if still present elsewhere */
 .sign_in_form .or { display: none; }
 
-/* Lock auth form buttons to accent - body.default_home would override to orange */
 .sign_in_form form button.common_btn,
 .sign_up .sign_in_form form button.common_btn,
 .forgot_password form button.common_btn {
@@ -440,7 +410,6 @@ form button.password-toggle {
     width: 42%;
 }
 
-/* Social login - i18n safe (flex, no fixed width) */
 .sign_in_form ul {
     display: flex;
     flex-wrap: wrap;
@@ -506,7 +475,6 @@ form button.password-toggle {
     color: #1877f2 !important;
 }
 
-/* dashboard sidebar */
 .dashboard_sidebar {
     box-shadow: var(--shadow-md);
     border-radius: var(--radius-lg);
@@ -516,14 +484,12 @@ form button.password-toggle {
     overflow: hidden;
 }
 
-/* Remove the -70px layout hack; sidebar aligns with its row */
 .dashboard_sidebar_area {
     top: 0 !important;
     overflow: visible !important;
     border-radius: var(--radius-lg);
 }
 
-/* Gradient header for the user block */
 .dashboard_sidebar_user {
     padding: 28px 20px 20px;
     background: linear-gradient(135deg, var(--themeColorOne) 0%, var(--themeColorOneDark) 100%);
@@ -578,7 +544,6 @@ form button.password-toggle {
     border-color: transparent;
 }
 
-/* Sidebar menu */
 .dashboard_sidebar_menu ul {
     padding: 8px 0 16px;
 }
@@ -640,14 +605,12 @@ form button.password-toggle {
     font-weight: 600;
 }
 
-/* Remove old pseudo-element active indicator */
 .dashboard_sidebar_menu ul li a::after,
 .dashboard_sidebar_menu ul li a:hover::after,
 .dashboard_sidebar_menu ul li a.active::after {
     display: none !important;
 }
 
-/* Dashboard content - reset mt_100 that was paired with the -70px sidebar hack */
 .dashboard .dashboard_content,
 .dashboard .dashboard_content.mt_100 {
     margin-top: 0 !important;
@@ -663,7 +626,6 @@ form button.password-toggle {
     letter-spacing: -.01em;
 }
 
-/* dashboard overview cards */
 .dashboard_overview_item {
     border-radius: var(--radius-lg) !important;
     border: 1px solid var(--borderColor);
@@ -681,7 +643,6 @@ form button.password-toggle {
     box-shadow: var(--shadow-sm);
 }
 
-/* product cards */
 .product_item {
     border-radius: var(--radius-lg);
     overflow: hidden;
@@ -707,14 +668,12 @@ form button.password-toggle {
     transform: translateY(-1px);
 }
 
-/* header */
 header.header_main {
     background: var(--colorWhite);
     box-shadow: var(--shadow-sm);
     border-bottom: 1px solid var(--borderColor);
 }
 
-/* let the header grow instead of overflowing the nav */
 header.header_main,
 header.header_main .container,
 header.header_main .row {
@@ -722,14 +681,12 @@ header.header_main .row {
     min-height: 90px;
 }
 
-/* drop the secondary hotline between lg and xl */
 @media (max-width: 1199.98px){
     header.header_main .header_support {
         display: none !important;
     }
 }
 
-/* Header search */
 header.header_main form {
     width: 100%;
     margin-left: 0;
@@ -740,7 +697,6 @@ header.header_main form .input {
     flex: 1 1 auto;
 }
 
-/* Logo - prevent global img 100% height from distorting it */
 .header_logo img,
 .header_logo_area img {
     height: auto !important;
@@ -761,7 +717,6 @@ header.header_main form .input {
     object-fit: contain !important;
 }
 
-/* navigation */
 .menu_item li a {
     font-family: var(--bodyFont);
     font-weight: 500;
@@ -772,7 +727,6 @@ header.header_main form .input {
     color: var(--themeColorOne);
 }
 
-/* Push icon bar to the far right when ul.menu_item is removed */
 .main_menu_area {
     justify-content: space-between !important;
 }
@@ -781,13 +735,11 @@ header.header_main form .input {
     margin-left: auto !important;
 }
 
-/* cart / checkout button */
 .cart_summary_btn .common_btn,
 .product_list_item .common_btn {
     white-space: nowrap;
 }
 
-/* pagination */
 .pagination_area .page-link {
     border-radius: var(--radius-sm);
     transition: background var(--t), color var(--t);
@@ -799,14 +751,12 @@ header.header_main form .input {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
 }
 
-/* ── 14. MAIN_MENU ACTIVE INDICATOR ── */
 .menu_item li a:focus-visible {
     outline: 2px solid var(--themeColorOne);
     outline-offset: 3px;
     border-radius: 3px;
 }
 
-/* autofill */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
@@ -815,7 +765,6 @@ input:-webkit-autofill:focus {
     -webkit-text-fill-color: var(--colorBlack);
 }
 
-/* accessibility */
 :focus-visible {
     outline: 2px solid var(--themeColorOne);
     outline-offset: 2px;
@@ -826,7 +775,6 @@ input:-webkit-autofill:focus {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
 }
 
-/* reduced motion */
 @media (prefers-reduced-motion: reduce){
     *, *::before, *::after {
         animation-duration:       .01ms !important;
@@ -836,7 +784,6 @@ input:-webkit-autofill:focus {
     }
 }
 
-/* nice-select dropdown fix */
 .nice-select {
     border-radius: var(--radius) !important;
     border: 1px solid var(--borderColor) !important;
@@ -900,7 +847,6 @@ input:-webkit-autofill:focus {
     width: 6px;
 }
 
-/* currency / language select in header */
 .topbar_right .nice-select {
     height: 40px;
     line-height: 38px;
@@ -919,8 +865,6 @@ input:-webkit-autofill:focus {
     left: auto;
 }
 
-/* dashboard password fields */
-/* Ensure dashboard form buttons don't break password toggle */
 .dashboard_profile_info_edit .password-toggle,
 .dashboard_change_password .password-toggle,
 .info_edit_form .password-toggle {
@@ -938,7 +882,6 @@ input:-webkit-autofill:focus {
     margin-bottom: 25px;
 }
 
-/* map & address form polish */
 #boxMap {
     border-radius: var(--radius);
     border: 1px solid var(--borderColor);
@@ -979,7 +922,6 @@ input:-webkit-autofill:focus {
     color: var(--colorWhite);
 }
 
-/* checkout address cards */
 .checkout_single_address {
     border-radius: var(--radius-lg);
     border: 1.5px solid var(--borderColor);
@@ -991,7 +933,6 @@ input:-webkit-autofill:focus {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
 }
 
-/* select2 polish */
 .select2-container--default .select2-selection--single {
     border-radius: var(--radius) !important;
     border: 1.5px solid var(--borderColor) !important;
@@ -1012,7 +953,6 @@ input:-webkit-autofill:focus {
     margin-top: 4px;
 }
 
-/* Hide Select2 search box for single selects */
 .select2-search--dropdown {
     display: none;
 }
@@ -1022,16 +962,12 @@ input:-webkit-autofill:focus {
     color: var(--themeColorOne) !important;
 }
 
-/* responsive */
-
-/* Tablet */
 @media (max-width: 991px){
     .dashboard_sidebar {
         margin-bottom: 24px;
     }
 }
 
-/* Mobile */
 @media (max-width: 767px){
     .sign_in_form {
         padding: 32px 20px;
@@ -1062,7 +998,6 @@ input:-webkit-autofill:focus {
 
 }
 
-/* Small mobile */
 @media (max-width: 479px){
     .sign_in_form {
         padding: 24px 16px;
@@ -1073,7 +1008,6 @@ input:-webkit-autofill:focus {
     }
 }
 
-/* voice search effects */
 header form .input .inner-voice {
     transition: color var(--t), transform var(--t);
     color: var(--paraColor);
@@ -1105,7 +1039,6 @@ header form .input .inner-voice.recording {
     }
 }
 
-/* unified header font awesome icons */
 .menu_icon li a b {
     display: inline-flex !important;
     align-items: center !important;
@@ -1135,7 +1068,6 @@ header form .input .inner-voice.recording {
     color: var(--themeColorOne) !important;
 }
 
-/* account dropdown: fixed icon column, left-aligned labels */
 .menu_icon li .user_dropdown {
     padding: 8px !important;
     line-height: normal !important;
@@ -1157,7 +1089,6 @@ header form .input .inner-voice.recording {
     transition: background var(--t), color var(--t) !important;
 }
 
-/* icon centred in a fixed track */
 .menu_icon li .user_dropdown li a > i,
 .menu_icon li .user_dropdown li a > svg {
     grid-column: 1 !important;
@@ -1179,7 +1110,6 @@ header form .input .inner-voice.recording {
     color: var(--themeColorOne) !important;
 }
 
-/* Category menu bar Font Awesome icon spacing */
 .menu_category_bar p span {
     display: inline-flex !important;
     align-items: center !important;
@@ -1191,7 +1121,6 @@ header form .input .inner-voice.recording {
     color: var(--colorWhite) !important;
 }
 
-/* Mobile menu area Font Awesome icons */
 .mobile_menu_list li a b {
     display: inline-flex !important;
     align-items: center !important;
@@ -1208,7 +1137,6 @@ header form .input .inner-voice.recording {
     color: var(--colorBlack) !important;
 }
 
-/* unified footer payment font awesome icons */
 .footer_copyright .payment li {
     width: 42px !important;
     height: 28px !important;
@@ -1247,7 +1175,6 @@ header form .input .inner-voice.recording {
     color: #94a3b8 !important;
 }
 
-/* ── 26. dark footer ── */
 .footer_main {
     background: #0B0F19 !important;
     border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -1267,7 +1194,6 @@ header form .input .inner-voice.recording {
     padding-right: 15px !important;
 }
 
-/* Social links styling - vertically aligned with text above */
 .footer_social_follow,
 .footer_logo_area .footer_social_follow,
 .footer_main .footer_logo_area .footer_social_follow {
@@ -1317,7 +1243,6 @@ header form .input .inner-voice.recording {
     color: #FFFFFF !important;
 }
 
-/* Slider Arrows Alignment - Clean centered & aligned with content */
 .flash_sell_slider .slick-arrow,
 .flash_sell .nextArrow,
 .flash_sell .prevArrow,
@@ -1366,7 +1291,6 @@ header form .input .inner-voice.recording {
     transform: translateY(-50%) scale(1.06) !important;
 }
 
-/* Hero Banner Slider Dots - Clean horizontal bottom indicator */
 .banner_slider .slick-dots {
     position: absolute !important;
     bottom: 24px !important;
@@ -1380,7 +1304,7 @@ header form .input .inner-voice.recording {
     flex-direction: row !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 4px !important;
     z-index: 10 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -1418,7 +1342,6 @@ header form .input .inner-voice.recording {
     background: var(--gold) !important;
 }
 
-/* Symmetric Hero Banner Cards */
 .banner_slider_2 {
     margin: 25px 0 0 0 !important;
     width: 100% !important;
@@ -1429,17 +1352,17 @@ header form .input .inner-voice.recording {
     width: 100% !important;
 }
 
-/* restore the hero side gutter below lg */
 @media (max-width: 991.98px){
-    .banner_slider_2,
+    .banner_slider_2 {
+        width: 100% !important;
+        margin: 0 !important;
+    }
     .banner_add {
-        width: auto !important;
-        margin-left: 16px !important;
-        margin-right: 16px !important;
+        width: 100% !important;
+        margin: 20px 0 0 0 !important;
     }
 }
 
-/* avoid transient h-scroll while Slick re-measures */
 .banner_main {
     overflow-x: hidden;
 }
@@ -1478,7 +1401,6 @@ header form .input .inner-voice.recording {
     color: #FFFFFF !important;
 }
 
-/* Links Columns */
 .footer_link h2 {
     color: #FFFFFF !important;
     font-size: 18px !important;
@@ -1515,7 +1437,6 @@ header form .input .inner-voice.recording {
     transform: translateX(4px) !important;
 }
 
-/* Contact Us Details Override */
 .footer_logo_area p {
     color: #94A3B8 !important;
 }
@@ -1552,7 +1473,6 @@ header form .input .inner-voice.recording {
     color: var(--themeColorTwo) !important;
 }
 
-/* Copyright block */
 .footer_copyright {
     background: #060912 !important;
     border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -1570,7 +1490,6 @@ header form .input .inner-voice.recording {
     font-weight: 600;
 }
 
-/* Payment Icons in Dark footer */
 .footer_copyright .payment li {
     width: auto !important;
     height: 32px !important;
@@ -1610,7 +1529,6 @@ header form .input .inner-voice.recording {
     color: var(--themeColorTwo) !important;
 }
 
-/* skip-to-main */
 .skip-to-main {
     position: absolute;
     top: -100%;
@@ -1631,7 +1549,6 @@ header form .input .inner-voice.recording {
     outline-offset: 2px;
 }
 
-/* loading button state */
 .common_btn[data-loading="true"],
 .btn[data-loading="true"] {
     pointer-events: none;
@@ -1655,7 +1572,6 @@ header form .input .inner-voice.recording {
     to { transform: rotate(360deg); }
 }
 
-/* form field error state */
 .single_input.is-invalid input,
 .single_input.is-invalid textarea,
 .single_input.is-invalid select {
@@ -1684,7 +1600,6 @@ header form .input .inner-voice.recording {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* avatar initials */
 .avatar-initials {
     background: var(--ink) !important;
     color: #fff;
@@ -1697,9 +1612,25 @@ header form .input .inner-voice.recording {
 .single_review .img .avatar-initials {
     width: 100%; height: 100%; font-size: 22px;
 }
+.single_review {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+}
+.single_review .img {
+    flex-shrink: 0 !important;
+    width: 48px !important;
+    height: 48px !important;
+}
+.single_review .text {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    padding-left: 0 !important;
+    margin-top: 0 !important;
+    min-width: 0 !important;
+}
 
-/* features */
-/* centre the absolutely-positioned .icon; stretch columns to equal height */
 .features [class*="col-"] {
     display: flex;
     align-items: stretch;
@@ -1719,10 +1650,8 @@ header form .input .inner-voice.recording {
     justify-content: center !important;
 }
 
-/* category 2 */
-/* beat style.css global img{object-fit:cover!important} with specificity + !important */
 .category_area .category_item .img {
-    padding: 0 !important;   /* theme sets padding:40px which shrinks image area to 90x90 */
+    padding: 0 !important;   
     border-radius: 50% !important;
     overflow: hidden !important;
 }
@@ -1759,7 +1688,6 @@ header form .input .inner-voice.recording {
     margin: 0 !important;
 }
 
-/* trending */
 .trending_product_2 [class*="col-"] {
     display: flex;
     align-items: stretch;
@@ -1775,7 +1703,6 @@ header form .input .inner-voice.recording {
     flex: 1;
 }
 
-/* section headings */
 .section_heading h2,
 .section_heading h2 span {
     font-family: var(--headingFont) !important;
@@ -1783,7 +1710,6 @@ header form .input .inner-voice.recording {
     letter-spacing: -0.02em;
 }
 
-/* view all button */
 .view_all_btn_area .view_all_btn {
     border-bottom: none;
     text-decoration: underline;
@@ -1801,8 +1727,6 @@ header form .input .inner-voice.recording {
     text-decoration: none;
 }
 
-/* desktop nav - category panel structure only
-   (colours + typography live in the "Category menu" block near EOF) */
 .menu_cat_item li a { position: relative !important; text-decoration: none !important; }
 .menu_cat_item li a::after { display: none !important; content: none !important; }
 .menu_cat_item li a i { margin-left: auto !important; }
@@ -1817,7 +1741,6 @@ header form .input .inner-voice.recording {
     padding: 0 !important; margin: 0 !important; overflow: visible !important; display: inline !important;
 }
 
-/* fly-out submenu: positioning + reveal */
 .menu_cat_droapdown {
     width: 250px !important;
     position: absolute !important; z-index: 9999 !important;
@@ -1829,18 +1752,16 @@ header form .input .inner-voice.recording {
     opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
 }
 
-/* "View All" - sticky at the bottom of the panel */
 .menu_cat_item li.all_category { position: sticky; bottom: 0; z-index: 1; }
 .menu_cat_item li.all_category a:hover i { transform: translateX(3px) !important; }
 
-/* Products / Articles hover dropdowns */
 .menu_droapdown {
     border-radius: var(--radius) !important;
     border: 1px solid var(--borderColor) !important;
     box-shadow: var(--shadow-md) !important;
     padding: 6px 0 !important;
     top: 110% !important;
-    /* no overflow:hidden - child .menu_droapdown2 fly-outs position outside this panel */
+    
 }
 
 .menu_droapdown > li > a {
@@ -1858,20 +1779,15 @@ header form .input .inner-voice.recording {
     padding-left: 28px !important;
 }
 
-/* Hover indicator dot */
 .main_menu_2 .menu_droapdown > li > a::after {
     background: var(--themeColorOne) !important;
 }
 
-/* Main nav link hover/active: override yellow */
 .main_menu_2 .menu_item > li:hover > a,
 .main_menu_2 .menu_item li a.active {
     color: var(--themeColorOne) !important;
 }
 
-/* mobile offcanvas menu polish */
-
-/* Tab buttons - Categories / Menu */
 .mobile_menu_item_area .nav .nav-item button {
     font-size: 14px !important;
     font-weight: 600 !important;
@@ -1886,7 +1802,6 @@ header form .input .inner-voice.recording {
     background: var(--themeColorOne) !important;
 }
 
-/* Mobile menu items: lift color + font */
 .main_mobile_menu li > a {
     color: var(--colorBlack) !important;
     font-weight: 500 !important;
@@ -1898,7 +1813,6 @@ header form .input .inner-voice.recording {
     color: var(--themeColorOne) !important;
 }
 
-/* Sub-items: visually lighter */
 .main_mobile_menu .inner_menu li a {
     font-size: 13px !important;
     color: var(--paraColor) !important;
@@ -1910,7 +1824,6 @@ header form .input .inner-voice.recording {
     color: var(--themeColorOne) !important;
 }
 
-/* Mobile icon header: align icons evenly */
 .mobile_menu_header {
     background: var(--lightBg2) !important;
     border-radius: var(--radius) !important;
@@ -1922,23 +1835,18 @@ header form .input .inner-voice.recording {
     font-size: 16px;
 }
 
-/* mobile accordion */
-
-/* Hide old plus/minus image indicators */
 .main_mobile_menu .mobile_dropdown::after,
 .main_mobile_menu .active::after {
     display: none !important;
     background: none !important;
 }
 
-/* Parent dropdown link: flex row so text + chevron are on same line */
 .main_mobile_menu .mobile_dropdown > a {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
 }
 
-/* Chevron icon inside parent link */
 .main_mobile_menu .accordion-chevron {
     font-size: 11px !important;
     flex-shrink: 0 !important;
@@ -1948,24 +1856,19 @@ header form .input .inner-voice.recording {
     transform: rotate(0deg) !important;
 }
 
-/* Rotate chevron and highlight when open */
 .main_mobile_menu .mobile_dropdown.active > a .accordion-chevron {
     transform: rotate(90deg) !important;
     color: var(--themeColorOne) !important;
 }
 
-/* Active parent link: accent */
 .main_mobile_menu .mobile_dropdown.active > a {
     color: var(--themeColorOne) !important;
 }
 
-/* Submenu indent */
 .main_mobile_menu li .inner_menu {
     padding-left: 12px !important;
 }
 
-/* product card */
-/* price + old price wrap cleanly as flex items */
 .product_item .price,
 .product_item_2 .price {
     display: flex !important;
@@ -1975,14 +1878,12 @@ header form .input .inner-voice.recording {
     white-space: normal !important;
 }
 
-/* Old price: stays whole on its own line if it wraps */
 .product_item .price del,
 .product_item_2 .price del {
     white-space: nowrap !important;
     flex-shrink: 0 !important;
 }
 
-/* title: 2-line clamp */
 .product_item .title,
 .product_item_2 .title {
     display: -webkit-box !important;
@@ -1992,7 +1893,6 @@ header form .input .inner-voice.recording {
     white-space: normal !important;
 }
 
-/* wishlist buttons */
 .wishlist_page .cart_page_action {
     display: flex;
     flex-direction: column;
@@ -2000,7 +1900,6 @@ header form .input .inner-voice.recording {
     align-items: flex-start;
 }
 
-/* Delete button: smaller ghost/outline - visually subordinate to Add to Cart */
 .wishlist_page .cart_page_action a.remove.common_btn {
     background: transparent !important;
     color: var(--colorRed) !important;
@@ -2019,9 +1918,6 @@ header form .input .inner-voice.recording {
     box-shadow: var(--shadow-sm) !important;
 }
 
-/* shop / category page */
-
-/* Equal-height cards at ALL breakpoints (col-6 mobile through col-xxl-3 desktop) */
 .shop_page #nav-home .row {
     display: flex !important;
     flex-wrap: wrap !important;
@@ -2045,7 +1941,6 @@ header form .input .inner-voice.recording {
     flex-direction: column !important;
 }
 
-/* Filter sidebar - card container */
 #sticky_sidebar {
     background: var(--colorWhite) !important;
     border: 1px solid var(--borderColor) !important;
@@ -2054,7 +1949,6 @@ header form .input .inner-voice.recording {
     box-shadow: var(--shadow-sm) !important;
 }
 
-/* Filter section headings */
 .shop_filter_area h2 {
     font-family: var(--headingFont) !important;
     font-size: 14px !important;
@@ -2065,7 +1959,6 @@ header form .input .inner-voice.recording {
     margin-bottom: 12px !important;
 }
 
-/* Section separators: use design-system border color */
 .sidebar_category,
 .sidebar_color,
 .sidebar_status,
@@ -2076,7 +1969,6 @@ header form .input .inner-voice.recording {
     margin-top: 24px !important;
 }
 
-/* Filter labels */
 .sidebar_status .form-check label,
 .sidebar_rating .form-check label {
     font-family: var(--bodyFont) !important;
@@ -2084,15 +1976,21 @@ header form .input .inner-voice.recording {
     color: var(--colorBlack) !important;
 }
 
-/* Checkboxes: accent when checked */
 .sidebar_status .form-check-input:checked,
-.sidebar_rating .form-check-input:checked,
-.sidebar_color .form-check-input:checked {
+.sidebar_rating .form-check-input:checked {
     background-color: var(--themeColorOne) !important;
     border-color: var(--themeColorOne) !important;
 }
 
-/* Category links */
+.sidebar_color .form-check-input:checked {
+    border-color: var(--themeColorOne) !important;
+    box-shadow: 0 0 0 2px var(--colorWhite, #fff), 0 0 0 4px var(--themeColorOne) !important;
+}
+
+.sidebar_status .form-check {
+    margin-bottom: 12px !important;
+}
+
 .sidebar_category ul li a {
     font-family: var(--bodyFont) !important;
     font-size: 13.5px !important;
@@ -2105,7 +2003,6 @@ header form .input .inner-voice.recording {
     color: var(--themeColorOne) !important;
 }
 
-/* Mobile filter button: accent */
 .shop_filter_btn {
     background: var(--themeColorOne) !important;
     color: var(--colorWhite) !important;
@@ -2114,7 +2011,6 @@ header form .input .inner-voice.recording {
     font-family: var(--bodyFont) !important;
 }
 
-/* Gap between filter sidebar and product grid on desktop */
 @media (min-width: 992px){
     .shop_page .col-lg-8,
     .shop_page .col-xl-9,
@@ -2123,7 +2019,6 @@ header form .input .inner-voice.recording {
     }
 }
 
-/* Range slider tooltip: constrain width so numbers don't overflow sidebar */
 .al-range-slider__tooltip {
     max-width: 70px !important;
     width: auto !important;
@@ -2132,58 +2027,10 @@ header form .input .inner-voice.recording {
     overflow: visible !important;
 }
 
-/* Product page top bar: tighten margin above cards */
 .shop_page .product_page_top {
     margin-bottom: 16px !important;
 }
 
-/* Top rated products in sidebar */
-.sidebar_related_product ul li {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-}
-
-.sidebar_related_product .product_item .color {
-    flex-direction: row !important;
-}
-
-.sidebar_related_product .text .title {
-    font-family: var(--bodyFont) !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    color: var(--colorBlack) !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-}
-
-.sidebar_related_product .text {
-    width: calc(100% - 80px) !important;
-}
-
-.sidebar_related_product .text .price {
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    color: var(--themeColorOne) !important;
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 2px 4px !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
-    white-space: normal !important;
-}
-
-.sidebar_related_product .text .price del {
-    font-size: 11px !important;
-    font-weight: 400 !important;
-    color: var(--paraColor) !important;
-    white-space: nowrap !important;
-}
-
-/* ── 31. GENERAL PRODUCT CARD EQUAL HEIGHTS (GRID + SLICK SLIDER) ── */
-/* Grid rows */
 .row > [class*="col-"]:has(> .product_item_2) {
     display: flex !important;
     flex-direction: column !important;
@@ -2196,7 +2043,6 @@ header form .input .inner-voice.recording {
     height: 100% !important;
 }
 
-/* Slick sliders (only targeting product sliders to avoid breaking banner/fade sliders) */
 .flash_sell_slider .slick-track,
 .favourite_product_slider .slick-track {
     display: flex !important;
@@ -2218,11 +2064,15 @@ header form .input .inner-voice.recording {
 }
 
 .flash_sell_slider .slick-slide [class*="col-"],
-.favourite_product_slider .slick-slide [class*="col-"] {
+.favourite_product_slider .slick-slide [class*="col-"],
+.favourite_product_slider.slick-initialized .col-xl-1-5,
+.flash_sell_slider.slick-initialized .col-xl-1-5 {
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
-    flex: 1 !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 .flash_sell_slider .slick-slide .product_item_2,
@@ -2233,7 +2083,6 @@ header form .input .inner-voice.recording {
     flex: 1 !important;
 }
 
-/* Product text stretching */
 .product_item_2 .product_text {
     flex: 1 !important;
     display: flex !important;
@@ -2241,19 +2090,17 @@ header form .input .inner-voice.recording {
     justify-content: space-between !important;
 }
 
-/* trending products background & tabs fix */
 .trending_product_2 .pws_tabs_list {
     background-color: transparent !important;
 }
 
-/* ── 33. CATEGORY CIRCLE IMAGES CONTAIN tròn ── */
 .category_area .category_item .img {
     width: 170px !important;
     height: 170px !important;
     border-radius: 50% !important;
     overflow: hidden !important;
-    background: #f1f5f9 !important; /* Neutral light background */
-    padding: 15px !important; /* Padding for contain so it doesn't touch circle borders */
+    background: #f1f5f9 !important; 
+    padding: 15px !important; 
     margin: 20px auto !important;
     display: flex !important;
     align-items: center !important;
@@ -2263,11 +2110,10 @@ header form .input .inner-voice.recording {
 .category_area .category_item .img img {
     width: 100% !important;
     height: 100% !important;
-    object-fit: contain !important; /* Contain to prevent clipping heads */
+    object-fit: contain !important; 
     mix-blend-mode: normal !important;
 }
 
-/* ── 34. 404 PAGE BUTTONS & LAYOUT FIX ── */
 .error_text div {
     height: auto !important;
 }
@@ -2282,8 +2128,6 @@ header form .input .inner-voice.recording {
     color: var(--colorWhite) !important;
 }
 
-/* responsive symmetry for custom 5-column grid */
-/* 5 columns per row on screens 1400px and up */
 @media (min-width: 1400px){
     .col-xl-1-5 {
         width: 20% !important;
@@ -2291,7 +2135,7 @@ header form .input .inner-voice.recording {
         max-width: 20% !important;
     }
 }
-/* 4 columns per row on screens 1200px - 1399px */
+
 @media (min-width: 1200px) and (max-width: 1399px){
     .col-xl-1-5 {
         width: 25% !important;
@@ -2300,7 +2144,6 @@ header form .input .inner-voice.recording {
     }
 }
 
-/* cls prevention */
 .product_img {
     display: block;
     aspect-ratio: 1 / 1;
@@ -2308,7 +2151,6 @@ header form .input .inner-voice.recording {
     background: var(--lightBg2);
 }
 
-/* Override fixed height with aspect-ratio so image scales with card width on all screen sizes */
 .product_item_2 .product_img {
     height: auto !important;
     aspect-ratio: 4 / 5;
@@ -2327,7 +2169,6 @@ header form .input .inner-voice.recording {
     object-fit: cover;
 }
 
-/* Sidebar top-rated thumbnail */
 .sidebar_related_product li a.img {
     display: block;
     aspect-ratio: 1 / 1;
@@ -2344,8 +2185,6 @@ header form .input .inner-voice.recording {
     object-fit: cover !important;
 }
 
-/* tabular numerals */
-/* tabular figures so prices do not shift text */
 .price,
 .price span,
 .price del,
@@ -2355,8 +2194,6 @@ header form .input .inner-voice.recording {
     font-feature-settings: "tnum";
 }
 
-/* aria live region */
-/* visually hidden, screen-reader only */
 .sr-only-live {
     position: absolute !important;
     width: 1px !important;
@@ -2369,7 +2206,6 @@ header form .input .inner-voice.recording {
     border: 0 !important;
 }
 
-/* contact page */
 .contact-section-title {
     color: var(--themeColorOne);
     font-weight: 700;
@@ -2381,8 +2217,6 @@ header form .input .inner-voice.recording {
     margin-top: 24px;
 }
 
-/* readonly / disabled input distinction */
-/* Readonly inputs look visually different from editable ones */
 input[readonly],
 textarea[readonly] {
     background: var(--lightBg2) !important;
@@ -2399,7 +2233,6 @@ button[disabled] {
     pointer-events: none !important;
 }
 
-/* cursor pointer */
 .btn_list li a,
 .details_list_btn li a,
 .details_variant_color li,
@@ -2417,12 +2250,10 @@ button[disabled] {
     cursor: pointer !important;
 }
 
-/* blog form input */
 .blog_details_comment_input .single_input {
     margin-top: 20px;
 }
 
-/* product detail share buttons */
 .shop_details_shate li a {
     display: inline-flex;
     align-items: center;
@@ -2431,7 +2262,6 @@ button[disabled] {
     cursor: pointer;
 }
 
-/* touch target minimum for product variant selectors */
 .details_variant_color li {
     min-width: 32px;
     min-height: 32px;
@@ -2450,7 +2280,6 @@ button[disabled] {
     transition: background var(--t), color var(--t), border-color var(--t);
 }
 
-/* faq page */
 .faq-item {
     margin-bottom: 12px;
     border: 1px solid var(--borderColor);
@@ -2464,8 +2293,6 @@ button[disabled] {
     font-size: 15px;
 }
 
-/* progress wrap / scroll-to-top */
-/* Converted from div to button so it's keyboard-accessible */
 .progress-wrap {
     background: none;
     border: none;
@@ -2479,7 +2306,6 @@ button[disabled] {
     border-radius: 50%;
 }
 
-/* subscription form */
 .subscription_form .visually-hidden {
     position: absolute !important;
     width: 1px !important;
@@ -2492,21 +2318,18 @@ button[disabled] {
     border: 0 !important;
 }
 
-/* product detail share buttons */
 .shop_details_shate li a:focus-visible {
     outline: 2px solid var(--themeColorOne);
     outline-offset: 3px;
     border-radius: var(--radius-sm);
 }
 
-/* modal close button */
 .btn-close { width: 44px !important; height: 44px !important; padding: 12px !important; background-size: 16px !important; }
-/* hide the decorative <i>; btn-close draws its own X */
+
 .btn-close i {
     display: none !important;
 }
 
-/* wishlist/compare/cart icon links */
 .menu_icon li a,
 .mobile_menu_header li a {
     min-width: 44px;
@@ -2516,34 +2339,31 @@ button[disabled] {
     justify-content: center;
 }
 
-/* flash sale / trending product */
-/* reset the global card margin; re-apply inside slick slides only */
 .flash_sell .product_item {
     margin: 0;
 }
 .flash_sell .slick-slide .product_item {
     margin: 0 8px;
 }
-/* Normalize bottom text padding so card heights match between sections */
+
 .flash_sell .product_item .product_text,
 .trending_product_2 .product_item .product_text {
     padding: 12px 0;
 }
 
-/* print: order detail page */
 @media print{
   * { animation: none !important; transition: none !important; }
   html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
 
-  /* Flatten Bootstrap grid - must come before specific hide rules */
+  
   .container { max-width: 100% !important; width: 100% !important; padding: 0 12px !important; margin: 0 !important; }
   .row { display: block !important; margin: 0 !important; }
   [class*="col-"] { display: block !important; width: 100% !important; max-width: 100% !important; flex: none !important; padding: 0 !important; float: none !important; }
 
-  /* Stop wow animations without hiding */
+  
   .wow { visibility: visible !important; animation-name: none !important; }
 
-  /* Hide non-invoice elements - must come AFTER flatten rules to win */
+  
   .header_main,
   .footer_main,
   .page_banner,
@@ -2554,17 +2374,16 @@ button[disabled] {
   .dashboard_invoice_footer a,
   .dashboard_invoice_footer button { display: none !important; }
 
-  /* Hide sidebar specifically after the col-* flatten */
+  
   .col-xl-3 { display: none !important; }
 
-  /* Invoice layout */
+  
   section.dashboard { padding: 0 !important; margin: 0 !important; }
   .dashboard_content { margin-top: 12px !important; padding: 0 !important; }
   .dashboard_order_invoice { margin-top: 0 !important; border: none !important; border-radius: 0 !important; overflow: visible !important; }
   .dashboard_order_invoice_area { padding: 0 !important; }
 }
 
-/* inline message stream typing bubble (client & admin) */
 #chat-body .chat-typing-indicator,
 .chat-detail .admin-chat-typing-indicator {
   display: none;
@@ -2605,9 +2424,6 @@ button[disabled] {
   animation-delay: 0.3s !important;
 }
 
-/* Component overrides, appended last. */
-
-/* ---- Base ---- */
 body, body.default_home {
     background: var(--paper) !important;
     color: var(--ink) !important;
@@ -2640,7 +2456,6 @@ a:hover { color: var(--gold); }
     .category_item:hover img { transform: none !important; }
 }
 
-/* small uppercase tracked label - used widely below */
 .section_heading h2 span,
 .view_all_btn,
 .banner_eyebrow,
@@ -2652,7 +2467,6 @@ a:hover { color: var(--gold); }
     font-size: 11px;
 }
 
-/* ---- Buttons - sharp ink rectangle, wide-tracked ---- */
 .common_btn, a.common_btn, button.common_btn,
 .default_home .common_btn, .home_grocery .common_btn, .home_beauty .common_btn {
     display: inline-flex !important;
@@ -2682,7 +2496,6 @@ a:hover { color: var(--gold); }
 .common_btn i { font-size: 11px; transform: none !important; transition: transform var(--t-fast) !important; }
 .common_btn:hover i { transform: translateX(4px) !important; }
 
-/* ghost / subordinate = underlined text link */
 .common_btn.ghost, a.ghost.common_btn, a.common_btn.remove {
     background: transparent !important; color: var(--ink) !important;
     border: none !important; border-bottom: 1px solid var(--ink) !important;
@@ -2692,16 +2505,19 @@ a:hover { color: var(--gold); }
     color: var(--gold) !important; border-bottom-color: var(--gold) !important;
 }
 
-/* "View all" - hairline underline text link */
 .view_all_btn_area .view_all_btn {
     color: var(--muted) !important; text-decoration: none !important;
     border-bottom: 1px solid var(--line-2) !important;
     display: inline-block; padding: 10px 0;
+    font-family: var(--bodyFont) !important;
+    text-transform: uppercase !important;
+    letter-spacing: .14em !important;
+    font-weight: 500 !important;
+    font-size: 11px !important;
 }
 .view_all_btn_area .view_all_btn:hover { color: var(--gold) !important; border-bottom-color: var(--gold) !important; }
 .view_all_btn_area .view_all_btn i { display: none; }
 
-/* ---- Section headings - centered serif, thin gold rule ---- */
 .section_heading { text-align: left; }
 .section_heading h2 {
     font-family: var(--headingFont) !important;
@@ -2719,7 +2535,6 @@ a:hover { color: var(--gold); }
     margin-bottom: 4px;
 }
 
-/* ---- Product cards - no chrome, just the goods ---- */
 .product_item, .product_item_2 {
     background: transparent !important;
     border: none !important;
@@ -2757,16 +2572,21 @@ a:hover { color: var(--gold); }
 .product_item .price, .product_item_2 .price {
     font-family: var(--bodyFont) !important;
     font-weight: 400 !important;
-    font-size: 13px !important;
     color: var(--ink) !important;
     letter-spacing: .02em;
     margin-top: 4px;
+    flex-wrap: wrap !important;
+    gap: 2px 6px !important;
 }
-.product_item .price del, .product_item_2 .price del { color: var(--faint) !important; margin-left: 8px; }
-.product_item .price span, .product_item_2 .price span:first-child { color: var(--gold) !important; }
-.product_item .rating, .product_item_2 .rating { display: none; }  /* cards stay quiet; rating lives on detail */
 
-/* discount → tiny tracked label, no box */
+.product_item .price span:first-child, .product_item_2 .price span:first-child {
+    color: var(--gold) !important; font-size: 13px !important; font-weight: 600 !important; white-space: nowrap;
+}
+.product_item .price del, .product_item_2 .price del {
+    color: var(--faint) !important; margin-left: 0; font-size: 11px !important; white-space: nowrap;
+}
+.product_item .rating, .product_item_2 .rating { display: none; }  
+
 .discount_list { top: 12px !important; left: 12px !important; }
 .discount_list li, .discount_list li.discount,
 .product_item .discount_list li, .product_item_2 .discount_list li {
@@ -2777,8 +2597,6 @@ a:hover { color: var(--gold); }
     padding: 4px 8px !important;
 }
 
-/* card quick actions - thin outline squares, appear on hover
-   (identical in every rail: flash-sale, trending, related) */
 .product_item .btn_list, .product_item_2 .btn_list { opacity: 0; transition: opacity var(--t-fast); }
 .product_item:hover .btn_list, .product_item_2:hover .btn_list { opacity: 1; }
 .product_item .btn_list li a, .product_item_2 .btn_list li a {
@@ -2788,7 +2606,7 @@ a:hover { color: var(--gold); }
     box-shadow: none !important;
     width: 36px !important; height: 36px !important; padding: 0 !important; line-height: 34px !important;
 }
-/* expand the tap target to 44px without growing the visual */
+
 .product_item .btn_list li a::before, .product_item_2 .btn_list li a::before {
     content: ""; position: absolute; top: 50%; left: 50%;
     width: 44px; height: 44px; transform: translate(-50%, -50%);
@@ -2799,7 +2617,7 @@ a:hover { color: var(--gold); }
 .product_item .btn_list li a:hover, .product_item_2 .btn_list li a:hover {
     background: var(--ink) !important; color: var(--surface) !important; border-color: var(--ink) !important; transform: none !important;
 }
-/* touch devices have no hover - keep the quick actions (incl. add to cart) visible */
+
 @media (hover: none), (pointer: coarse){
     .product_item .btn_list, .product_item_2 .btn_list,
     .product_item .product_img .btn_list, .product_item_2 .product_img .btn_list {
@@ -2809,7 +2627,6 @@ a:hover { color: var(--gold); }
 }
 .product_item .color li, .product_item_2 .color li { border: 1px solid var(--line-2) !important; border-radius: 0 !important; }
 
-/* ---- Forms - hairline, sharp, gold focus ---- */
 .single_input {
     border: 1px solid var(--line-2) !important;
     border-radius: 0 !important;
@@ -2838,7 +2655,6 @@ input:focus, select:focus, textarea:focus, .nice-select.open, .form-control:focu
 .nice-select .option:hover, .nice-select .option.selected { background: var(--surface-2) !important; color: var(--gold) !important; }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--gold); }
 
-/* ---- Header / nav ---- */
 header.header_main, .main_menu, .main_menu.menu_fix {
     background: var(--paper) !important;
     border-bottom: 1px solid var(--line) !important;
@@ -2889,9 +2705,27 @@ header.header_main form .inner-suggest:empty { display: none !important; }
     border-radius: 999px !important; font-family: var(--bodyFont); font-weight: 600; font-size: 10px;
 }
 .menu_icon li a .menu_label, .header_support p.header_hotline, .header_support a { color: var(--muted) !important; font-family: var(--bodyFont); font-weight: 400; }
+
+.menu_icon li a .menu_label {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    top: auto !important;
+    right: auto !important;
+    background: none !important;
+    border-radius: 0 !important;
+    line-height: normal !important;
+    text-align: left !important;
+}
 .header_support p.header_hotline span, .header_support a span { color: var(--ink) !important; }
 
-/* category bar → understated */
+.header_support p.header_hotline,
+.header_support p.header_hotline a,
+.header_support p.header_hotline a span {
+    line-height: normal !important;
+    font-family: var(--bodyFont) !important;
+}
+
 .menu_category_bar {
     background: var(--ink) !important; color: var(--surface) !important;
     border-radius: 0 !important; border: none !important;
@@ -2906,7 +2740,6 @@ header.header_main form .inner-suggest:empty { display: none !important; }
 .menu_item li a { color: var(--ink) !important; font-family: var(--bodyFont); font-weight: 400; text-transform: uppercase; letter-spacing: .1em; font-size: 12px; }
 .menu_item li a:hover, .menu_item li a.active { color: var(--gold) !important; }
 
-/* ---- Hero ---- */
 .banner_content :is(h1,h2), .banner_slider_2 :is(h1,h2), .banner_area :is(h1,h2) {
     font-family: var(--headingFont) !important;
     font-size: clamp(40px, 6.5vw, 88px) !important;
@@ -2929,18 +2762,55 @@ header.header_main form .inner-suggest:empty { display: none !important; }
 }
 .banner_slider_2 > *, .banner_add > * { position: relative; z-index: 1; }
 .banner_slider_2_text, .banner_content { padding: clamp(24px, 5vw, 72px) !important; }
+.banner_slider_2_text .common_btn, .banner_content .common_btn, .banner_add .text .common_btn { margin-top: 16px; }
 
-/* ---- Feature strip ---- */
+section.features { margin-top: 48px !important; }
+
+section.category { margin-top: 64px !important; }
+
+.flash_sell,
+.new_arrival_2,
+.best_selling_product_2,
+.special_product_2,
+.favourite_product_2,
+.trending_product_2,
+.brand_area {
+    margin-top: 80px !important;
+    padding-top: 0 !important;
+}
+
+.blog_area {
+    margin-top: 80px !important;
+    padding-top: 72px !important;
+    padding-bottom: 72px !important;
+}
+
+.subscription_area {
+    margin-top: 80px !important;
+}
+
+.trending_product_2,
+.brand_area {
+    margin-bottom: 0 !important;
+}
+
 .features_item {
     background: transparent !important; border: none !important; box-shadow: none !important;
-    border-top: 1px solid var(--line) !important; padding-top: 22px !important;
+    border-top: 1px solid var(--line) !important; padding: 22px 0 0 !important;
+    margin-left: 0 !important; margin-top: 0 !important;
+    display: flex !important; align-items: center !important; gap: 16px !important;
 }
-.features_item .icon { background: transparent !important; border: none !important; }
+.features_item .icon {
+    background: transparent !important; border: none !important;
+    position: static !important; transform: none !important;
+    width: 44px !important; height: 44px !important; flex-shrink: 0 !important;
+    padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important;
+}
 .features_item .icon i { color: var(--gold) !important; font-size: 1.6rem !important; }
-.features_item .text h3 { font-size: 18px !important; font-weight: 500 !important; }
-.features_item .text p { color: var(--muted) !important; font-size: 12px !important; }
+.features_item .text { padding: 0 !important; width: auto !important; flex: 1 1 auto !important; }
+.features_item .text h3 { font-size: 18px !important; font-weight: 500 !important; margin: 0 0 4px !important; }
+.features_item .text p { color: var(--muted) !important; font-size: 12px !important; margin: 0 !important; }
 
-/* ---- Category circles → sharp portrait tiles ---- */
 .category_item .img, .category_area .category_item .img {
     background: var(--surface-2) !important; border: none !important; border-radius: 0 !important;
     box-shadow: none !important; overflow: hidden; aspect-ratio: 4/5; padding: 0 !important;
@@ -2952,24 +2822,41 @@ header.header_main form .inner-suggest:empty { display: none !important; }
     text-transform: none; letter-spacing: 0; color: var(--ink) !important;
 }
 
-/* ---- Countdown ---- */
+.simply-countdown {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+}
 .simply-countdown .simply-section {
     background: transparent !important; border: 1px solid var(--line-2) !important; border-radius: 0 !important;
-    box-shadow: none !important; padding: 8px 12px !important; margin: 0 4px !important;
+    box-shadow: none !important; padding: 6px 10px !important; margin: 0 3px !important;
+    display: inline-flex !important; align-items: center !important;
 }
-.simply-countdown .simply-amount { color: var(--ink) !important; font-family: var(--headingFont) !important; font-weight: 500 !important; font-size: 20px; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
-.simply-countdown .simply-word { color: var(--muted) !important; font-family: var(--bodyFont); text-transform: uppercase; font-size: 11px; letter-spacing: .14em; }
+.simply-countdown .simply-section > div {
+    display: inline-flex !important; align-items: baseline !important; gap: 4px !important;
+}
+.simply-countdown .simply-amount {
+    color: var(--ink) !important; font-family: var(--bodyFont) !important;
+    font-weight: 500 !important; font-size: 16px !important;
+    font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
+    margin: 0 !important; line-height: 1 !important;
+}
+.simply-countdown .simply-word {
+    color: var(--muted) !important; font-family: var(--bodyFont) !important;
+    font-weight: 500 !important; text-transform: uppercase;
+    font-size: 10px !important; letter-spacing: .08em !important;
+    line-height: 1 !important;
+}
 
-/* ---- Page banner ---- */
 .page_banner { background: var(--surface-2) !important; border-bottom: 1px solid var(--line) !important; }
 .page_banner_overlay { background: transparent !important; }
 .page_banner_text h1 { color: var(--ink-2) !important; font-family: var(--headingFont) !important; font-weight: 500 !important; text-transform: none; letter-spacing: 0; }
 .page_banner_text ul li a, .page_banner_text ul li a::after { color: var(--muted) !important; }
 .page_banner_text ul li:last-child a { color: var(--gold-dim) !important; }
 
-/* ---- Shop filter sidebar ---- */
 .shop_filter_area .sidebar_category, .shop_filter_area .sidebar_range,
 .shop_filter_area .sidebar_rating, .shop_filter_area .sidebar_status,
+.shop_filter_area .sidebar_color,
 .shop_filter_area .sidebar_related_product {
     background: transparent !important; border: none !important;
     border-top: 1px solid var(--line) !important; border-radius: 0 !important;
@@ -2980,11 +2867,76 @@ header.header_main form .inner-suggest:empty { display: none !important; }
     font-size: 11px !important; font-weight: 600 !important; color: var(--ink) !important; margin-bottom: 16px !important;
 }
 .sidebar_category ul li a, .sidebar_status label, .sidebar_rating label { color: var(--muted) !important; font-size: 13px; }
-.sidebar_category ul li a { display: block !important; padding: 8px 0 !important; }
-.sidebar_status .form-check, .sidebar_rating .form-check { min-height: 40px; display: flex; align-items: center; }
+
+.sidebar_category ul li a { display: block !important; padding: 8px 0 8px 15px !important; margin-bottom: 0 !important; }
+
+.sidebar_category ul li a::after { top: 50% !important; transform: translateY(-50%) !important; }
+
+.sidebar_status .form-check, .sidebar_rating .form-check {
+    min-height: 40px; display: flex; align-items: center; padding-left: 0; gap: 10px;
+}
+.sidebar_status .form-check-input, .sidebar_rating .form-check-input {
+    margin-left: 0; flex-shrink: 0;
+}
 .sidebar_category ul li a:hover { color: var(--gold) !important; }
 
-/* grid/list toggle + sort */
+.sidebar_color ul {
+    height: auto !important;
+    max-height: 260px !important;
+    overflow-y: auto !important;
+    padding: 6px !important;
+    margin: -6px !important;
+}
+
+.sidebar_color ul li {
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+}
+.sidebar_color ul li .form-check {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding-left: 0 !important;
+    min-height: 36px !important;
+    margin-bottom: 0 !important;
+}
+.sidebar_color ul li .form-check input {
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    flex-shrink: 0 !important;
+    width: 22px !important;
+    height: 22px !important;
+    border: 2px solid var(--line-2) !important;
+    cursor: pointer !important;
+}
+.sidebar_color ul li .form-check label {
+    margin-left: 0 !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    color: var(--muted) !important;
+}
+
+.sidebar_related_product .related_product_list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+.sidebar_related_product .related_product_item {
+    margin-bottom: 0 !important;
+}
+@media (max-width: 991.98px) {
+    .sidebar_related_product .related_product_list {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 16px !important;
+    }
+}
+@media (max-width: 767.98px) {
+    .sidebar_related_product .related_product_list {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
 .product_page_top_button nav .nav-tabs button {
     background: transparent !important; border: 1px solid var(--line-2) !important; color: var(--muted) !important; border-radius: 0 !important;
 }
@@ -2994,7 +2946,6 @@ header.header_main form .inner-suggest:empty { display: none !important; }
 }
 .product_page_top p { color: var(--muted) !important; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
 
-/* ---- Pagination ---- */
 .pagination .page-item .page-link, .pagination-area a, .pagination-area span {
     background: transparent !important; border: none !important; color: var(--muted) !important;
     border-radius: 0 !important; font-family: var(--bodyFont); box-shadow: none !important;
@@ -3004,7 +2955,6 @@ header.header_main form .inner-suggest:empty { display: none !important; }
     background: transparent !important; color: var(--ink) !important; border-bottom: 1px solid var(--gold) !important;
 }
 
-/* ---- Generic panels / modals / tabs ---- */
 .card,
 .modal-content,
 .chat-popup,
@@ -3014,7 +2964,7 @@ header.header_main form .inner-suggest:empty { display: none !important; }
     background: var(--surface) !important; color: var(--ink) !important;
     border: 1px solid var(--line) !important; border-radius: 0 !important; box-shadow: none !important;
 }
-/* destructive confirm dialog - matches the storefront's flat, squared, serif language */
+
 .confirm_modal.modal-content { padding: 8px; text-align: center; }
 .confirm_modal .modal-body { padding: 32px 28px 20px; }
 .confirm_modal .modal-footer { border: 0 !important; padding: 0 28px 28px; justify-content: center; gap: 12px; }
@@ -3048,17 +2998,17 @@ header.header_main form .inner-suggest:empty { display: none !important; }
 .pwstabs .tab_button.active, .nav-tabs .nav-link.active {
     background: transparent !important; color: var(--ink) !important; border-bottom-color: var(--gold) !important;
 }
-.pwstabs .tab_content, .shop_details_des_area, .tab-content {
+.pwstabs .tab_content, .shop_details_des_area {
     background: transparent !important; border: none !important; border-top: 1px solid var(--line) !important;
     color: var(--muted) !important; padding-top: 24px !important;
 }
+
+.tab-content { background: transparent !important; border: none !important; color: var(--muted) !important; }
 .shop_details_des_area h4, .tab-content h4 { color: var(--ink) !important; font-family: var(--headingFont); font-weight: 500; }
 
-/* Tables */
 .table th, .table td, table th, table td { border-color: var(--line) !important; color: var(--ink) !important; }
 .table thead th, table thead th { background: transparent !important; color: var(--muted) !important; font-family: var(--bodyFont); text-transform: uppercase; font-size: 10px; letter-spacing: .14em; border-bottom: 1px solid var(--line-2) !important; }
 
-/* ---- Product detail ---- */
 .shop_details_text .title, .shop_details_text h1, .shop_details_text h2 {
     font-family: var(--headingFont) !important; font-weight: 500 !important; color: var(--ink-2) !important;
     font-size: clamp(26px, 3vw, 38px) !important; text-transform: none; letter-spacing: 0;
@@ -3068,6 +3018,11 @@ header.header_main form .inner-suggest:empty { display: none !important; }
 }
 .shop_details_text .price del { color: var(--muted) !important; }
 .shop_details_text .price ins { color: var(--gold) !important; text-decoration: none; }
+.shop_details_text .price .discount {
+    background: var(--surface-2) !important; color: var(--gold-dim) !important;
+    font-size: 12px !important; font-weight: 600 !important; letter-spacing: .04em;
+    padding: 4px 8px; border-radius: 0;
+}
 .shop_details_text .short_description, .shop_details_text p { color: var(--muted) !important; }
 .shop_details_slider, .shop_details_slider .slick-slide img { background: var(--surface-2) !important; }
 .rating .fa-star, .rating .fa-star-half-alt, .shop_details_text .rating i { color: var(--gold) !important; }
@@ -3085,7 +3040,8 @@ header.header_main form .inner-suggest:empty { display: none !important; }
     background: var(--surface) !important; border: 1px solid var(--line) !important; border-radius: 0 !important;
 }
 
-/* ---- Footer - deep charcoal + gold ---- */
+.shop_details_sidebar_info { border: none !important; border-radius: 0 !important; }
+
 footer, .footer_main {
     background: var(--ink-2) !important; color: rgba(255,255,255,.6) !important; border-top: 1px solid var(--gold) !important;
 }
@@ -3095,14 +3051,10 @@ footer, .footer_main {
 .footer_main a { color: rgba(255,255,255,.6) !important; }
 .footer_main a:hover { color: var(--gold) !important; }
 
-/* ---- Scroll-to-top ---- */
 .progress-wrap, #scroll-button, .scroll_button a {
     background: var(--ink) !important; border: none !important; color: var(--surface) !important; border-radius: 0 !important; box-shadow: none !important;
 }
 
-/* fixes */
-
-/* hero copy box sizing */
 .banner_slider_2_text {
     max-width: 78% !important;
     padding: clamp(28px, 4.5vw, 60px) !important;
@@ -3117,7 +3069,6 @@ footer, .footer_main {
 }
 .banner_slider_2 { margin-left: clamp(0px, 3vw, 40px) !important; overflow: hidden !important; }
 
-/* Discount badge: kill the wide tracking inherited from the kicker rule */
 .discount_list li, .discount_list li.discount,
 .product_item .discount_list li, .product_item_2 .discount_list li {
     letter-spacing: .04em !important;
@@ -3126,7 +3077,6 @@ footer, .footer_main {
 }
 .discount_list li b { margin-right: 1px; }
 
-/* Category tag on product detail - gold underline, not a coloured pill */
 .shop_details_text .category a,
 .shop_details_text a[href*="/category/"] {
     background: transparent !important;
@@ -3141,15 +3091,12 @@ footer, .footer_main {
     letter-spacing: .1em;
 }
 
-/* Sale price gold across contexts */
 .shop_details_text .price > span:first-child { color: var(--gold) !important; }
 
-/* Side "Summer Offers" banner readability */
 .banner_add .text { padding: clamp(20px, 4vw, 40px) !important; }
 .banner_add .banner_eyebrow { text-transform: uppercase; letter-spacing: .2em; font-size: 11px !important; color: rgba(255,255,255,.9) !important; }
 .banner_add h3 { font-family: var(--headingFont) !important; font-weight: 500 !important; font-size: clamp(22px, 2.4vw, 32px) !important; color: #fff !important; }
 
-/* "All / Men / Women" trending tabs */
 .trending_product_2 .pwstabs .pwstabs_list li a,
 .product_tabs .nav-link {
     font-family: var(--bodyFont) !important; text-transform: uppercase; letter-spacing: .14em; font-size: 11px !important;
@@ -3158,18 +3105,22 @@ footer, .footer_main {
 .trending_product_2 .pwstabs .pwstabs_list li a.active,
 .product_tabs .nav-link.active { color: var(--ink) !important; border-bottom-color: var(--gold) !important; }
 
-/* Header account icon: sit inline with the rest */
 .main_menu .menu_icon { gap: 6px !important; }
 .main_menu .menu_icon li a.user b { width: 38px !important; height: 38px !important; }
 
-/* Blog card on home */
 .blog_item {
     background: var(--surface) !important; border: 1px solid var(--line) !important; border-radius: 0 !important; box-shadow: none !important;
 }
 .blog_item .title { font-family: var(--headingFont) !important; font-weight: 500 !important; }
 
-/* mobile */
 @media (max-width: 991.98px){
+    header.header_main {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 999 !important;
+        background: var(--colorWhite) !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06) !important;
+    }
     .banner_slider_2_text, .banner_add .text { max-width: 100% !important; }
     .banner_slider_2::after, .banner_add::after {
         background: linear-gradient(180deg, rgba(12,10,9,.35) 0%, rgba(12,10,9,.7) 100%) !important;
@@ -3187,9 +3138,6 @@ footer, .footer_main {
     .common_btn { padding: 13px 24px !important; font-size: 11px !important; letter-spacing: .18em !important; }
 }
 
-/* reported bugs */
-
-/* Mini-cart / off-canvas / any panel that inherited the gold header */
 .mini_cart, .offcanvas, .offcanvas-body, #offcanvasRight, .offcanvas-end {
     background: var(--surface) !important; color: var(--ink) !important;
 }
@@ -3201,9 +3149,14 @@ footer, .footer_main {
 .offcanvas-header .offcanvas-title, .mini_cart .offcanvas-title {
     font-family: var(--headingFont) !important; font-weight: 500 !important; color: var(--ink) !important;
 }
+
+.mini_cart .offcanvas-header h2 span {
+    color: var(--ink) !important;
+    margin-left: 0 !important;
+    font-family: var(--bodyFont) !important;
+}
 .offcanvas-header .btn-close { filter: none !important; opacity: .6; }
 
-/* Hero: keep the copy on its own dark column, readable over any image */
 .banner_slider_2_text { max-width: 56% !important; }
 .banner_slider_2::after, .banner_add::after {
     background: linear-gradient(105deg, rgba(12,10,9,.62) 0%, rgba(12,10,9,.38) 42%, rgba(12,10,9,.06) 70%) !important;
@@ -3214,12 +3167,11 @@ footer, .footer_main {
         background: linear-gradient(180deg, rgba(12,10,9,.4) 0%, rgba(12,10,9,.72) 100%) !important;
     }
 }
-/* Kill the stray hidden logo / category strip bleeding left of the hero */
+
 .menu_logo, .main_menu .menu_logo { display: none !important; }
 .banner_main .menu_category_area .menu_cat_item { display: none !important; }
 .banner_main, .banner_area { overflow: hidden; }
 
-/* section heading highlight word: keep inline */
 .section_heading h2 span {
     display: inline !important;
     color: var(--gold) !important;
@@ -3237,16 +3189,13 @@ footer, .footer_main {
     margin-right: .4em !important;
 }
 
-/* Flash-sale countdown vs "View All" - stop the overlap */
 .flash_sell .row.align-items-center { align-items: center !important; }
 .flash_sell .view_all_btn_area { display: block; margin-top: 10px; text-align: right; }
 .flash_sell .simply-countdown { justify-content: flex-end; }
 
-/* Feature dividers: sharp, not pill */
 .features_item { border-radius: 0 !important; }
 .features_item::before { border-radius: 0 !important; }
 
-/* Footer bottom bar: lift the low-contrast copyright text */
 .footer_copyright {
     background: var(--ink-2) !important; border-top: 1px solid rgba(255,255,255,.08) !important;
     color: rgba(255,255,255,.55) !important;
@@ -3254,27 +3203,25 @@ footer, .footer_main {
 .footer_copyright p { color: rgba(255,255,255,.55) !important; }
 .footer_copyright a { color: var(--gold) !important; }
 
-/* Scroll-to-top: visible icon on the ink button */
 .progress-wrap svg .progress-wrap__path { stroke: var(--gold) !important; }
 .progress-wrap::after, #scroll-button i, .scroll_button a i { color: var(--surface) !important; }
 #scroll-button, .scroll_button a { display: flex; align-items: center; justify-content: center; }
 
-/* Social icons in footer */
 .footer_social a, .footer_copyright .social li a {
     border: 1px solid rgba(255,255,255,.2) !important; background: transparent !important; color: rgba(255,255,255,.7) !important; border-radius: 0 !important;
 }
 .footer_social a:hover { border-color: var(--gold) !important; color: var(--gold) !important; background: transparent !important; }
 
-/* "All / Men / Women" active pill → underline, not oval */
+.trending_product_2 .pwstabs_list li a,
+.nav-pills .nav-link {
+    background: transparent !important; border: none !important; border-radius: 0 !important;
+    border-bottom: 1px solid var(--line-2) !important; color: var(--muted) !important;
+}
 .trending_product_2 .pwstabs_list li a.active,
 .nav-pills .nav-link.active {
-    background: transparent !important; border: none !important;
-    border-bottom: 1px solid var(--gold) !important; border-radius: 0 !important; color: var(--ink) !important;
+    border-bottom: 1px solid var(--gold) !important; color: var(--ink) !important;
 }
 
-/* Home page structure */
-
-/* uniform gap between top-level sections */
 main#main-content > section,
 .default_home main > section {
     margin: 0 !important;
@@ -3285,16 +3232,19 @@ main#main-content > section:first-child,
 .default_home main > section:first-child { padding-top: clamp(24px, 3vw, 40px) !important; }
 main#main-content > section:last-child { padding-bottom: clamp(56px, 7vw, 96px) !important; }
 
-/* zero the utility classes so nothing stacks on top of the uniform padding */
 [class*="mt_"], [class*="mb_"], [class*="pt_"], [class*="pb_"] { margin-top: 0 !important; margin-bottom: 0 !important; }
-.mt_15, .mt_20, .mt_25 { margin-top: 20px !important; }   /* small in-block gaps kept */
+.mt_15, .mt_20, .mt_25 { margin-top: 20px !important; }   
 .mb_15 { margin-bottom: 14px !important; }
+
+.bought_together_products,
+.shop_details_des_area {
+    margin-top: clamp(56px, 7vw, 96px) !important;
+}
 .section_heading, .section_heading.mb_15 { margin-bottom: 32px !important; }
 
 .container { max-width: 1280px !important; }
 img { transition: none !important; }
 
-/* ---- Category block: full-bleed portrait tiles, label outside ---- */
 .category_area .row.category_slider { gap: 0; }
 a.category_item, .category_item, .category_item.color_1, .category_item[class*="color_"] {
     background: transparent !important;
@@ -3326,7 +3276,6 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 }
 .category_item:hover h3 { color: var(--gold) !important; }
 
-/* ---- Cart page - hairline list, generous, right-aligned ---- */
 .cart_table_area { border: none !important; }
 .cart_table_area .table-responsive + .table-responsive { margin-top: 0; }
 .cart_table_area table.table, .cart_table_area table { width: 100% !important; border: none !important; }
@@ -3358,7 +3307,6 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 }
 .cart_table_area .cart_page_action a:hover { color: var(--colorRed) !important; }
 
-/* Order summary - clean hairline ledger, not a grey card */
 .checkout_shipping,
 .checkout_point_row,
 .cart_page_summary,
@@ -3383,13 +3331,11 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
     border-bottom: none !important;
 }
 
-/* Empty-cart row */
 .cart_table_area tbody td[colspan] {
     text-align: center !important; padding: 60px 16px !important;
     font-family: var(--headingFont) !important; font-size: 18px !important; color: var(--muted) !important;
 }
 
-/* ---- Checkout: same ledger treatment ---- */
 .checkout_form_area, .checkout_address_area, .checkout_payment {
     background: transparent !important;
 }
@@ -3397,7 +3343,6 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
     border: 1px solid var(--line-2) !important; border-radius: 0 !important; background: var(--surface) !important; padding: 20px !important;
 }
 
-/* ---- Dashboard ---- */
 .dashboard_sidebar {
     background: transparent !important; border: 1px solid var(--line-2) !important; border-radius: 0 !important;
 }
@@ -3407,7 +3352,6 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 }
 .dashboard_sidebar a.active { color: var(--ink) !important; border-left: 2px solid var(--gold) !important; }
 
-/* ---- Auth pages - centred, serif, minimal ---- */
 .sign_in_form, .sign_up .sign_in_form {
     background: var(--surface) !important; border: 1px solid var(--line-2) !important;
     border-radius: 0 !important; box-shadow: none !important; padding: clamp(32px, 5vw, 56px) !important;
@@ -3417,29 +3361,34 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 .sign_in_form .dont_account a { color: var(--gold) !important; }
 .or-text, .sign_in_form .or { color: var(--faint) !important; }
 
-/* ---- "Summer Offers" side banner: brighter kicker ---- */
 .banner_add .banner_eyebrow, .banner_add .text .banner_eyebrow { color: rgba(255,255,255,.92) !important; }
 
-/* ---- Hide the redundant in-banner category column entirely ---- */
-.banner_main .col-xxl-2, .banner_main .menu_cat_item { display: none !important; }
-.banner_main .col-lg-8, .banner_main .col-xxl-7 { flex: 0 0 auto; max-width: 66% !important; }
-
-/* ---- - kill the hero left-column bleed ---- */
+.banner_main .col-xxl-2,
 .banner_main .row > .col-xxl-2,
 .banner_main [class*="col-xxl-2"],
 .banner_main .menu_category_area,
 .banner_main .menu_cat_item,
 .banner_main .menu_category_bar { display: none !important; }
-.banner_main .row > .col-12.col-lg-8.col-xxl-7,
-.banner_main .row > [class*="col-xxl-7"] {
-    flex: 0 0 68% !important; max-width: 68% !important; width: 68% !important;
-}
-.banner_main .row > [class*="col-xxl-3"] {
-    flex: 0 0 32% !important; max-width: 32% !important; width: 32% !important;
-}
-@media (max-width: 991.98px){
+
+@media (min-width: 992px) {
+    .banner_main .row > .col-12.col-lg-8.col-xxl-7,
     .banner_main .row > [class*="col-xxl-7"],
-    .banner_main .row > [class*="col-xxl-3"] { flex: 0 0 100% !important; max-width: 100% !important; width: 100% !important; }
+    .banner_main .col-lg-8 {
+        flex: 0 0 68% !important; max-width: 68% !important; width: 68% !important;
+    }
+    .banner_main .row > [class*="col-xxl-3"],
+    .banner_main .col-lg-4 {
+        flex: 0 0 32% !important; max-width: 32% !important; width: 32% !important;
+    }
+}
+
+@media (max-width: 991.98px){
+    .banner_main .row > .col-12.col-lg-8.col-xxl-7,
+    .banner_main .row > [class*="col-xxl-7"],
+    .banner_main .row > [class*="col-xxl-3"],
+    .banner_main .row > [class*="col-"] {
+        flex: 0 0 100% !important; max-width: 100% !important; width: 100% !important;
+    }
 }
 .banner_main, .banner_main .container, .banner_main .row,
 .banner_content, .banner_slider, .banner_slider .slick-list, .banner_slider .slick-track {
@@ -3447,21 +3396,16 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 }
 .banner_slider_2 { margin-left: 0 !important; }
 
-/* --- */
-
-/* Footer brand name - was gold-on-near-black, unreadable */
 .footer_copyright p b, .footer_copyright p .notranslate {
-    color: #E0B978 !important;   /* brightened gold for AA on the dark footer */
+    color: #E0B978 !important;   
     font-weight: 600 !important;
 }
 .footer_copyright p { color: rgba(255,255,255,.62) !important; }
 
-/* Back-to-top: light glyph on the ink disc, gold progress ring */
 .progress-wrap::after, .progress-wrap::before { color: var(--surface) !important; }
 .progress-wrap svg.progress-circle path { stroke: var(--gold) !important; }
 .progress-wrap { background: var(--ink) !important; box-shadow: none !important; }
 
-/* .col-xl-1-5 width per breakpoint; centre short rows */
 .flash_sell_slider, .trending_product_2 .product_tabs .row,
 .related_products .row.flash_sell_slider { justify-content: center; }
 .col-xl-1-5 { flex: 0 0 20% !important; max-width: 20% !important; width: 20% !important; padding: 0 12px !important; }
@@ -3469,29 +3413,19 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 @media (max-width: 991.98px){ .col-xl-1-5 { flex-basis: 33.333% !important; max-width: 33.333% !important; } }
 @media (max-width: 767.98px){ .col-xl-1-5 { flex-basis: 50% !important; max-width: 50% !important; } }
 
-/* never force display on pwstabs panes; just kill phantom height */
 .product_tabs, .pws_tabs_container { min-height: 0 !important; }
 
-/* Section heading vs the grid below - align left edges */
 .section_heading { padding-left: 12px; }
 .product_item .product_text, .product_item_2 .product_text { padding-left: 0 !important; padding-right: 0 !important; }
 
-/* Trim the dead space the sliders leave between sections */
 .flash_sell, .trending_product_2, .related_products { padding-bottom: 0 !important; }
 .flash_sell_slider .slick-list, .trending_product_2 .slick-list { margin-bottom: 0 !important; }
 
-/* --- */
-
-/* never let WOW.js hide content permanently; keep it visible */
 .wow { visibility: visible !important; }
 .wow:not(.animated) { opacity: 1 !important; animation: none !important; transform: none !important; }
 
-/* fallback when pwstabs never ran: first pane visible */
 .product_tabs > div[data-pws-tab]:not([style]) ~ div[data-pws-tab]:not([style]) { display: none; }
 
-/* ---- - section titles + card definition ---- */
-
-/* section titles: centred serif, single line */
 .section_heading { text-align: center !important; padding-left: 0 !important; margin-bottom: 44px !important; }
 .section_heading h2,
 .trending_product_2 .section_heading h2,
@@ -3514,14 +3448,13 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
     position: static !important; top: auto !important; margin: 0 !important;
     vertical-align: baseline !important;
 }
-/* thin centred rule under the title */
+
 .section_heading h2::after {
     content: ""; display: block; width: 44px; height: 1px;
     background: var(--gold); margin: 18px auto 0;
 }
 .view_all_btn_area { text-align: right; }
 
-/* product cards: hairline frame on white */
 .product_item, .product_item_2 {
     background: var(--surface) !important;
     border: 1px solid var(--line) !important;
@@ -3531,11 +3464,9 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 .product_item .product_text, .product_item_2 .product_text {
     padding: 16px 16px 18px !important; background: var(--surface) !important;
 }
-.product_item .product_img, .product_item_2 .product_img { border-bottom: 1px solid var(--line) !important; }
 
-/* ---- - heading consistency ---- */
+.product_item .product_img, .product_item_2 .product_img { border-bottom: none !important; }
 
-/* One consistent treatment regardless of the col width the template gave it */
 .section_heading, div.section_heading.section_heading {
     text-align: left !important;
     padding: 0 !important;
@@ -3544,7 +3475,6 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 }
 .section_heading h2::after { margin: 16px 0 0 !important; }
 
-/* Flash-sale heading row: title left, countdown + "View all" right, one line */
 .flash_sell .row.align-items-center { flex-wrap: wrap; align-items: flex-end !important; }
 .flash_sell .row.align-items-center > [class*="col-"]:first-child { flex: 1 1 auto !important; max-width: none !important; }
 .flash_sell .row.align-items-center > [class*="col-"]:last-child { flex: 0 0 auto !important; max-width: none !important; }
@@ -3554,11 +3484,73 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 .flash_sell .simply-countdown { margin: 0 !important; }
 .flash_sell .view_all_btn_area { margin: 0 !important; }
 
-/* Trending heading row only (NOT the product rows inside the tab panes) */
+.view_all_btn_area {
+    display: flex !important;
+    align-items: center !important;
+    max-height: none !important;
+}
+.view_all_btn_area .view_all_btn {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+@media (max-width: 767.98px) {
+    .flash_sell .row.align-items-center > [class*="col-"]:first-child,
+    .flash_sell .row.align-items-center > [class*="col-"]:last-child {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .flash_sell .row.align-items-center > [class*="col-"]:last-child .d-flex {
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-top: 14px !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .simply-countdown .simply-section {
+        padding: 4px 7px !important;
+        margin: 0 2px !important;
+    }
+    .simply-countdown .simply-section > div {
+        gap: 3px !important;
+    }
+    .simply-countdown .simply-amount {
+        font-size: 13.5px !important;
+        font-weight: 500 !important;
+    }
+    .simply-countdown .simply-word {
+        font-size: 8.5px !important;
+        letter-spacing: .05em !important;
+    }
+    .view_all_btn_area {
+        justify-content: flex-start !important;
+        margin-top: 6px !important;
+    }
+    .flash_sell .view_all_btn_area {
+        justify-content: flex-end !important;
+        margin-top: 0 !important;
+    }
+}
+@media (max-width: 380px) {
+    .simply-countdown .simply-section {
+        padding: 3px 5px !important;
+        margin: 0 1px !important;
+    }
+    .simply-countdown .simply-amount {
+        font-size: 12px !important;
+    }
+    .simply-countdown .simply-word {
+        font-size: 8px !important;
+        letter-spacing: .03em !important;
+    }
+}
+
 .trending_product_2 > .container > .row:first-child > [class*="col-"] {
     flex: 0 0 100% !important; max-width: 100% !important;
 }
-/* Trending product grid: 5-up like the rest */
+
 .trending_product_2 .product_tabs .row > [class*="col-xl-1-5"],
 .trending_product_2 .product_tabs .row > .col-6 {
     flex: 0 0 20% !important; max-width: 20% !important; padding: 0 12px !important;
@@ -3567,12 +3559,8 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 @media (max-width: 991.98px){ .trending_product_2 .product_tabs .row > [class*="col-"] { flex-basis: 33.333% !important; max-width: 33.333% !important; } }
 @media (max-width: 575.98px){ .trending_product_2 .product_tabs .row > [class*="col-"] { flex-basis: 50% !important; max-width: 50% !important; } }
 
-/* Trending tab menu: the pwstabs menu is .pws_tabs_controll (styled below).
-   Do NOT target ".pws_tabs_list li a" - that class sits on the tabs
-   CONTAINER, so it would also hit the product cards' action buttons. */
 .trending_product_2 .pws_tabs_controll { margin-bottom: 28px !important; }
 
-/* Blog card - align with the system */
 .blog_item {
     background: var(--surface) !important; border: 1px solid var(--line) !important; box-shadow: none !important;
 }
@@ -3583,13 +3571,10 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 .blog_item .blog_img { aspect-ratio: 4/3; overflow: hidden; }
 .blog_item .blog_img img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Footer "@Ecom" brand - readable gold */
 .footer_copyright p b, .footer_copyright p .notranslate { color: #E6C185 !important; }
 
-/* Feature strip: sharp hairline, gold icon, tight */
 .features_item::before { display: none !important; }
 
-/* ---- - round elements that must stay round ---- */
 .progress-wrap, #scroll-button, .scroll_button a,
 .progress-wrap svg, .progress-circle {
     border-radius: 50% !important;
@@ -3615,7 +3600,6 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
     border-radius: 50% !important;
 }
 
-/* ---- - pwstabs menu ---- */
 .pws_tabs_controll, ul.pws_tabs_controll {
     background: transparent !important; border: none !important; box-shadow: none !important;
     display: flex !important; gap: 26px !important; padding: 0 !important; margin: 0 0 26px !important;
@@ -3635,9 +3619,6 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
     border-bottom-color: var(--gold) !important; border-radius: 0 !important;
 }
 
-/* ---- - card size parity + gap parity ---- */
-
-/* Trending grid must match the flash-sale rail: 4 per row */
 .trending_product_2 .product_tabs .row > [class*="col-xl-1-5"],
 .trending_product_2 .product_tabs .row > [class*="col-"] {
     flex: 0 0 25% !important; max-width: 25% !important; padding: 0 12px !important;
@@ -3646,34 +3627,26 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 @media (max-width: 767.98px){ .trending_product_2 .product_tabs .row > [class*="col-"] { flex-basis: 50% !important; max-width: 50% !important; } }
 .trending_product_2 .product_tabs .row { justify-content: flex-start !important; }
 
-/* Flash-sale rail: same 12px gutter, left-aligned, no trailing slider space */
 .flash_sell_slider .slick-slide { padding: 0 12px !important; }
 .flash_sell_slider .slick-track { margin-left: -12px !important; }
 .flash_sell .slick-slider, .flash_sell_slider, .flash_sell_slider .slick-list { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-.flash_sell_slider .slick-arrow { display: none !important; }   /* : no chunky arrows */
+.flash_sell_slider .slick-arrow { display: none !important; }   
 
-/* the section padding-top is the only vertical gap */
 main#main-content > section { padding-bottom: 0 !important; margin: 0 !important; }
 main#main-content > section > .container > .row:last-child,
 .flash_sell .container > .row:last-child,
 .trending_product_2 .product_tabs > div:last-child .row,
 .blog_area .container > .row:last-child { margin-bottom: 0 !important; }
-/* zero every product card's own margin so flash-sale, trending and
-   related rails are identical; spacing comes from the grid gap / slick padding */
+
 .product_item, .product_item_2 { margin: 0 !important; }
 
-/* ---- - even gaps + tab panes + discount badge ---- */
-
-/* zero the ad-hoc padding utilities */
 [class*="pt_"], [class*="pb_"] { padding-top: 0 !important; padding-bottom: 0 !important; }
 main#main-content > section { padding-top: clamp(56px, 7vw, 96px) !important; padding-bottom: 0 !important; }
 main#main-content > section:first-child { padding-top: clamp(20px, 3vw, 36px) !important; }
 main#main-content > section:last-child { padding-bottom: clamp(56px, 7vw, 96px) !important; }
 
-/* base state: first pane visible, rest hidden */
 .product_tabs > div[data-pws-tab] ~ div[data-pws-tab] { display: none; }
 
-/* Discount badge - visible again: gold hairline chip, top-left of the image */
 .discount_list { position: absolute; top: 12px; left: 12px; z-index: 2; margin: 0; padding: 0; }
 .discount_list li, .discount_list li.discount,
 .product_item .discount_list li, .product_item_2 .discount_list li {
@@ -3690,18 +3663,14 @@ main#main-content > section:last-child { padding-bottom: clamp(56px, 7vw, 96px) 
 }
 .discount_list li b { margin-right: 1px; }
 
-/* Card size parity: nudge the trending grid gutter to match the slick rail */
 .trending_product_2 .product_tabs .row { margin-left: -12px !important; margin-right: -12px !important; }
 
-/* ---- - discount badge anchoring ---- */
 .product_item, .product_item_2, .product_item .product_img, .product_item_2 .product_img { position: relative; }
 .product_item .discount_list:empty, .product_item_2 .discount_list:empty { display: none !important; }
 
-/* ---- - one identical product grid everywhere ---- */
-/* one shared 4-column grid for flash / trending / related */
 .flash_sell_slider.is-static-grid,
 .trending_product_2 .product_tabs > div[data-pws-tab] > .row,
-.related_products .row.flash_sell_slider {
+.related_products .row.flash_sell_slider.is-static-grid {
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
     gap: 28px 24px !important;
@@ -3709,21 +3678,20 @@ main#main-content > section:last-child { padding-bottom: clamp(56px, 7vw, 96px) 
 }
 .flash_sell_slider.is-static-grid > [class*="col-"],
 .trending_product_2 .product_tabs > div[data-pws-tab] > .row > [class*="col-"],
-.related_products .row.flash_sell_slider > [class*="col-"] {
+.related_products .row.flash_sell_slider.is-static-grid > [class*="col-"] {
     width: 100% !important; max-width: 100% !important; flex: none !important; padding: 0 !important; margin: 0 !important;
 }
 @media (max-width: 1199.98px){
     .flash_sell_slider.is-static-grid,
-    .trending_product_2 .product_tabs > div[data-pws-tab] > .row { grid-template-columns: repeat(3, 1fr) !important; }
+    .trending_product_2 .product_tabs > div[data-pws-tab] > .row,
+    .related_products .row.flash_sell_slider.is-static-grid { grid-template-columns: repeat(3, 1fr) !important; }
 }
 @media (max-width: 767.98px){
     .flash_sell_slider.is-static-grid,
-    .trending_product_2 .product_tabs > div[data-pws-tab] > .row { grid-template-columns: repeat(2, 1fr) !important; }
+    .trending_product_2 .product_tabs > div[data-pws-tab] > .row,
+    .related_products .row.flash_sell_slider.is-static-grid { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
-/* Internal spacing */
-
-/* footer gap comes from its own margin-top */
 main#main-content > section:last-child { padding-bottom: 0 !important; }
 footer.footer_main, footer .footer_main, .footer_main {
     margin-top: clamp(56px, 7vw, 96px) !important;
@@ -3737,12 +3705,10 @@ footer.footer_main, footer .footer_main, .footer_main {
 .footer_logo_area p { margin-bottom: 16px !important; }
 .footer_copyright { margin-top: clamp(40px, 5vw, 64px) !important; padding: 22px 0 !important; }
 
-/* Section heading → the content under it */
 .section_heading, .section_heading.mb_15, div.section_heading.section_heading {
     margin-bottom: 34px !important;
 }
 
-/* 34px step between heading/tab row and the grid */
 .flash_sell_slider, .flash_sell_slider.is-static-grid { margin-top: 34px !important; }
 .flash_sell .row.align-items-center { margin-bottom: 0 !important; align-items: center !important; }
 
@@ -3755,17 +3721,14 @@ footer.footer_main, footer .footer_main, .footer_main {
 .trending_product_2 .product_tabs > div[data-pws-tab] { padding-top: 0 !important; margin-top: 0 !important; }
 .trending_product_2 .product_tabs > div[data-pws-tab] > .row { margin-top: 0 !important; }
 
-/* Blog grid: same 34px step under the heading row */
 .blog_area .row:first-child { align-items: center !important; }
 .blog_area .section_heading,
 .blog_area div.section_heading.section_heading { margin-bottom: 0 !important; }
 .blog_area .section_heading h2 { margin-bottom: 0 !important; }
 .blog_area .row.mt_15, .blog_area .container > .row + .row { margin-top: 34px !important; }
 
-/* Related / Viewed rails on the product page */
 .related_products .row.flash_sell_slider, .related_products .row:nth-child(2) { margin-top: 34px !important; }
 
-/* Category menu: bar, panel, fly-outs, View All CTA */
 .main_menu_2 .menu_category_bar,
 .default_home .menu_category_bar,
 .menu_category_bar {
@@ -3788,11 +3751,10 @@ footer.footer_main, footer .footer_main, .footer_main {
     color: var(--surface) !important;
     white-space: nowrap !important;
 }
-/* keep the bar hidden in the sticky header */
+
 .main_menu.menu_fix .menu_category_bar,
 .main_menu.menu_fix .menu_cat_item { display: none !important; }
 
-/* drop the redundant hamburger glyph - the bar reads as one clean label */
 .menu_category_bar p span { display: none !important; }
 .menu_category_bar > i {
     position: static !important;
@@ -3882,9 +3844,6 @@ footer.footer_main, footer .footer_main, .footer_main {
 }
 .menu_cat_item li.all_category a:hover i { color: var(--surface) !important; transform: translateX(4px) !important; }
 
-/* Content pages: FAQ, product description, static pages */
-
-/* FAQ - Bootstrap accordion ships a light-blue active state */
 .accordion, .accordion-item { border-radius: 0 !important; }
 .accordion-item { border-color: var(--line) !important; background: var(--surface) !important; }
 .accordion-button {
@@ -3903,7 +3862,6 @@ footer.footer_main, footer .footer_main, .footer_main {
 .accordion-button::after { filter: grayscale(1) brightness(.35) !important; }
 .accordion-body { color: var(--muted) !important; }
 
-/* Product-detail Description tab reads as an article, not centered copy */
 .shop_details_description,
 .shop_details_des_area .tab-content,
 .shop_details_des_area .tab-pane,
@@ -3915,31 +3873,42 @@ footer.footer_main, footer .footer_main, .footer_main {
     font-family: var(--headingFont) !important; color: var(--ink) !important; font-weight: 500 !important;
 }
 
-/* Footer brand word - sits in its sentence, no gold call-out */
 .footer_copyright p b,
 .footer_copyright p .notranslate {
     color: rgba(255, 255, 255, .62) !important;
     font-weight: 400 !important;
 }
 
-/* Discount chip - square tag, not a pill */
 .discount_list li, .discount_list li.discount,
 .product_item .discount_list li, .product_item_2 .discount_list li {
     border-radius: 0 !important;
 }
 
-/* shop filter rail: borderless */
 #sticky_sidebar {
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: transparent !important;
-    padding: 0 24px 0 0 !important;
+    padding: 0 !important;
+}
+@media (min-width: 992px) {
+    #sticky_sidebar {
+        padding: 0 24px 0 0 !important;
+    }
 }
 
-/* Account dashboard + chat launcher */
+.cart_summary_btn {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+}
+.cart_summary_btn .common_btn {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+}
 
-/* sidebar user name: force white on the dark panel */
 .dashboard_sidebar_user { background: var(--ink-2) !important; }
 .dashboard_sidebar_user h3,
 .dashboard_sidebar_user h3 span { color: #fff !important; }
@@ -3947,7 +3916,6 @@ footer.footer_main, footer .footer_main, .footer_main {
 .dashboard_sidebar_user .img { border-color: rgba(255, 255, 255, .32) !important; }
 .dashboard_sidebar_user .img label { background: var(--gold) !important; color: #fff !important; }
 
-/* Overview stat cards - one calm neutral, gold icon only (was green/blue/olive) */
 .dashboard_overview_item,
 .dashboard_overview_item.green, .dashboard_overview_item.blue,
 .dashboard_overview_item.olive, .dashboard_overview_item.orange {
@@ -3974,10 +3942,8 @@ footer.footer_main, footer .footer_main, .footer_main {
     box-shadow: none !important; transform: none !important; border-color: var(--line-2) !important;
 }
 
-/* Account content panels */
 .dashboard_recent_order { border-radius: 0 !important; }
 
-/* Chat launcher + widget - off the stock teal, onto charcoal + gold */
 #chat-button {
     background: var(--ink-2) !important;
     color: var(--gold) !important;
@@ -3985,6 +3951,18 @@ footer.footer_main, footer .footer_main, .footer_main {
     border: 1px solid rgba(255, 255, 255, .08) !important;
 }
 #chat-button:hover { box-shadow: 0 10px 30px rgba(28, 25, 23, .36) !important; }
+@media (max-width: 575.98px) {
+    #chat-popup {
+        right: 8px !important;
+        left: 8px !important;
+        bottom: 72px !important;
+        width: auto !important;
+        max-width: none !important;
+        height: min(520px, calc(100vh - 84px)) !important;
+        max-height: calc(100vh - 84px) !important;
+        border-radius: 12px !important;
+    }
+}
 #chat-count.chat-count, .chat-count { background: var(--gold) !important; color: #fff !important; }
 .message.user .bubble {
     background: var(--ink) !important; color: #fff !important;
@@ -3999,7 +3977,6 @@ footer.footer_main, footer .footer_main, .footer_main {
 .msg-status.seen { color: var(--gold) !important; }
 #chat-online-dot.chat-online-dot, .chat-online-dot { background: var(--colorGreen, #15803D) !important; }
 
-/* chat connection-lost banner */
 .chat-connection-banner {
     padding: 7px 14px;
     font-size: 12px;
@@ -4012,26 +3989,24 @@ footer.footer_main, footer .footer_main, .footer_main {
 .chat-bubble a, #chat-body .bubble a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .message.admin .bubble a { color: var(--gold-dim); }
 
-/* text links that act as buttons: min ~40px tap height */
 .footer_logo_area span a { display: inline-block; padding: 6px 0; }
 .header_support a { display: inline-block; padding: 9px 0; }
 .blog_item .bottom a, .blog_item .bottom li { display: inline-block; padding: 8px 0; }
 a[href^="tel:"], a[href^="mailto:"] { display: inline-block; padding: 8px 0; }
 .contact-section-title + div a { display: inline-block; padding: 6px 0; }
 
-/* footer + breadcrumb link lists: ~40px tap rows */
 .footer_link ul li { margin-bottom: 2px !important; }
 .footer_link ul li a { display: inline-block !important; padding: 9px 0 !important; }
 .page_banner_text ul { display: flex !important; flex-wrap: wrap !important; align-items: center !important; }
 .page_banner_text ul li a { display: inline-block; padding: 9px 4px; }
 
-/* remaining text-link / small-badge tap targets -> ~40px */
+.page_banner_text ul li a::after { top: 50% !important; transform: translateY(-50%); }
+
 .password-toggle { width: 40px !important; }
 .details_list_btn li a { display: inline-flex !important; align-items: center; padding: 9px 4px !important; }
 .details_tags_sku li a.badge, .shop_details_text a.badge { display: inline-block; padding: 8px 6px !important; }
 .sign_in_form .forgot a, .sign_in_form .dont_account a { display: inline-block; padding: 9px 2px; }
 
-/* current category highlighted in the mega menu / mobile menu */
 .menu_cat_item > li > a[aria-current],
 .menu_cat_droapdown > li > a[aria-current],
 .sub_category > li > a[aria-current],
@@ -4041,7 +4016,6 @@ a[href^="tel:"], a[href^="mailto:"] { display: inline-block; padding: 8px 0; }
     font-weight: 500 !important;
 }
 
-/* empty state for wishlist / compare / cart */
 .store_empty_state {
     text-align: center;
     padding: clamp(48px, 8vw, 88px) 20px;
@@ -4066,7 +4040,6 @@ a[href^="tel:"], a[href^="mailto:"] { display: inline-block; padding: 8px 0; }
 }
 .store_empty_state .common_btn { display: inline-flex; }
 
-/* chat: own-message delete - visible on touch, larger tap target, on-brand */
 .message .delete-message {
     display: none;
     position: absolute; top: -8px; right: -8px;
@@ -4086,4 +4059,75 @@ a[href^="tel:"], a[href^="mailto:"] { display: inline-block; padding: 8px 0; }
 .message:hover .delete-message, .message:focus-within .delete-message { display: inline-flex; }
 @media (hover: none), (pointer: coarse){
     .message .delete-message { display: inline-flex; }
+}
+
+.vbox-container img, .vbox-content img {
+    width: auto !important;
+    height: auto !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+    object-fit: contain !important;
+}
+
+.shop_details_description img,
+.blog_details_content img,
+.blog_details_desc img {
+    max-width: 100% !important;
+    height: auto !important;
+}
+.shop_details_description table,
+.blog_details_content table,
+.blog_details_desc table {
+    max-width: 100% !important;
+    width: 100% !important;
+    display: block;
+    overflow-x: auto;
+}
+.shop_details_description,
+.blog_details_content,
+.blog_details_desc {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.popular_blog {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 14px !important;
+    align-items: flex-start !important;
+}
+.popular_blog_img {
+    width: 80px !important;
+    height: 80px !important;
+    flex-shrink: 0 !important;
+}
+.popular_blog_text {
+    width: auto !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+}
+
+.cart_page_summary form input {
+    padding-right: 95px !important;
+}
+
+@media (max-width: 991.98px) {
+    .dashboard_sidebar {
+        margin-bottom: 32px !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .pagination_area ul {
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+    .pagination_area .page-link {
+        width: 36px !important;
+        height: 36px !important;
+        line-height: 36px !important;
+        font-size: 13px !important;
+    }
 }

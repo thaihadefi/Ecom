@@ -14,12 +14,6 @@ const FM_HEADERS = () => ({
 
 type FmResponse = { code?: string; message?: string; [key: string]: unknown };
 
-/**
- * Send a multipart form to the FileManager service. Every folder/file mutation
- * builds the same FormData + auth-header + `${domainCDN}/file-manager/...` call;
- * only the sub-path and fields change. Returns the parsed response body so the
- * caller can check `code` and read any extra fields (e.g. `saveLinks`).
- */
 const fmSend = async (
   method: "post" | "patch",
   path: string,

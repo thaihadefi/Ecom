@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
 import * as chatService from '../../services/client/chat.service';
 
-/** Lightweight session probe. Passing through the client router runs the
- *  verifyToken middleware, which rotates an expired access token from the
- *  refresh cookie — the chat client hits this to recover a stale socket
- *  session before giving up. */
 export const session = (_req: Request, res: Response) => {
   res.json({ ok: !!res.locals.accountUser });
 };

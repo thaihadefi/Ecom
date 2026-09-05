@@ -48,10 +48,6 @@ app.use(express.static(path.join(process.cwd(), 'public'), {
   maxAge: 7 * 24 * 60 * 60 * 1000
 }));
 
-// Serve FileManager media through this app so the browser only ever talks to
-// one origin — no CDN host to configure, no extra port to open, works the same
-// on localhost, a LAN IP, or a teammate's clone. A real CDN in production sets
-// CDN_DOMAIN and bypasses this entirely.
 app.get(/^\/+media\//, async (req, res) => {
   const upstreamPath = req.originalUrl.replace(/^\/+/, "/"); // collapse any leading //
   try {
@@ -59,7 +55,7 @@ app.get(/^\/+media\//, async (req, res) => {
     res.status(upstream.status);
     const contentType = upstream.headers.get("content-type");
     if (contentType) res.type(contentType);
-    // Media filenames are timestamp-prefixed and never rewritten — cache hard.
+    
     res.set("Cache-Control", upstream.ok ? "public, max-age=31536000, immutable" : "no-store");
     if (upstream.body) {
       Readable.fromWeb(upstream.body as Parameters<typeof Readable.fromWeb>[0]).pipe(res);

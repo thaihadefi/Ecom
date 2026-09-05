@@ -258,8 +258,5 @@ mixin products-slider(title1, title2, productList)
               |  #{title2}
       .row(class="mt_25 flash_sell_slider")
         each item in productList
-          //- Slick controls how many cards show per view; each slide is a full
-          //- column (matching blocks/flash-sale.pug). .col-xl-1-5 here would
-          //- let its `max-width: 20%` collapse the card inside .slick-slide.
           .col-12
             +product-item(item)

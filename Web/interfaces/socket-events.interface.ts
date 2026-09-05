@@ -69,7 +69,7 @@ export interface IServerAdminStatusPayload {
   status: 'online' | 'offline';
   lastSeenAt?: number;
   adminId?: string;
-  /** Server clock at emit time (epoch ms) so clients can correct for skew. */
+  
   serverNow?: number;
 }
 

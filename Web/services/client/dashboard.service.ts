@@ -335,7 +335,7 @@ export const submitOrderReview = async (
 
   let imageLinks: string[] = [];
   if (files && files.length > 0) {
-    // one FileManager call per image keeps a single failure from losing the rest
+    
     const uploads = await Promise.all(files.map((file) => fmUpload([file], `reviews/${userId}`)));
     imageLinks = uploads.flatMap((u) => u.fileUrls);
   }

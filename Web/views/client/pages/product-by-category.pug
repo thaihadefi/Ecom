@@ -21,7 +21,7 @@ block main
               )
               .row
                 each item in productList
-                  .col-xxl-3.col-6.col-md-4.col-lg-6.col-xl-4.wow.fadeInUp
+                  .col-6.col-md-4.col-lg-4.col-xl-4.col-xxl-4.wow.fadeInUp
                     +product-item(item)
             #nav-profile.tab-pane.fade(
               tabindex="0"
@@ -30,6 +30,6 @@ block main
               )
               .row
                 each item in productList
-                  .col-6.col-xxl-10.col-sm-12
+                  .col-12
                     +product-list-item(item)
           include ../partials/pagination-area.pug

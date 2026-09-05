@@ -30,7 +30,7 @@ block main
           .col-12
             h2.mb-3 Articles
           each item in articleList
-            .col-xl-4.col-md-6.wow.fadeInUp
+            .col-lg-4.col-md-6.wow.fadeInUp
               +blog-item(item)
 
       if (productList.length === 0 && articleList.length === 0)
@@ -39,4 +39,4 @@ block main
             .text-center.py-5
               i.fas.fa-search.fa-3x.text-muted.mb-3(aria-hidden="true")
               p.text-muted No results found for "#{keyword}"
-              a.btn.btn-primary.mt-3(href="/") Back to Home
+              a.common_btn.mt-3(href="/") Back to Home

@@ -38,8 +38,6 @@ const drawNotify = (type, message) => {
   }));
 }
 
-// Disable a submit trigger and show a spinner while an async request is in flight.
-// Returns an unlock() to call when the request settles (skip it when the page navigates on success).
 const lockSubmit = (trigger) => {
   if(!trigger) return () => {};
   const originalHtml = trigger.innerHTML;
@@ -56,7 +54,6 @@ const lockSubmit = (trigger) => {
   };
 }
 
-// Ask the shared confirm modal before running a destructive action.
 const confirmAction = (message, onConfirm) => {
   const modalEl = document.querySelector("#modalConfirm");
   if(!modalEl || typeof bootstrap === "undefined") {
@@ -75,10 +72,6 @@ const confirmAction = (message, onConfirm) => {
   modal.show();
 }
 
-// Resolve price + stock for a cart/wishlist/compare line: the matched variant's
-// values when the line has a variant, otherwise the product's own. Used by
-// drawCart, drawWishlistPage and drawComparePage, which build different markup
-// around the same numbers.
 const resolveItemPricing = (item) => {
   const { detail } = item;
   if (!item.variant) {
@@ -98,7 +91,6 @@ const resolveItemPricing = (item) => {
   };
 };
 
-// Markup for an empty list/collection view (wishlist, compare, cart).
 const emptyStateHTML = (icon, title, text, ctaText, ctaHref) => `
   <div class="store_empty_state">
     <i class="fas ${icon}" aria-hidden="true"></i>
@@ -108,7 +100,6 @@ const emptyStateHTML = (icon, title, text, ctaText, ctaHref) => `
   </div>
 `;
 
-// Highlight the category the viewer is currently browsing in the mega/mobile menu.
 (function() {
   const path = window.location.pathname;
   if (!path.startsWith("/product/category/")) return;
@@ -370,11 +361,9 @@ if(formSearch) {
                       <div class="inner-name">${item.name}</div>
                       <div class="inner-prices">
                         <div class="inner-price-new">
-                          ${item.priceNew.toLocaleString('vi-VN')} VND
+                          ${(item.priceNew || 0).toLocaleString('vi-VN')} VND
                         </div>
-                        <div class="inner-price-old">
-                          ${item.priceOld.toLocaleString('vi-VN')} VND
-                        </div>
+                        ${item.priceOld ? `<div class="inner-price-old">${item.priceOld.toLocaleString('vi-VN')} VND</div>` : ''}
                       </div>
                     </div>
                   </a>
@@ -393,7 +382,25 @@ if(formSearch) {
         boxSuggest.style.display = "none";
       }
     }, 500);
-  })
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!formSearch.contains(e.target)) {
+      boxSuggest.style.display = "none";
+    }
+  });
+
+  input.addEventListener("focus", () => {
+    if (input.value && boxSuggestList.children.length > 0) {
+      boxSuggest.style.display = "block";
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      boxSuggest.style.display = "none";
+    }
+  });
 }
 
 const currencyConfig = (() => {
@@ -1219,8 +1226,12 @@ if(shopDetailsText) {
         })
 
         if(variantMatched) {
-          elementPriceNew.innerHTML = variantMatched.priceNew.toLocaleString('vi-VN') + ' VND';
-          elementPriceOld.innerHTML = variantMatched.priceOld.toLocaleString('vi-VN') + ' VND';
+          if (elementPriceNew) {
+            elementPriceNew.innerHTML = (variantMatched.priceNew || 0).toLocaleString('vi-VN') + ' VND';
+          }
+          if (elementPriceOld) {
+            elementPriceOld.innerHTML = variantMatched.priceOld ? variantMatched.priceOld.toLocaleString('vi-VN') + ' VND' : '';
+          }
 
           if(variantMatched.stock > 0) {
             elementStock.innerHTML = `In stock (${variantMatched.stock})`;

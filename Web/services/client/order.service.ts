@@ -168,8 +168,7 @@ export const createOrder = async (
     }
   }
 
-  // The loop above skips products that were deleted/deactivated since they were
-  // added to the cart. If nothing survives, there is no order to place.
+  
   if (dataFinal.items.length === 0) {
     return { success: false, message: "None of the products in your cart are available anymore." };
   }
@@ -274,8 +273,7 @@ export const createOrder = async (
   const apiShipping = await getApiShipping();
   const goshipBase = String(apiShipping.goshipApiUrl || "https://sandbox.goship.io/api/v2");
 
-  // Isolate the shipping-provider call so an outage / expired token surfaces as
-  // a clear "shipping" error instead of the generic checkout failure.
+  
   let goshipRes;
   try {
     goshipRes = await axios.post(`${goshipBase}/shipments`, dataGoShip, {

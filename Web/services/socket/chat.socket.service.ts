@@ -21,22 +21,12 @@ interface ISocketAccount {
   roomId?: string;
 }
 
-// Must match ADMINS_ROOM in index.socket.ts — every staff socket is in it.
 const ADMINS_ROOM = 'admins';
 
 const TXN_UNSUPPORTED = /Transaction numbers are only allowed|replica set|Transactions? (are|is) not supported|does not support transactions|Sessions are not supported/i;
 
-// Flipped the first time a transaction fails because the deployment has no
-// replica set, so we stop paying for a doomed transaction attempt every call.
 let transactionsUnsupported = false;
 
-/**
- * Run `work` inside a transaction where the deployment supports one (Atlas or any
- * replica set) and fall back to sequential writes on a standalone mongod, so
- * local development without a replica set still works. `work` MUST be safe to run
- * twice (withTransaction retries on transient errors) — build fresh documents
- * inside it rather than reusing an outer one.
- */
 async function runAtomically(
   work: (session?: mongoose.ClientSession) => Promise<void>,
 ): Promise<void> {
@@ -82,7 +72,7 @@ async function initUserRoom(
     { new: true, upsert: true },
   );
   if (!chatRoom) return null;
-  // Reassign when the room has no admin, or its admin was deactivated / deleted.
+  
   if (!chatRoom.adminId || !(await isAssignableAdmin(chatRoom.adminId))) {
     return assignAdminToRoom(chatRoom, listAdminOnline, io);
   }
@@ -97,7 +87,7 @@ async function assignAdminToRoom(
   const listIdAdminOnline = Array.from(listAdminOnline.keys());
   let selectedAdminId = '';
 
-  // Only balance across online admins that are still active accounts.
+  
   const activeOnline = (
     await AccountAdmin.find({ _id: { $in: listIdAdminOnline }, deleted: false, status: 'active' }).select('_id').lean()
   ).map(a => String(a._id));
@@ -120,9 +110,7 @@ async function assignAdminToRoom(
 
   if (!selectedAdminId) return chatRoom;
 
-  // Optimistic claim: only write if the room's admin hasn't changed since we
-  // read it, so concurrent connects (multi-tab, or reassigning an orphaned
-  // room) don't fight over it.
+  
   const previousAdminId = chatRoom.adminId || '';
   const updated = await ChatRoom.findOneAndUpdate(
     { _id: chatRoom._id, adminId: previousAdminId },
@@ -133,7 +121,7 @@ async function assignAdminToRoom(
   invalidateRoomList(selectedAdminId);
   if (previousAdminId) {
     invalidateRoomList(previousAdminId);
-    // The room moved off a now-invalid admin — let any staff viewing their inbox refresh.
+    
     io.to(ADMINS_ROOM).emit('SERVER_ROOM_ASSIGNED', { roomId: String(updated._id), adminId: selectedAdminId });
   }
   return updated;
@@ -169,8 +157,7 @@ export async function sendMessage(
   const messageDoc = { roomId, senderId, senderRole, content, files };
   const unreadField = senderRole === 'user' ? 'unreadCount.admin' : 'unreadCount.user';
 
-  // Create the document inside the callback so a withTransaction retry inserts a
-  // fresh doc instead of re-saving a stale one.
+  
   let created!: IChatMessage;
   await runAtomically(async (session) => {
     const [doc] = await ChatMessage.create([messageDoc], { session });

@@ -3,7 +3,7 @@ section.features(class="mt_20")
     if blockData && blockData.items && blockData.items.length
       .row
         each item in blockData.items
-          .col-xl-3.col-md-6.wow.fadeInUp
+          .col-xl-3.col-lg-3.col-sm-6.wow.fadeInUp
             div(class=`features_item ${item.color || ""}`)
               .icon(style="display:flex;align-items:center;justify-content:center;")
                 if item.icon && item.icon.startsWith('fa')

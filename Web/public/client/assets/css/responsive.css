@@ -299,7 +299,7 @@
     }
 
     .details_slider_thumb_item {
-        height: 500px;
+        height: auto;
     }
 
     .details_slider_nav_item {
@@ -694,7 +694,7 @@
     }
 
     .details_slider_thumb_item {
-        height: 510px;
+        height: auto;
     }
 
     .details_slider_nav_item {
@@ -1288,7 +1288,7 @@
     }
 
     .details_slider_thumb_item {
-        height: 380px;
+        height: auto;
     }
 
     .details_slider_nav_item {
@@ -2004,7 +2004,7 @@
     }
 
     .details_slider_thumb_item {
-        height: 475px;
+        height: auto;
     }
 
     .details_slider_nav_item {
@@ -2843,7 +2843,7 @@
     }
 
     .details_slider_thumb_item {
-        height: 575px;
+        height: auto;
     }
 
     .details_slider_nav_item {

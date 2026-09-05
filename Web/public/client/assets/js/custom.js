@@ -95,15 +95,12 @@ $(function () {
     $('.banner_slider').slick({
         slidesToShow: 1,
         slidesToScroll: 1,
-        autoplay: false,
-        autoplaySpeed: 3000,
+        autoplay: true,
+        autoplaySpeed: 5000,
         dots: true,
         arrows: false
     });
 
-    // Slick caches the container width at init (before webfonts/images settle),
-    // which can leave slides wider than the viewport on mobile. Recalculate
-    // dimensions once the page is loaded and whenever the viewport changes.
     let bannerResizeTimer;
     $(window).on('load', function () {
         $('.banner_slider').slick('refresh');
@@ -117,18 +114,10 @@ $(function () {
 
 
 
-    // The same class drives the home flash-sale rail and the "Related" /
-    // "Viewed" rails on the product page, which often carry fewer items than
-    // slidesToShow. With infinite scrolling Slick clones slides to fill the
-    // view, which misrenders when slidesToShow >= slideCount, so keep these
-    // rails finite and init each one on its own.
     $('.flash_sell_slider').each(function () {
         var $rail = $(this);
         var count = $rail.children().length;
         if (count === 0) return;
-        // 4 or fewer items fit in one row — render as a plain grid (class hook
-        // for CSS) instead of a slider, so the cards match the other product
-        // grids exactly.
         if (count <= 4) { $rail.addClass('is-static-grid'); return; }
 
         $rail.slick({
@@ -319,18 +308,10 @@ $(function () {
             }
         }
 
-        // The slider always operates in VND: fixed min/max/step, and the URL
-        // `price` param (which the backend filters on `priceNew`, stored in VND)
-        // is read and written directly with no rate math. Only the label text is
-        // converted to the viewer's currency, so switching currency never rounds
-        // the range, shifts the max, or drifts the param across round-trips.
         const MIN_VND = 0;
         const MAX_VND = 50000000;
         const STEP_VND = 10000;
 
-        // Compact currency notation ("$2K", "₫50M", "€1.9K") keeps both end
-        // labels a similar short width in every currency, so the track spacing
-        // stays stable when the viewer switches currency.
         let currencyFormatter;
         try {
             currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -404,6 +385,7 @@ $(function () {
         slidesToScroll: 1,
         arrows: false,
         vertical: true,
+        adaptiveHeight: true,
         asNavFor: '.details_slider_nav',
     });
     $('.details_slider_nav').slick({

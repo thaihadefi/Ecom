@@ -59,19 +59,30 @@ export const getProductByCategory = async (getByCategory: GetByCategoryOptions) 
 
   const limit = getByCategory.limit ?? 10;
 
+  const sortByDiscount = getByCategory.sort?.by === "discount";
+
   const sort: Record<string, 1 | -1 | "asc" | "desc"> = {};
-  if (getByCategory.sort?.by && getByCategory.sort?.type) {
+  if (getByCategory.sort?.by && getByCategory.sort?.type && !sortByDiscount) {
     sort[getByCategory.sort.by] = getByCategory.sort.type as 1 | -1 | "asc" | "desc";
   }
 
-  const productList = await Product
+  let query = Product
     .find(find)
-    .select("_id name slug priceOld priceNew images variants category status ratingAvg ratingCount")
-    .sort(sort)
-    .limit(limit);
+    .select("_id name slug priceOld priceNew images variants category status ratingAvg ratingCount");
+  if (!sortByDiscount) {
+    query = query.sort(sort).limit(limit);
+  }
+
+  const productList = await query;
 
   for (const item of productList) {
-    formatProductItem(item.toObject());
+    formatProductItem(item);
+  }
+
+  if (sortByDiscount) {
+    const dir = getByCategory.sort?.type === "asc" || getByCategory.sort?.type === 1 ? 1 : -1;
+    productList.sort((a, b) => dir * ((a.discount ?? 0) - (b.discount ?? 0)));
+    return productList.slice(0, limit);
   }
 
   return productList;

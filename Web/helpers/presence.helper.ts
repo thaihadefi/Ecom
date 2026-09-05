@@ -5,17 +5,11 @@ import AccountUser from "../models/account-user.model";
 
 type PresenceRole = "admin" | "user";
 
-/** Minimal shape the presence layer touches on either account collection. */
 interface LastSeenDoc {
   _id: unknown;
   lastSeenAt?: Date;
 }
 
-/**
- * Hot in-process cache for last-seen timestamps (epoch ms). Mongo is the source
- * of truth so the data survives a server restart; this cache just spares us a
- * query on every reconnect / room-list render.
- */
 const cache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
 
 const cacheKey = (role: PresenceRole, id: string): string => `lastseen:${role}:${id}`;
@@ -27,7 +21,6 @@ const logError = (label: string, err: unknown): void => {
   console.error(`[Presence] ${label}:`, err instanceof Error ? err.message : err);
 };
 
-/** Record "seen right now" for an account and return the timestamp that was stored. */
 export const touchLastSeen = async (role: PresenceRole, id: string): Promise<Date> => {
   const now = new Date();
   cache.set(cacheKey(role, id), now.getTime());
@@ -39,7 +32,6 @@ export const touchLastSeen = async (role: PresenceRole, id: string): Promise<Dat
   return now;
 };
 
-/** Heartbeat variant: refresh many accounts in a single round-trip. */
 export const touchLastSeenMany = async (role: PresenceRole, ids: string[]): Promise<void> => {
   if (ids.length === 0) return;
   const now = new Date();
@@ -55,7 +47,6 @@ export const touchLastSeenMany = async (role: PresenceRole, ids: string[]): Prom
   }
 };
 
-/** Last-seen epoch ms for a single account (cache first, then Mongo). */
 export const getLastSeen = async (role: PresenceRole, id: string): Promise<number | undefined> => {
   const cached = cache.get<number>(cacheKey(role, id));
   if (cached !== undefined) return cached;
@@ -71,7 +62,6 @@ export const getLastSeen = async (role: PresenceRole, id: string): Promise<numbe
   }
 };
 
-/** Last-seen epoch ms for many accounts at once, keyed by id. Missing accounts are omitted. */
 export const getLastSeenMany = async (
   role: PresenceRole,
   ids: string[],

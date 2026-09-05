@@ -1,12 +1,5 @@
 import { Model, UpdateQuery } from "mongoose";
 
-/**
- * Shared trash-lifecycle operations for the admin CRUD services. Every content
- * model carries `deleted` + `deletedAt`, so the bulk update and the UI-ready
- * result message live here instead of being copy-pasted per service.
- * A service that needs an extra guard (skip superadmins, block active orders)
- * keeps that guard and calls these for the write itself.
- */
 type SoftDeletable = { deleted: boolean; deletedAt?: Date | null };
 
 export const softDeleteMany = async <T extends SoftDeletable>(model: Model<T>, ids: string[], label: string) => {
@@ -24,7 +17,6 @@ export const permanentlyDeleteMany = async <T>(model: Model<T>, ids: string[], l
   return { success: true, message: `Permanently deleted ${ids.length} ${label}(s)!` };
 };
 
-/** List the trashed records for a model, newest-deleted first. */
 export const getTrash = <T extends SoftDeletable>(model: Model<T>, select: string) => {
   return model.find({ deleted: true }).select(select).sort({ deletedAt: "desc" });
 };

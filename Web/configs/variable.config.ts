@@ -1,12 +1,7 @@
 export const pathAdmin = "admin";
 
-// Where this server reaches the FileManager microservice (server-to-server API
-// calls). Only override if FileManager does not run on localhost:4000.
 export const domainCDN = (process.env.FILE_MANAGER_URL || "http://localhost:4000").replace(/\/+$/, "");
 
-// Prefix for *public* media URLs in rendered pages. Empty by default so images
-// stay same-origin ("/media/..") and are proxied by this app; set CDN_DOMAIN to
-// an absolute origin when a real CDN sits in front of the media.
 export const mediaBase = (process.env.CDN_DOMAIN || "").replace(/\/+$/, "");
 
 export const permissionList = [

@@ -96,8 +96,7 @@ export const changeChatRoomStatus = async (roomId: string, status: string) => {
 
   await ChatRoom.updateOne({ _id: roomId }, { status });
 
-  // Drop the cached status so the socket layer stops serving a stale value,
-  // and tell everyone in the room right away.
+  
   invalidateRoomStatus(roomId);
   getIO()?.to(roomId).emit("SERVER_ROOM_STATUS", { roomId, status });
 

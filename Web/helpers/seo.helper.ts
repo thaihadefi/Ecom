@@ -1,11 +1,6 @@
 import { IProductSeoInput } from "../interfaces/models/product.interface";
 import { ISeo } from "../interfaces/models/seo.interface";
 
-/**
- * Build the stored `seo` sub-document from the flat `seo*` form fields.
- * Products and articles share this shape; each passes the fallbacks that come
- * from its own record (title, keyword list, OG image).
- */
 type SeoDefaults = {
   title?: string;
   keywords: string[];

@@ -15,8 +15,13 @@ div(class="shop_details_slider_area")
         each image in productDetail.images
           .col-12
             div(class="details_slider_thumb_item")
-              img.img-fluid.w-100(
-                alt=productDetail.name
-                src=`${domainCDN}${image}`
-                loading="lazy"
+              a.venobox(
+                href=`${domainCDN}${image}`
+                data-gall=`gallery-${productDetail.slug}`
+                aria-label=`View larger image of ${productDetail.name}`
                 )
+                img.img-fluid.w-100(
+                  alt=productDetail.name
+                  src=`${domainCDN}${image}`
+                  loading="lazy"
+                  )
