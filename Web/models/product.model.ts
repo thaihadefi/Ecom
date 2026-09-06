@@ -4,6 +4,7 @@ import SeoSchema from "./schemas/seo.schema";
 const AttributeValueSchema = new mongoose.Schema(
   {
     attrId: String,
+    attrType: String,
     label: String,
     value: String,
   },
@@ -14,6 +15,8 @@ const VariantSchema = new mongoose.Schema(
   {
     status: { type: Boolean, default: true },
     price: Number,
+    priceOld: Number,
+    priceNew: Number,
     stock: Number,
     image: String,
     sku: String,
@@ -81,6 +84,7 @@ schema.index({ status: 1, category: 1 }, { partialFilterExpression: { deleted: f
 schema.index({ createdAt: -1 }, { partialFilterExpression: { deleted: false, status: "active" } });
 schema.index({ view: -1 }, { partialFilterExpression: { deleted: false, status: "active" } });
 schema.index({ position: 1 }, { partialFilterExpression: { deleted: false } });
+schema.index({ discount: -1 }, { partialFilterExpression: { deleted: false, status: "active" } });
 
 import { IProduct } from "../interfaces/models/product.interface";
 

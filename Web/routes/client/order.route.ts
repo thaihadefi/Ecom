@@ -12,6 +12,7 @@ router.get('/success', orderController.success);
 router.get('/payment-zalopay', orderController.paymentZaloPay);
 
 router.post('/payment-zalopay-result', orderController.paymentZalopayResult);
+router.post('/payment-zalopay-callback', orderController.paymentZalopayResult);
 
 router.get('/payment-vnpay', orderController.paymentVNPay);
 

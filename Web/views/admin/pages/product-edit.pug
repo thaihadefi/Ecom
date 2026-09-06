@@ -94,7 +94,7 @@ block main
                         td
                           .form-check.form-switch.form-switch-success
                             input.form-check-input(type="checkbox" checked=item.status)
-                          input(class="d-none" attribute-value value=item.attributeValue)
+                          input(class="d-none" attribute-value value=JSON.stringify(item.attributeValue))
                         each attr in item.attributeValue
                           td #{attr.label}
                         td

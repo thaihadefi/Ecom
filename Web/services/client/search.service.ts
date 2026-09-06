@@ -43,7 +43,7 @@ export const searchProductsAndArticles = async (keyword: string, rawPage: unknow
   const [totalProductRecord, productList, articleList] = await Promise.all([
     Product.countDocuments(productFind),
     Product.find(productFind)
-      .select("_id name slug images priceNew priceOld variants ratingAvg ratingCount")
+      .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
       .limit(limitItems)
       .skip(skip)
       .sort({ createdAt: "desc" }),

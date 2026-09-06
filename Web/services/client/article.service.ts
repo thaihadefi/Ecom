@@ -3,6 +3,7 @@ import Blog from '../../models/blog.model';
 import AccountAdmin from '../../models/account-admin.model';
 import moment from 'moment';
 import { PAGINATION } from '../../configs/pagination.config';
+import { PRODUCT_DISPLAY_CONFIG } from '../../configs/product-display.config';
 import { getPagination } from '../../helpers/pagination.helper';
 import { IAccountAdmin } from '../../interfaces/models/account-admin.interface';
 import { IBlog } from '../../interfaces/models/blog.interface';
@@ -124,7 +125,7 @@ export const incrementArticleView = async (slug: string) => {
   );
 };
 
-export const getPopularArticles = async (limit = 3): Promise<IBlog[]> => {
+export const getPopularArticles = async (limit: number = PRODUCT_DISPLAY_CONFIG.POPULAR_ARTICLES_LIMIT): Promise<IBlog[]> => {
   const blogList = await Blog
     .find({
       deleted: false,

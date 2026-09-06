@@ -24,6 +24,7 @@ export interface OrderItemFinal {
   quantity: number;
   price: number;
   variant?: string[];
+  rawVariant?: Array<{ attrId?: string; label?: string; value?: string }>;
   image?: string;
   name: string;
 }
@@ -39,6 +40,7 @@ export interface CreateOrderPayload {
   paymentMethod?: string;
   shippingMethod?: string;
   items?: OrderItemInput[];
+  usePoint?: boolean | number | string;
   usedPoint?: unknown;
 }
 
@@ -116,7 +118,7 @@ export const createOrder = async (
   ];
 
   const [productList, attributeList] = await Promise.all([
-    Product.find({ _id: { $in: productIds }, deleted: false, status: "active" }).select("_id name priceNew images variants"),
+    Product.find({ _id: { $in: productIds }, deleted: false, status: "active" }).select("_id name priceNew stock images variants"),
     attrIds.length > 0
       ? AttributeProduct.find({ _id: { $in: attrIds } }).select("name")
       : Promise.resolve([])
@@ -125,6 +127,9 @@ export const createOrder = async (
   const productMap = new Map(productList.map((p) => [String(p._id), p]));
   const attributeMap = new Map((attributeList as IAttributeProduct[]).map((a) => [String(a._id), a]));
 
+  const requestedVariantStock = new Map<string, number>();
+  const requestedProductStock = new Map<string, number>();
+
   dataFinal.items = [];
   for (const item of itemsInput) {
     const productDetail = productMap.get(String(item.productId));
@@ -132,13 +137,15 @@ export const createOrder = async (
     if (productDetail) {
       let price = 0;
       const variant: string[] = [];
+      let variantImage: string | undefined;
 
       if (item.variant && item.variant.length > 0) {
         const variantMatched = (productDetail.variants || []).find((variantItem: { attributeValue?: Array<{ attrId?: string; value?: string }> }) => {
           return (
+            (variantItem.attributeValue || []).length === item.variant?.length &&
             (variantItem.attributeValue || []).every((attr) => {
-              const selected = item.variant?.find((v) => v.attrId === attr.attrId);
-              return selected && selected.value === attr.value;
+              const selected = item.variant?.find((v) => String(v.attrId) === String(attr.attrId));
+              return selected && String(selected.value) === String(attr.value);
             })
           );
         });
@@ -148,13 +155,51 @@ export const createOrder = async (
             message: `Invalid variant selected for product: ${productDetail.name}!`
           };
         }
-        price = variantMatched.price ?? 0;
+        if ((variantMatched as { status?: boolean }).status === false) {
+          return {
+            success: false,
+            message: `Selected variant for ${productDetail.name} is currently unavailable!`
+          };
+        }
+        const variantStock = typeof (variantMatched as { stock?: number }).stock === "number"
+          ? (variantMatched as { stock: number }).stock
+          : (typeof productDetail.stock === "number" ? productDetail.stock : 0);
+
+        const variantKey = `${item.productId}_${item.variant.map((v) => `${v.attrId}:${v.value}`).sort().join("_")}`;
+        const currentVariantQty = (requestedVariantStock.get(variantKey) || 0) + item.quantity;
+        if (variantStock < currentVariantQty) {
+          return {
+            success: false,
+            message: `Selected variant for ${productDetail.name} does not have enough stock!`
+          };
+        }
+        requestedVariantStock.set(variantKey, currentVariantQty);
+
+        price = (variantMatched as { priceNew?: number; price?: number }).priceNew ?? (variantMatched as { priceNew?: number; price?: number }).price ?? (productDetail.priceNew || 0);
+        variantImage = (variantMatched as { image?: string }).image;
         for (const v of item.variant) {
           const attribute = attributeMap.get(String(v.attrId));
-          if (attribute) variant.push(`${attribute.name}: ${v.label}`);
+          if (attribute) variant.push(`${attribute.name}: ${v.label || v.value}`);
         }
       } else {
+        if (productDetail.variants && productDetail.variants.length > 0) {
+          return {
+            success: false,
+            message: `Please select product options for: ${productDetail.name}!`
+          };
+        }
         price = productDetail.priceNew || 0;
+      }
+
+      if (typeof productDetail.stock === "number") {
+        const currentProductQty = (requestedProductStock.get(String(item.productId)) || 0) + item.quantity;
+        if (productDetail.stock < currentProductQty) {
+          return {
+            success: false,
+            message: `Product ${productDetail.name} does not have enough stock!`
+          };
+        }
+        requestedProductStock.set(String(item.productId), currentProductQty);
       }
 
       dataFinal.items.push({
@@ -162,7 +207,8 @@ export const createOrder = async (
         quantity: item.quantity,
         price: price,
         variant: variant.length > 0 ? variant : undefined,
-        image: productDetail.images?.[0] || "",
+        rawVariant: item.variant && item.variant.length > 0 ? item.variant : undefined,
+        image: variantImage || productDetail.images?.[0] || "",
         name: productDetail.name || ""
       });
     }
@@ -227,12 +273,23 @@ export const createOrder = async (
 
   dataFinal.usedPoint = 0;
   dataFinal.pointDiscount = 0;
-  if (accountUser && payload.usedPoint) {
-    const requestedPoint = parseInt(`${payload.usedPoint}`) || 0;
-    const availablePoint = (accountUser.totalPoint || 0) - (accountUser.usedPoint || 0);
-    if (requestedPoint > 0 && requestedPoint <= availablePoint) {
+  const wantUsePoint = payload.usedPoint ?? payload.usePoint;
+  if (accountUser && wantUsePoint) {
+    const availablePoint = Math.max(0, (accountUser.totalPoint || 0) - (accountUser.usedPoint || 0));
+    const maxPayable = Math.max(0, dataFinal.subTotal - dataFinal.discount);
+    const maxPointsNeeded = Math.ceil(maxPayable / pointConfig.POINT_TO_MONEY);
+
+    let requestedPoint = 0;
+    if (wantUsePoint === true || wantUsePoint === "true") {
+      requestedPoint = Math.min(availablePoint, maxPointsNeeded);
+    } else {
+      const parsed = parseInt(`${wantUsePoint}`, 10) || 0;
+      requestedPoint = Math.max(0, Math.min(parsed, availablePoint, maxPointsNeeded));
+    }
+
+    if (requestedPoint > 0) {
       dataFinal.usedPoint = requestedPoint;
-      dataFinal.pointDiscount = dataFinal.usedPoint * pointConfig.POINT_TO_MONEY;
+      dataFinal.pointDiscount = Math.min(maxPayable, dataFinal.usedPoint * pointConfig.POINT_TO_MONEY);
     }
   }
 
@@ -241,7 +298,7 @@ export const createOrder = async (
   const dataGoShip = {
     shipment: {
       rate: payload.shippingMethod,
-      payer: 0,
+      payer: dataFinal.paymentMethod === "money" ? 1 : 0,
       address_from: {
         name: String(general.shopSenderName || "Ecom"),
         phone: String(general.shopSenderPhone || "02837252002"),
@@ -259,7 +316,7 @@ export const createOrder = async (
         ward: userInfoAddress.ward
       },
       parcel: {
-        cod: `${Math.max(0, dataFinal.subTotal - dataFinal.discount - dataFinal.pointDiscount)}`,
+        cod: `${dataFinal.paymentMethod === "money" ? Math.max(0, dataFinal.subTotal - dataFinal.discount - dataFinal.pointDiscount) : 0}`,
         amount: `${Math.max(0, dataFinal.subTotal - dataFinal.discount - dataFinal.pointDiscount)}`,
         weight: `${totalWeight}`,
         width: "10",
@@ -301,23 +358,66 @@ export const createOrder = async (
   };
 
   dataFinal.total = Math.max(0, dataFinal.subTotal + dataFinal.shipping.fee - dataFinal.discount - dataFinal.pointDiscount);
+  if (dataFinal.total === 0) {
+    dataFinal.paymentStatus = "paid";
+  }
 
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const stockResults = await Promise.all(
-        dataFinal.items.map((item) =>
-          Product.updateOne(
-            { _id: item.productId, deleted: false, status: "active", stock: { $gte: item.quantity } },
-            { $inc: { stock: -item.quantity } },
-            { session }
-          )
-        )
-      );
+      for (const item of dataFinal.items) {
+        const product = await Product.findOne({
+          _id: item.productId,
+          deleted: false,
+          status: "active"
+        }).session(session);
 
-      const failedStock = stockResults.filter(r => r.modifiedCount !== 1);
-      if (failedStock.length > 0) {
-        throw Object.assign(new Error("One or more items are out of stock!"), { code: "out_of_stock" });
+        if (!product) {
+          throw Object.assign(new Error("One or more items are out of stock!"), { code: "out_of_stock" });
+        }
+
+        if (typeof product.stock === "number") {
+          if (product.stock < item.quantity) {
+            throw Object.assign(new Error(`Product ${product.name} is out of stock!`), { code: "out_of_stock" });
+          }
+          product.stock = Math.max(0, product.stock - item.quantity);
+        }
+
+        const rawVariant = item.rawVariant;
+        if (product.variants && product.variants.length > 0) {
+          if (!rawVariant || rawVariant.length === 0) {
+            throw Object.assign(new Error(`Please select product options for ${product.name}!`), { code: "out_of_stock" });
+          }
+          const vMatched = product.variants.find((v) =>
+            v.attributeValue &&
+            v.attributeValue.length === rawVariant.length &&
+            v.attributeValue.every((attr) => {
+              const sel = rawVariant.find((s: { attrId?: string; value?: string }) => String(s.attrId) === String(attr.attrId));
+              return sel && String(sel.value) === String(attr.value);
+            })
+          );
+
+          if (!vMatched) {
+            throw Object.assign(new Error(`Selected variant for ${product.name} is no longer available!`), { code: "out_of_stock" });
+          }
+
+          if (vMatched.status === false) {
+            throw Object.assign(new Error(`Selected variant for ${product.name} is currently unavailable!`), { code: "out_of_stock" });
+          }
+
+          const variantStock = typeof vMatched.stock === "number"
+            ? vMatched.stock
+            : (typeof product.stock === "number" ? product.stock : 0);
+
+          if (variantStock < item.quantity) {
+            throw Object.assign(new Error(`Selected variant for ${product.name} is out of stock!`), { code: "out_of_stock" });
+          }
+
+          vMatched.stock = Math.max(0, variantStock - item.quantity);
+          product.markModified("variants");
+        }
+
+        await product.save({ session });
       }
 
       if (dataFinal._couponId && couponDetail) {
@@ -345,7 +445,7 @@ export const createOrder = async (
   } catch (error: unknown) {
     const customErr = error as { code?: string; message?: string };
     if (customErr?.code === "out_of_stock") {
-      return { success: false, message: "One or more items are out of stock!" };
+      return { success: false, message: customErr.message || "One or more items are out of stock!" };
     } else if (customErr?.code === "coupon_limit") {
       return { success: false, message: "Coupon has reached its usage limit!" };
     } else {
@@ -367,7 +467,9 @@ export const createOrder = async (
       shipping: dataFinal.shipping,
       total: dataFinal.total,
       paymentMethod: dataFinal.paymentMethod || "",
-      coupon: dataFinal.coupon || undefined
+      coupon: dataFinal.coupon || undefined,
+      usedPoint: dataFinal.usedPoint,
+      pointDiscount: dataFinal.pointDiscount,
     }).then(tpl => sendMail(accountUser.email!, tpl.subject, tpl.html))
       .catch(console.error);
   }
@@ -376,7 +478,9 @@ export const createOrder = async (
     success: true,
     message: "Order placed successfully!",
     orderCode: dataFinal.code,
-    phone: dataFinal.phone
+    phone: dataFinal.phone,
+    total: dataFinal.total,
+    paymentStatus: dataFinal.paymentStatus
   };
 };
 

@@ -73,6 +73,10 @@ block main
                             | Cancelled
                           when "returned"
                             | Returned
+                      if (orderDetail.shipping && orderDetail.shipping.carrierName)
+                        li
+                          span Shipping Partner:
+                          | #{orderDetail.shipping.carrierName}
                 div(class="invoice_table")
                   .table-responsive
                     table.table
@@ -107,6 +111,10 @@ block main
                           tr
                             td(colspan="3") Discount (#{orderDetail.coupon})
                             td -#{(orderDetail.discount || 0).toLocaleString("vi-VN")} VND
+                        if (orderDetail.pointDiscount)
+                          tr
+                            td(colspan="3") Points Discount (#{orderDetail.usedPoint} pts)
+                            td -#{(orderDetail.pointDiscount || 0).toLocaleString("vi-VN")} VND
                         tr
                           td(colspan="3") Shipping Fee
                           td #{(orderDetail.shipping && orderDetail.shipping.fee != null ? orderDetail.shipping.fee : 0).toLocaleString("vi-VN")} VND
@@ -115,12 +123,20 @@ block main
                             b Total
                           td
                             b #{(orderDetail.total || 0).toLocaleString("vi-VN")} VND
+                        if (orderDetail.pointEarned)
+                          tr
+                            td(colspan="3")
+                              b Reward Points Earned
+                            td(style="color: #16a34a; font-weight: 600;") +#{orderDetail.pointEarned.toLocaleString("vi-VN")} pts
                 div(class="dashboard_invoice_footer")
                   h2 Note
                   div #{orderDetail.note || 'No note'}
                   div(class="d-flex flex-wrap gap-3 align-items-center mt-4")
                     button.common_btn(type="button" onclick="window.print()") Download Invoice
                     if (orderDetail.orderStatus === "completed")
+                      a.common_btn(href=`/dashboard/order/review/${orderDetail.id}`)
+                        i.fas.fa-star.me-2
+                        | Review Products
                       button.btn.btn-outline-danger.py-2.px-4(
                         type="button"
                         onclick=`window.openSupportChat && window.openSupportChat("Hello Support, I would like to request a Return & Refund for my completed order #${orderDetail.code}. Please assist me with the process.")`
@@ -128,7 +144,19 @@ block main
                       )
                         i.fas.fa-undo.me-2
                         | Request Return & Refund
+                    else if (orderDetail.orderStatus === "pending")
+                      button.btn.btn-outline-danger.py-2.px-4(
+                        type="button"
+                        onclick=`window.openSupportChat && window.openSupportChat("Hello Support, I would like to cancel my pending order #${orderDetail.code}. Please assist me with the cancellation.")`
+                        style="border-radius: 30px; font-weight: 600; font-size: 14px;"
+                      )
+                        i.fas.fa-times-circle.me-2
+                        | Request Order Cancellation
                     else if (orderDetail.orderStatus === "returned")
                       span.badge.bg-warning.text-dark.p-2.fs-6
                         i.fas.fa-info-circle.me-1
                         | This order has been processed for return / refund.
+                    else if (orderDetail.orderStatus === "cancelled")
+                      span.badge.bg-danger.p-2.fs-6
+                        i.fas.fa-ban.me-1
+                        | This order has been cancelled.

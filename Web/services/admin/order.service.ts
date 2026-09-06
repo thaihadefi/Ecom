@@ -81,12 +81,16 @@ export const updateOrderAdmin = async (
 
       if (goingTerminal) {
         await releaseOrderResources(order, session);
+        order.pointEarned = 0;
+        await order.save({ session });
       }
 
-      if (wasUnpaid && paymentStatus === "paid" && order.userId) {
-        const productValue = (order.subTotal || 0) - (order.discount || 0);
-        const pointEarned = Math.floor(Math.max(0, productValue) / pointConfig.MONEY_PER_POINT);
+      if (wasUnpaid && paymentStatus === "paid" && order.userId && (!order.pointEarned || order.pointEarned === 0)) {
+        const productValue = Math.max(0, (order.subTotal || 0) - (order.discount || 0) - (order.pointDiscount || 0));
+        const pointEarned = Math.floor(productValue / pointConfig.MONEY_PER_POINT);
         if (pointEarned > 0) {
+          order.pointEarned = pointEarned;
+          await order.save({ session });
           await AccountUser.updateOne(
             { _id: order.userId, deleted: false, status: "active" },
             { $inc: { totalPoint: pointEarned } },

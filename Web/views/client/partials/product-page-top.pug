@@ -28,14 +28,14 @@ div(class="product_page_top")
     .col-12.col-sm-6.col-md-6.col-xl-6.mt-2.mt-sm-0
       ul(class="product_page_sorting")
         li(select-js="sort")
-          select.show(class="select_js" aria-label="Sort products")
+          select.select_js(aria-label="Sort products")
             option(value="position-desc") Default
             option(value="price-asc") Price: Low to High
             option(value="price-desc") Price: High to Low
             option(value="createdAt-desc") New Products
             option(value="discount-desc") Most Discounted
         li(select-js="limitItems")
-          select.show(class="select_js" aria-label="Products per page")
+          select.select_js(aria-label="Products per page")
             option(value="12") Show: 12
             option(value="16") Show: 16
             option(value="20") Show: 20

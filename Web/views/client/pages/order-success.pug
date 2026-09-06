@@ -6,17 +6,52 @@ block main
       .row.justify-content-center
         .col-xl-6.col-md-10.col-lg-8.col-xxl-5.wow.fadeInUp
           div(class="payment_success_text")
-            h1 Order Placed Successfully!
-            p
-              | Thank you for your purchase! Your Order ID is <b>#{orderCode}</b>
-            .d-flex.flex-wrap.align-items-center.justify-content-center.gap-3
-              a(
-                class="common_btn go_btn"
-                href="/"
-                ) Back to Home
-              a(
-                class="common_btn"
-                href="/dashboard/order/list"
-                )
-                | Track Order
-                i.fas.fa-long-arrow-right(aria-hidden="true")
+            if (orderDetail && orderDetail.paymentMethod !== "money" && orderDetail.paymentStatus === "unpaid")
+              h1(style="color: #d97706;") Payment Incomplete
+              p
+                | Your order <b>#{orderDetail.code}</b> has been placed, but payment was not completed yet.
+              .d-flex.flex-wrap.align-items-center.justify-content-center.gap-3
+                a(
+                  class="common_btn go_btn"
+                  href=`/order/payment-${orderDetail.paymentMethod}?orderCode=${orderDetail.code}&phone=${orderDetail.phone}`
+                  ) Retry Payment
+                if (accountUser && orderDetail.id)
+                  a(
+                    class="common_btn"
+                    href=`/dashboard/order/detail/${orderDetail.id}`
+                    ) View Order
+                else
+                  a(
+                    class="common_btn"
+                    href="/"
+                    ) Back to Home
+            else
+              h1 Order Placed Successfully!
+              p
+                | Thank you for your purchase! Your Order ID is <b>#{orderDetail ? orderDetail.code : orderCode}</b>
+              .d-flex.flex-wrap.align-items-center.justify-content-center.gap-3
+                a(
+                  class="common_btn go_btn"
+                  href="/"
+                  ) Back to Home
+                if (accountUser && orderDetail && orderDetail.id)
+                  a(
+                    class="common_btn"
+                    href=`/dashboard/order/detail/${orderDetail.id}`
+                    )
+                    | View Order
+                    i.fas.fa-long-arrow-right(aria-hidden="true")
+                else if (accountUser)
+                  a(
+                    class="common_btn"
+                    href="/dashboard/order/list"
+                    )
+                    | Track Order
+                    i.fas.fa-long-arrow-right(aria-hidden="true")
+                else
+                  a(
+                    class="common_btn"
+                    href="/auth/login"
+                    )
+                    | Log In
+                    i.fas.fa-long-arrow-right(aria-hidden="true")

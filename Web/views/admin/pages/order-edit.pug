@@ -41,8 +41,11 @@ block main
                       img(src=`${domainCDN}${p.image}` width="50" class="me-2 rounded" alt="" loading="lazy")
                       span #{p.name}
                   td
-                    each v in p.variant
-                      div.small.text-muted #{v}
+                    if p.variant && p.variant.length > 0
+                      each v in p.variant
+                        div.small.text-muted #{v}
+                    else
+                      span.text-muted —
                   td #{p.quantity}
                   td #{(p.price || 0).toLocaleString('vi-VN')} VND
                   td.text-danger
@@ -107,15 +110,19 @@ block main
                     : '0 VND'
                 )
         .row
-          .col-md-4
+          .col-md-3
             .mb-3
               label.form-label Points Used
               input.form-control(disabled value=orderDetail.usedPoint)
-          .col-md-4
+          .col-md-3
             .mb-3
               label.form-label Points Discount
               input.form-control(disabled value=(orderDetail.pointDiscount || 0).toLocaleString('vi-VN') + ' VND')
-          .col-md-4
+          .col-md-3
+            .mb-3
+              label.form-label Points Earned
+              input.form-control(disabled value=(orderDetail.pointEarned || 0) + ' pts')
+          .col-md-3
             .mb-3
               label.form-label Total Payment
               input.form-control.text-danger(
@@ -133,7 +140,7 @@ block main
                 option(value="shipping" selected=(orderDetail.orderStatus=="shipping")) Shipping
                 option(value="completed" selected=(orderDetail.orderStatus=="completed")) Completed
                 option(value="returned" selected=(orderDetail.orderStatus=="returned")) Returned
-                option(value="cancelled" selected=(orderDetail.orderStatus=="cancelled")) Cancel
+                option(value="cancelled" selected=(orderDetail.orderStatus=="cancelled")) Cancelled
           .col-md-6
             .mb-3
               label.form-label Note

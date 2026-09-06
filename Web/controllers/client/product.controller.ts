@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as productService from '../../services/client/product.service';
+import { PRODUCT_DISPLAY_CONFIG } from '../../configs/product-display.config';
 
 export const productByCategory = async (req: Request, res: Response) => {
   try {
@@ -60,7 +61,17 @@ export const suggest = async (req: Request, res: Response) => {
 
 export const detail = async (req: Request, res: Response) => {
   try {
-    const productViewHistory: string[] = req.cookies.productViewHistory ? JSON.parse(req.cookies.productViewHistory) : [];
+    let productViewHistory: string[] = [];
+    try {
+      if (req.cookies.productViewHistory) {
+        const parsed = JSON.parse(req.cookies.productViewHistory);
+        if (Array.isArray(parsed)) {
+          productViewHistory = parsed.filter((id): id is string => typeof id === "string" && id.length === 24);
+        }
+      }
+    } catch {
+      productViewHistory = [];
+    }
 
     const data = await productService.getProductDetailBySlug(req.params.slug, productViewHistory);
     if (!data) {
@@ -89,15 +100,14 @@ export const detail = async (req: Request, res: Response) => {
       productDetail.view = (productDetail.view || 0) + 1;
     }
 
-    if (!productViewHistory.includes(productDetail.id)) {
-      productViewHistory.unshift(productDetail.id);
-      res.cookie("productViewHistory", JSON.stringify(productViewHistory), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 30 * 24 * 60 * 60 * 1000
-      });
-    }
+    // Keep history clean: put current product at the front, deduplicate, and cap at configured limit
+    const updatedHistory = [productDetail.id, ...productViewHistory.filter((id) => id !== productDetail.id)].slice(0, PRODUCT_DISPLAY_CONFIG.VIEWED_PRODUCTS_LIMIT);
+    res.cookie("productViewHistory", JSON.stringify(updatedHistory), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    });
 
     res.render("client/pages/product-detail", {
       pageTitle: productDetail.name,

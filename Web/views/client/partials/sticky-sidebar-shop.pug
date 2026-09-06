@@ -33,17 +33,18 @@ div(id="sticky_sidebar")
       div(class=`${attribute.type == "color" ? "sidebar_color" : "sidebar_status"}`)
         h2 #{attribute.name}
         ul(filter-attribute=attribute.id)
-          each option in attribute.options
+          each option, optIdx in attribute.options
             li
               .form-check
+                - var filterId = `filter-${attribute.type}-${attribute.id}-${optIdx}`
                 input.form-check-input(
                   style=`${attribute.type == "color" ? `background-color: ${option.value}` : ""}`
-                  id=`${attribute.type}-${attribute.id}-${option.value}`
+                  id=filterId
                   value=option.value
                   type="checkbox"
                   )
                 label.form-check-label(
-                  for=`${attribute.type}-${attribute.id}-${option.value}`
+                  for=filterId
                 ) #{option.label}
     div(class="sidebar_rating")
       h2 Reviews
@@ -58,9 +59,10 @@ div(id="sticky_sidebar")
           label.form-check-label(for=`filterRating${star}`)
             i.fas.fa-star.me-1(aria-hidden="true")
             | #{star} stars
-    div(class="sidebar_related_product")
-      h2 Top Rated Products
-      .related_product_list.mt-3
-        each item in topRatedProducts
-          .related_product_item.mb-4
-            +product-item(item)
+    if (topRatedProducts && topRatedProducts.length > 0)
+      div(class="sidebar_related_product")
+        h2 Top Rated Products
+        .related_product_list.mt-3
+          each item in topRatedProducts
+            .related_product_item.mb-4
+              +product-item(item)

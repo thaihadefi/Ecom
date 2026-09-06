@@ -76,6 +76,8 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
       .messages({
         "string.empty": "Please select a shipping method!",
       }),
+    usePoint: Joi.boolean().optional(),
+    usedPoint: Joi.alternatives().try(Joi.boolean(), Joi.number()).optional(),
   });
 
   const { error } = schema.validate(req.body);

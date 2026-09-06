@@ -7,6 +7,7 @@ import Review from '../../models/review.model';
 import AccountUser from '../../models/account-user.model';
 import { formatProductItem } from '../../helpers/product.helper';
 import { PAGINATION } from '../../configs/pagination.config';
+import { PRODUCT_DISPLAY_CONFIG } from '../../configs/product-display.config';
 import { getPagination } from '../../helpers/pagination.helper';
 import { IAccountUser } from '../../interfaces/models/account-user.interface';
 import { ICategoryProduct } from '../../interfaces/models/category-product.interface';
@@ -77,6 +78,8 @@ export const getProductsByCategory = async (
     find.stock = { $gt: 0 };
   }
 
+  const andConditions: Record<string, unknown>[] = [];
+
   const attributeFilters: Record<string, unknown>[] = [];
   Object.keys(query).forEach(key => {
     if (key.startsWith("attribute_")) {
@@ -97,30 +100,29 @@ export const getProductsByCategory = async (
       });
     }
   });
+
   if (attributeFilters.length > 0) {
-    find.$or = attributeFilters;
+    andConditions.push(...attributeFilters);
   }
 
   if (query.rating) {
-    const ratings = `${query.rating}`.split(",").map(r => parseInt(r));
+    const ratings = `${query.rating}`
+      .split(",")
+      .map((r) => parseInt(r))
+      .filter((r) => !isNaN(r) && r >= 1 && r <= 5);
     if (ratings.length > 0) {
-      const ratingOr = ratings.map(star => ({
+      const ratingOr = ratings.map((star) => ({
         ratingAvg: {
           $gte: star,
           $lt: star + 1
         }
       }));
-
-      if (find.$or) {
-        find.$and = [
-          { $or: find.$or },
-          { $or: ratingOr }
-        ];
-        delete find.$or;
-      } else {
-        find.$or = ratingOr;
-      }
+      andConditions.push({ $or: ratingOr });
     }
+  }
+
+  if (andConditions.length > 0) {
+    find.$and = andConditions;
   }
 
   let limitItems = PAGINATION.CLIENT_LIMIT;
@@ -158,17 +160,34 @@ export const getProductsByCategory = async (
     sort.position = "desc";
   }
 
-  const [productList, topRatedProducts] = await Promise.all([
+  const categoryTopRatedFind: Record<string, unknown> = {
+    deleted: false,
+    status: "active",
+    ratingAvg: { $gte: 4 }
+  };
+  if (categoryId) {
+    categoryTopRatedFind.category = categoryId;
+  }
+
+  const [productList, categoryTopRated] = await Promise.all([
     Product.find(find)
-      .select("_id name slug images priceNew priceOld variants ratingAvg ratingCount")
+      .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
       .limit(limitItems)
       .skip(pagination.skip)
       .sort(sort),
-    Product.find({ deleted: false, status: "active", ratingAvg: { $gte: 4 } })
-      .select("_id name slug images priceNew priceOld variants ratingAvg ratingCount")
+    Product.find(categoryTopRatedFind)
+      .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
       .sort({ ratingAvg: "desc" })
-      .limit(5)
+      .limit(PRODUCT_DISPLAY_CONFIG.TOP_RATED_SIDEBAR_LIMIT)
   ]);
+
+  let topRatedProducts = categoryTopRated;
+  if (topRatedProducts.length === 0) {
+    topRatedProducts = await Product.find({ deleted: false, status: "active", ratingAvg: { $gte: 4 } })
+      .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
+      .sort({ ratingAvg: "desc" })
+      .limit(PRODUCT_DISPLAY_CONFIG.TOP_RATED_SIDEBAR_LIMIT);
+  }
 
   for (const item of productList) {
     formatProductItem(item);
@@ -206,9 +225,9 @@ export const getProductSuggestions = async (rawKeyword?: unknown) => {
   }
 
   return Product.find(find)
-    .limit(5)
+    .limit(PRODUCT_DISPLAY_CONFIG.SEARCH_SUGGESTION_LIMIT)
     .sort({ position: "desc" })
-    .select("images name slug priceNew priceOld");
+    .select("images name slug priceNew priceOld discount");
 };
 
 export const getProductDetailBySlug = async (slug: string, productViewHistory: string[] = []) => {
@@ -223,23 +242,23 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
   const attributeIds = (productDetail.attributes || []).map((a) => String(a));
   const attributeList = await AttributeProduct.find({
     _id: { $in: attributeIds }
-  }).select("_id name");
+  }).select("_id name type");
 
   for (const attribute of attributeList) {
-    const variantSet = new Set<string>();
-    const variantLabelSet = new Set<string>();
+    const optionMap = new Map<string, string>();
     (productDetail.variants || [])
       .filter((variant) => variant.status)
       .forEach((variant) => {
         (variant.attributeValue || []).forEach((attr) => {
-          if (String(attr.attrId) === String(attribute._id)) {
-            if (attr.value) variantSet.add(attr.value);
-            if (attr.label) variantLabelSet.add(attr.label);
+          if (String(attr.attrId) === String(attribute._id) && attr.value) {
+            if (!optionMap.has(attr.value)) {
+              optionMap.set(attr.value, attr.label || attr.value);
+            }
           }
         });
       });
-    attribute.variants = [...variantSet];
-    attribute.variantsLabel = [...variantLabelSet];
+    attribute.variants = Array.from(optionMap.keys());
+    attribute.variantsLabel = Array.from(optionMap.values());
   }
 
   const categoryList = await CategoryProduct
@@ -251,33 +270,45 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
     slug: c.slug ?? ""
   }));
 
-  const [relatedProducts, boughtTogetherProducts, viewedProducts, reviewList] = await Promise.all([
+  const validHistory = (productViewHistory || [])
+    .filter((id) => id && String(id) !== String(productDetail.id))
+    .slice(0, PRODUCT_DISPLAY_CONFIG.VIEWED_PRODUCTS_LIMIT);
+
+  const [relatedProducts, boughtTogetherProducts, viewedProductsRaw, reviewList] = await Promise.all([
     Product.find({
       _id: { $ne: productDetail.id },
       category: { $in: productDetail.category },
       deleted: false,
       status: "active"
     })
-      .select("_id name slug images priceNew priceOld variants ratingAvg ratingCount")
+      .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
       .sort({ view: "desc" })
-      .limit(10),
+      .limit(PRODUCT_DISPLAY_CONFIG.RELATED_PRODUCTS_LIMIT),
     Product.find({
       _id: { $in: productDetail.boughtTogether },
       deleted: false,
       status: "active"
     })
-      .select("_id name slug images priceNew priceOld variants ratingAvg ratingCount")
-      .sort({ position: "desc" }),
-    Product.find({
-      _id: { $in: productViewHistory },
-      deleted: false,
-      status: "active"
-    })
-      .select("_id name slug images priceNew priceOld variants ratingAvg ratingCount"),
+      .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
+      .sort({ position: "desc" })
+      .limit(PRODUCT_DISPLAY_CONFIG.BOUGHT_TOGETHER_LIMIT),
+    validHistory.length > 0
+      ? Product.find({
+          _id: { $in: validHistory },
+          deleted: false,
+          status: "active"
+        })
+          .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
+          .limit(PRODUCT_DISPLAY_CONFIG.VIEWED_PRODUCTS_LIMIT)
+      : Promise.resolve([]),
     Review.find({ productId: productDetail.id, status: { $ne: "rejected" } })
       .select("userId rating comment images reportCount reportedBy createdAt")
       .sort({ createdAt: "desc" })
   ]);
+
+  const viewedProducts = [...viewedProductsRaw].sort(
+    (a, b) => validHistory.indexOf(String(a._id)) - validHistory.indexOf(String(b._id))
+  );
 
   formatProductItem(productDetail);
   for (const item of relatedProducts) formatProductItem(item);

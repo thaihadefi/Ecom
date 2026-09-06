@@ -16,6 +16,14 @@ const schema = new mongoose.Schema(
         quantity: Number,
         price: Number,
         variant: [String],
+        rawVariant: [
+          {
+            attrId: String,
+            label: String,
+            value: String,
+            _id: false
+          }
+        ],
         image: String,
         name: String
       }
@@ -66,6 +74,10 @@ const schema = new mongoose.Schema(
       default: 0
     },
     pointDiscount: {
+      type: Number,
+      default: 0
+    },
+    pointEarned: {
       type: Number,
       default: 0
     },

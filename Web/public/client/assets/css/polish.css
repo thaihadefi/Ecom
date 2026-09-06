@@ -2585,7 +2585,33 @@ a:hover { color: var(--gold); }
 .product_item .price del, .product_item_2 .price del {
     color: var(--faint) !important; margin-left: 0; font-size: 11px !important; white-space: nowrap;
 }
-.product_item .rating, .product_item_2 .rating { display: none; }  
+.product_item .rating, .product_item_2 .rating, .product_list_item .rating {
+    display: flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    font-size: 11px !important;
+    margin: 4px 0 2px 0 !important;
+    line-height: 1 !important;
+}
+
+.product_item .rating i, .product_item_2 .rating i, .product_list_item .rating i {
+    font-size: 11px !important;
+    color: var(--gold) !important;
+}
+
+.product_item .rating .far.fa-star, .product_item_2 .rating .far.fa-star, .product_list_item .rating .far.fa-star {
+    color: var(--line-2) !important;
+}
+
+.product_item .rating span, .product_item_2 .rating span, .product_list_item .rating span {
+    color: var(--muted) !important;
+    font-size: 11px !important;
+    font-family: var(--bodyFont) !important;
+    font-weight: 500 !important;
+    margin-left: 4px !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
 
 .discount_list { top: 12px !important; left: 12px !important; }
 .discount_list li, .discount_list li.discount,
@@ -2691,6 +2717,7 @@ header.header_main form button {
 header.header_main form button:hover { background: var(--ink-2) !important; }
 header.header_main form .inner-suggest {
     position: absolute !important; left: -1px !important; right: -1px !important; top: 100% !important; margin-top: 4px !important;
+    max-height: 420px !important; overflow-y: auto !important; z-index: 1050 !important;
 }
 header.header_main form .inner-suggest:empty { display: none !important; }
 .menu_icon li a b {
@@ -2941,8 +2968,108 @@ section.category { margin-top: 64px !important; }
     background: transparent !important; border: 1px solid var(--line-2) !important; color: var(--muted) !important; border-radius: 0 !important;
 }
 .product_page_top_button nav .nav-tabs button.active { background: var(--ink) !important; color: var(--surface) !important; border-color: var(--ink) !important; }
-.product_page_sorting .select_js, .product_page_sorting .nice-select {
-    font-family: var(--bodyFont) !important; font-size: 11px !important; text-transform: uppercase; letter-spacing: .12em;
+.product_page_sorting {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    justify-content: flex-end !important;
+    margin: 0 !important;
+}
+
+.product_page_sorting > li > select,
+.product_page_sorting select {
+    display: none !important;
+}
+
+.product_page_sorting .nice-select {
+    width: auto !important;
+    height: 42px !important;
+    line-height: 40px !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--line-2) !important;
+    border-radius: var(--radius) !important;
+    color: var(--ink) !important;
+    font-family: var(--bodyFont) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.02em !important;
+    text-transform: none !important;
+    box-shadow: none !important;
+    padding-left: 16px !important;
+    padding-right: 38px !important;
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    transition: border-color .2s ease !important;
+    float: none !important;
+}
+
+.product_page_sorting li[select-js="sort"] .nice-select {
+    min-width: 220px !important;
+}
+
+.product_page_sorting li[select-js="limitItems"] .nice-select {
+    min-width: 120px !important;
+}
+
+.product_page_sorting .nice-select:hover {
+    border-color: var(--gold) !important;
+}
+
+.product_page_sorting .nice-select .current {
+    color: var(--ink) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    font-family: var(--bodyFont) !important;
+    letter-spacing: 0.02em !important;
+    white-space: nowrap !important;
+}
+
+.product_page_sorting .nice-select:after {
+    border-bottom: 1.5px solid var(--muted) !important;
+    border-right: 1.5px solid var(--muted) !important;
+    width: 6px !important;
+    height: 6px !important;
+    right: 14px !important;
+    margin-top: -4px !important;
+    pointer-events: none !important;
+    transition: all .2s ease !important;
+}
+
+.product_page_sorting .nice-select:hover:after {
+    border-bottom-color: var(--gold) !important;
+    border-right-color: var(--gold) !important;
+}
+
+.product_page_sorting .nice-select.open:after {
+    transform: rotate(-135deg) !important;
+}
+
+.product_page_sorting .nice-select .list {
+    min-width: 100% !important;
+    width: max-content !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--line-2) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: 0 8px 24px rgba(28,25,23,0.08) !important;
+    margin-top: 4px !important;
+    z-index: 100 !important;
+}
+
+.product_page_sorting .nice-select .option {
+    font-size: 13px !important;
+    font-family: var(--bodyFont) !important;
+    padding: 8px 16px !important;
+    color: var(--ink) !important;
+    text-transform: none !important;
+    letter-spacing: 0.02em !important;
+}
+
+.product_page_sorting .nice-select .option:hover,
+.product_page_sorting .nice-select .option.selected {
+    background: var(--surface-2) !important;
+    color: var(--gold) !important;
 }
 .product_page_top p { color: var(--muted) !important; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
 
@@ -4131,3 +4258,248 @@ a[href^="tel:"], a[href^="mailto:"] { display: inline-block; padding: 8px 0; }
         font-size: 13px !important;
     }
 }
+
+/* ==========================================================================
+   Header Main Navigation & Controls Alignment Polish
+   ========================================================================== */
+header.header_main .header_support_user {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+}
+
+header.header_main .header_support {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-decoration: none !important;
+}
+
+header.header_main .header_support .icon,
+header.header_main .header_support a.icon {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 50% !important;
+    border: 1px solid var(--line-2) !important;
+    background: var(--surface) !important;
+    color: var(--ink) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 15px !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    transition: all .2s ease !important;
+    flex-shrink: 0 !important;
+}
+
+header.header_main .header_support a.icon:hover,
+header.header_main .header_support:hover a.icon {
+    border-color: var(--gold) !important;
+    color: var(--gold) !important;
+    background: var(--gold-soft) !important;
+}
+
+header.header_main .header_support .header_hotline {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+    text-align: left !important;
+}
+
+header.header_main .header_support .header_hotline_label {
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: var(--muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: .08em !important;
+    font-family: var(--bodyFont) !important;
+    line-height: 1 !important;
+    margin-bottom: 2px !important;
+    display: block !important;
+}
+
+header.header_main .header_support .header_hotline a,
+header.header_main .header_support .header_hotline a span {
+    display: inline !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--ink) !important;
+    font-family: var(--bodyFont) !important;
+    text-decoration: none !important;
+    line-height: 1.2 !important;
+    transition: color .2s ease !important;
+}
+
+header.header_main .header_support .header_hotline a:hover,
+header.header_main .header_support .header_hotline a:hover span,
+header.header_main .header_support:hover .header_hotline a span {
+    color: var(--gold) !important;
+}
+
+/* Topbar right controls (Language & Currency switcher) */
+header.header_main .topbar_right {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+header.header_main .topbar_right .gtranslate_wrapper,
+header.header_main .topbar_right .nice-select {
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+/* GTranslate container & sizing fix: prevent clipping right border and arrow */
+.gtranslate_wrapper .gt_switcher {
+    width: auto !important;
+    overflow: visible !important;
+}
+
+.gtranslate_wrapper .gt_switcher,
+.gtranslate_wrapper .gt_switcher * {
+    box-sizing: border-box !important;
+}
+
+.gtranslate_wrapper .gt_switcher .gt_selected {
+    background: none !important;
+    background-color: transparent !important;
+    width: auto !important;
+}
+
+header.header_main .topbar_right .gtranslate_wrapper .gt_switcher .gt_selected a,
+header.header_main .topbar_right .nice-select {
+    height: 42px !important;
+    line-height: 40px !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--line-2) !important;
+    border-radius: var(--radius) !important;
+    color: var(--ink) !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    font-family: var(--bodyFont) !important;
+    box-shadow: none !important;
+    transition: border-color .2s ease, color .2s ease !important;
+}
+
+header.header_main .topbar_right .gtranslate_wrapper .gt_switcher .gt_selected a:hover,
+header.header_main .topbar_right .nice-select:hover {
+    border-color: var(--gold) !important;
+    color: var(--gold) !important;
+}
+
+header.header_main .topbar_right .gtranslate_wrapper .gt_switcher .gt_selected a {
+    box-sizing: border-box !important;
+    width: auto !important;
+    min-width: 116px !important;
+    padding: 0 28px 0 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    position: relative !important;
+}
+
+header.header_main .topbar_right .gtranslate_wrapper .gt_switcher .gt_selected a:after {
+    position: absolute !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin-top: 0 !important;
+    height: 18px !important;
+    width: 12px !important;
+    opacity: 0.65 !important;
+    transition: transform .2s ease, opacity .2s ease !important;
+}
+
+header.header_main .topbar_right .gtranslate_wrapper .gt_switcher .gt_selected a:hover:after {
+    opacity: 1 !important;
+}
+
+header.header_main .topbar_right .gtranslate_wrapper .gt_switcher .gt_selected a.open:after {
+    transform: translateY(-50%) rotate(-180deg) !important;
+}
+
+header.header_main .topbar_right .gtranslate_wrapper .gt_switcher .gt_selected a img {
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 2px !important;
+    flex-shrink: 0 !important;
+}
+
+header.header_main .topbar_right .nice-select {
+    min-width: 84px !important;
+    padding-left: 12px !important;
+    padding-right: 26px !important;
+}
+
+header.header_main .topbar_right .nice-select:after {
+    border-bottom: 1.5px solid var(--muted) !important;
+    border-right: 1.5px solid var(--muted) !important;
+    width: 5px !important;
+    height: 5px !important;
+    right: 12px !important;
+    margin-top: -3px !important;
+}
+
+header.header_main .topbar_right .nice-select:hover:after {
+    border-bottom-color: var(--gold) !important;
+    border-right-color: var(--gold) !important;
+}
+
+header.header_main .topbar_right .nice-select .list,
+header.header_main .topbar_right .gtranslate_wrapper .gt_option {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    min-width: 100% !important;
+    width: auto !important;
+    box-sizing: border-box !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--line-2) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: 0 8px 24px rgba(28,25,23,0.08) !important;
+    margin-top: 4px !important;
+    z-index: 1000 !important;
+}
+
+header.header_main .topbar_right .nice-select .option,
+header.header_main .topbar_right .gtranslate_wrapper .gt_option a {
+    font-size: 12.5px !important;
+    font-family: var(--bodyFont) !important;
+    padding: 8px 14px !important;
+    color: var(--ink) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    text-decoration: none !important;
+    transition: background .15s ease, color .15s ease !important;
+}
+
+header.header_main .topbar_right .nice-select .option:hover,
+header.header_main .topbar_right .nice-select .option.selected,
+header.header_main .topbar_right .gtranslate_wrapper .gt_option a:hover {
+    background: var(--surface-2) !important;
+    color: var(--gold) !important;
+}
+
+

@@ -18,27 +18,35 @@ div(class="shop_details_text")
   p.price
     span.price-new #{(productDetail.priceNew || 0).toLocaleString("vi-VN")} VND
     del.price-old #{(productDetail.priceOld || 0).toLocaleString("vi-VN")} VND
-    if (productDetail.discount > 0)
-      span.discount -#{productDetail.discount}%
+    -
+      var detailDisc = productDetail.discount > 0
+        ? Math.round(productDetail.discount)
+        : (productDetail.priceOld && productDetail.priceNew && productDetail.priceOld > productDetail.priceNew
+            ? Math.round((1 - productDetail.priceNew / productDetail.priceOld) * 100)
+            : 0);
+    if (detailDisc > 0)
+      span.discount -#{detailDisc}%
   div(class="short_description") !{productDetail.description}
   each attribute in attributeList
     div(class="details_single_variant")
       p(class="variant_title") #{attribute.name}:
       if (attribute.type == "color")
         ul(class="details_variant_color")
-          each variant in attribute.variants
+          each variant, index in attribute.variants
             li(
               style=`background: ${variant};`
               attribute-id=attribute.id
               variant=variant
+              title=(attribute.variantsLabel && attribute.variantsLabel[index] ? attribute.variantsLabel[index] : variant)
+              aria-label=(attribute.variantsLabel && attribute.variantsLabel[index] ? attribute.variantsLabel[index] : variant)
               )
-      else if (attribute.type == "text")
+      else
         ul(class="details_variant_size")
-          each variantLabel, index in attribute.variantsLabel
+          each variantLabel, index in (attribute.variantsLabel && attribute.variantsLabel.length ? attribute.variantsLabel : attribute.variants)
             li(
               attribute-id=attribute.id
               variant=attribute.variants[index]
-            ) #{variantLabel}
+            ) #{variantLabel || attribute.variants[index]}
   .d-flex.flex-wrap.align-items-center
     div(class="details_qty_input")
       button.minus(type="button" aria-label="Decrease quantity")

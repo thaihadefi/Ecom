@@ -163,6 +163,8 @@ export const emailTemplates = {
     total: number;
     paymentMethod: string;
     coupon?: string;
+    usedPoint?: number;
+    pointDiscount?: number;
   }) => {
     const storeName = await getStoreName();
     const itemRows = order.items.map(item => `
@@ -177,6 +179,10 @@ export const emailTemplates = {
 
     const discountRow = order.discount > 0
       ? `<tr><td colspan="2" style="padding:4px 0;color:#6b7280;">Discount${order.coupon ? ` (${htmlEscape(order.coupon)})` : ""}</td><td style="padding:4px 0;text-align:right;color:#16a34a;">-${formatVND(order.discount)}</td></tr>`
+      : "";
+
+    const pointDiscountRow = (order.pointDiscount && order.pointDiscount > 0)
+      ? `<tr><td colspan="2" style="padding:4px 0;color:#6b7280;">Points Discount${order.usedPoint ? ` (${order.usedPoint} pts)` : ""}</td><td style="padding:4px 0;text-align:right;color:#16a34a;">-${formatVND(order.pointDiscount)}</td></tr>`
       : "";
 
     return {
@@ -197,6 +203,7 @@ export const emailTemplates = {
           <tr><td colspan="2" style="padding:8px 0;color:#6b7280;">Subtotal</td><td style="padding:8px 0;text-align:right;">${formatVND(order.subTotal)}</td></tr>
           <tr><td colspan="2" style="padding:4px 0;color:#6b7280;">Shipping</td><td style="padding:4px 0;text-align:right;">${formatVND(order.shipping.fee)}</td></tr>
           ${discountRow}
+          ${pointDiscountRow}
           <tr><td colspan="2" style="padding:8px 0;font-weight:700;font-size:16px;border-top:2px solid #e5e7eb;">Total</td><td style="padding:8px 0;text-align:right;font-weight:700;font-size:16px;border-top:2px solid #e5e7eb;color:#0057B7;">${formatVND(order.total)}</td></tr>
         </table>
 

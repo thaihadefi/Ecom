@@ -42,9 +42,25 @@ export const getCartDetailAndShipping = async (
     if (productDetail) {
       const attributeList = (productDetail.attributes || []).map((id) => attrMap.get(String(id))).filter(Boolean);
 
+      let availableStock = productDetail.stock;
+      const itemVariant = item.variant as Array<{ attrId?: string; value?: string }> | undefined;
+      if (itemVariant && Array.isArray(itemVariant) && itemVariant.length > 0 && productDetail.variants) {
+        const variantMatched = (productDetail.variants as Array<{ attributeValue?: Array<{ attrId?: string; value?: string }>; stock?: number }>).find((v) =>
+          v.attributeValue &&
+          v.attributeValue.length === itemVariant.length &&
+          v.attributeValue.every((attr) => {
+            const selected = itemVariant.find((sel) => String(sel.attrId) === String(attr.attrId));
+            return selected && String(selected.value) === String(attr.value);
+          })
+        );
+        if (variantMatched && typeof variantMatched.stock === "number") {
+          availableStock = variantMatched.stock;
+        }
+      }
+
       let quantity = item.quantity;
-      if (productDetail.stock !== undefined && quantity > productDetail.stock) {
-        quantity = Math.max(0, productDetail.stock);
+      if (availableStock !== undefined && quantity > availableStock) {
+        quantity = Math.max(0, availableStock);
       }
 
       cartDetail.push({
@@ -119,7 +135,7 @@ export const getCartDetailAndShipping = async (
     POINT_TO_MONEY: pointConfig.POINT_TO_MONEY
   };
   if (accountUser) {
-    point.canUsePoint = (accountUser.totalPoint || 0) - (accountUser.usedPoint || 0);
+    point.canUsePoint = Math.max(0, (accountUser.totalPoint || 0) - (accountUser.usedPoint || 0));
   }
 
   return {

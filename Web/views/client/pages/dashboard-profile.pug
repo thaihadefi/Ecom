@@ -33,3 +33,6 @@ block main
                 li
                   span Phone:
                   | #{accountUser.phone}
+                li
+                  span Reward Points:
+                  | #{((accountUser.totalPoint || 0) - (accountUser.usedPoint || 0)).toLocaleString("vi-VN")} Points

@@ -1,7 +1,7 @@
 header(class="header_main")
   .container
     .row.align-items-center
-      .col-lg-2
+      .col-lg-2.col-xl-2.col-xxl-2
         div(class="header_logo_area")
           a(
             class="header_logo"
@@ -22,7 +22,7 @@ header(class="header_main")
             )
             span(class="mobile_menu_icon")
               i.fas.fa-bars(class="menu_icon_bar" aria-hidden="true")
-      .col-xxl-6.col-xl-5.col-lg-5.d-none.d-lg-block
+      .col-lg-5.col-xl-5.col-xxl-5.d-none.d-lg-block
         form(form-search)
           .input
             span(class="inner-voice" button-voice)
@@ -38,16 +38,16 @@ header(class="header_main")
           .inner-suggest(style="display: none;")
             .inner-title Suggested Products
             .inner-list
-      .col-xxl-4.col-xl-5.col-lg-5.d-none.d-lg-flex
-        .d-flex.flex-wrap(class="header_support_user")
+      .col-lg-5.col-xl-5.col-xxl-5.d-none.d-lg-flex.align-items-center.justify-content-end.gap-3.gap-xl-4
+        .header_support_user
           div(class="header_support")
-            span.icon
+            a.icon(href="tel:02837252002" aria-label="Call Hotline")
               i.fas.fa-phone-alt(aria-hidden="true")
-            p.header_hotline
-              | Hotline:
+            .header_hotline
+              span.header_hotline_label Hotline:
               a(href="tel:02837252002")
                 span (028) 372 52002
-        .d-flex.flex-wrap.align-items-center.justify-content-end(class="topbar_right")
+        .d-flex.align-items-center.topbar_right
           .gtranslate_wrapper
           select(class="select_js notranslate" translate="no" aria-label="Select currency" data-currency-switcher)
             option(value="VND") VND

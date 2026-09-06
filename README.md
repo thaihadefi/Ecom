@@ -17,25 +17,30 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 
 ### Customer Shopping Workflow
 - **Account & OAuth2 Authentication:** Secure registration and credential login alongside OTP email verification and one-click Google & Facebook OAuth2 integration.
-- **Product Catalog & Atlas Search:** Keyword search powered by MongoDB `Atlas Search` with multi-field regex fallback, dynamic slugification, attribute-based filtering (color, size), category tree navigation, and product comparison.
-- **Cart & Dynamic Checkout:** Interactive shopping cart persisted client-side (`localStorage`) with server-side stock/quantity revalidation, coupon application, shipping address management, and order placement.
-- **Real-Time Support Chat & Rate Feedback:** Live customer-to-admin instant messaging powered by WebSockets (`Socket.io`) with online/active status tracking, open/locked conversation control, unread indicators, and a 5-star conversation rating widget (`views/client/partials/chat.pug`) reviewable by admins (`views/admin/pages/chat-rate.pug`).
-- **Order Lifecycle & History:** Customer dashboard tracking purchase history and real-time status transitions (`Pending`, `Confirmed`, `Shipping`, `Completed`, `Cancelled`, `Returned`).
-- **Product Reviews, Recommendations & Flash Sales:** 5-star rating system with order-verified review submission, wishlist bookmarking, reward points tracking, flash sales (`views/client/blocks/flash-sale.pug`), and frequently bought together recommendations (`views/client/partials/bought-together-products.pug`).
+- **Product Catalog & Atlas Search:** Keyword search powered by MongoDB `Atlas Search` with multi-field regex fallback, dynamic slugification, multi-attribute conjunction filtering (`$and` queries across color, size, and custom specifications), on-sale status filtering, multi-tier sorting (price, position, high-precision discount ranking), category tree navigation, and product comparison.
+- **Product Variants & Interactive Selection:** Comprehensive multi-attribute product variants (e.g. Size, Color) with first in-stock variant auto-selection on detail view, real-time price and stock updates, gallery image synchronization, out-of-stock and inactive variant safeguards, option-aware cart/wishlist/compare additions with "Select Options" redirections, and dedicated variant image rendering.
+- **Cart & Dynamic Checkout:** Interactive shopping cart persisted client-side (`localStorage`) with server-side variant stock/quantity revalidation, coupon application, loyalty points redemption with automatic deduction caps, GoShip real-time carrier rate selection, shipping address management, and multi-gateway checkout (COD, VNPay, ZaloPay).
+- **Real-Time Support Chat & Rate Feedback:** Live customer-to-admin instant messaging powered by WebSockets (`Socket.io`) with online/active status tracking, open/locked conversation control, unread indicators, and a 5-star conversation rating widget (`Web/views/client/partials/chat.pug`) reviewable by admins (`Web/views/admin/pages/chat-rate.pug`).
+- **Order Lifecycle & History:** Customer dashboard tracking purchase history with line-item variant details, payment status, retry payment for pending online orders, and real-time status transitions (`Pending`, `Confirmed`, `Shipping`, `Completed`, `Cancelled`, `Returned`).
+- **Product Reviews, Recommendations & Flash Sales:** 5-star rating system with order-verified review submission, wishlist bookmarking, reward points earn-on-purchase lifecycle, flash sales (`Web/views/client/blocks/flash-sale.pug`), and frequently bought together recommendations (`Web/views/client/partials/bought-together-products.pug`).
+- **Editorial Blog & Information Pages:** Rich-content blog hub (`/article`) with category filtering, sticky sidebar navigation, customer inquiry submission (`/contact`), and dedicated static pages (`/about`, `/faq`, store policies with tab-safe external links).
+- **Multi-Currency & Internationalization:** Client-side dynamic currency conversion supporting 6 major currencies (`VND`, `USD`, `EUR`, `JPY`, `GBP`, `CNY`) with live exchange rate fetching (`open.er-api.com`), localized decimal precision, `localStorage` caching with 6-hour TTL, and integrated GTranslate multilingual support.
 
 ### Store Manager Workflow
-- **Catalog & Rich Editor:** Rich-text product editor (TinyMCE) supporting image uploads, variant/attribute management, stock caps, bulk product import via CSV upload (`papaparse`), and soft-delete trash recovery across all entities.
+- **Catalog & Rich Editor:** Rich-text product editor (TinyMCE) supporting image uploads, variant/attribute management with normalized pricing and stock aggregation, bulk product import via CSV upload (`papaparse`), and soft-delete trash recovery across all entities.
+- **CMS Layout & Block Builder:** Modular homepage layout engine featuring configurable dynamic blocks (`Web/models/block.model.ts`) and reusable page templates (`Web/models/template.model.ts`).
+- **Articles & Inquiry Management:** Full editorial publishing workflow for articles and blog categories with dedicated SEO schemas, alongside a customer contact inquiry inbox (`Web/models/contact-inquiry.model.ts`).
 - **AI-Powered Support Assistant:** LLM-driven semantic analysis of support conversations (smart reply suggestions, draft response refinement, conversation summarization, and customer sentiment/emotion detection), powered by Groq API (`LLaMA 3.1 8B Instant`), separate from the real-time chat transport itself.
 - **SEO & Social OpenGraph Engine:** Custom SEO metadata management (`title`, `description`, `keywords`, `robots index/follow`), OpenGraph social sharing tags (`og:image`), canonical URL middleware (`canonical`), and Google Search Console sitemap indexing helper.
-- **Inventory & Order Processing:** Searchable order management inbox with direct status updates (`Pending`, `Confirmed`, `Shipping`, `Completed`, `Cancelled`, `Returned`), shipping carrier integration (GoShip), and customer dispatch emails.
-- **Sales Analytics & CSV Export Reporting:** Advanced analytics dashboards for time-series revenue (`views/admin/pages/dashboard-revenue-by-time.pug`), top-selling products, order metrics, customer growth statistics, and one-click CSV data export (`json2csv`).
+- **Inventory & Order Processing:** Searchable order management inbox with direct status updates (`Pending`, `Confirmed`, `Shipping`, `Completed`, `Cancelled`, `Returned`), shipping carrier integration (GoShip), customer dispatch emails with line-item variant breakdowns, atomic double-deduction and restoration of both product-level and variant-level stock within MongoDB transactions, and automated loyalty point awarding/revocation upon terminal status transitions.
+- **Sales Analytics & CSV Export Reporting:** Advanced analytics dashboards for time-series revenue (`Web/views/admin/pages/dashboard-revenue-by-time.pug`), top-selling products, order metrics, customer growth statistics, and one-click CSV data export (`json2csv`).
 
 ### Admin Moderation
 - **Role-Based Access Control (RBAC):** Permission-matrix administration protecting core management routes across staff roles.
-- **Account & Content Moderation:** User account status management, product review moderation, and administrative audit logs (`admin-log.model.ts`).
+- **Account & Content Moderation:** User account status management, product review moderation, and administrative audit logs (`Web/models/admin-log.model.ts`).
 - **System & Store Configuration Settings:** Centralized in-app administration for store info & brand identity (website name, domain, logo/favicon, warehouse coordinates, sender contact), Payment Gateways (ZaloPay, VNPay), Shipping Providers (GoShip API), Social Auth Keys, and App Passwords.
-- **Token Rotation & Theft Detection:** Refresh Token Rotation with a 15-second grace period for concurrent requests and instant global token revocation upon token reuse attempt (`token-rotation.helper.ts`).
-- **Media Microservice & Cascading Sync:** Standalone media storage service (`FileManager`) with streamed multi-file batch upload, temp staging, UTF-8 sanitization, and automated cross-collection media rename/delete propagation (`media-propagate.helper.ts`).
+- **Token Rotation & Theft Detection:** Refresh Token Rotation with a 15-second grace period for concurrent requests and instant global token revocation upon token reuse attempt (`Web/helpers/token-rotation.helper.ts`).
+- **Media Microservice & Cascading Sync:** Standalone media storage service (`FileManager`) with streamed multi-file batch upload, temp staging, UTF-8 sanitization, and automated cross-collection media rename/delete propagation (`Web/helpers/media-propagate.helper.ts`).
 
 ---
 
@@ -43,7 +48,7 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 
 - **Frontend:** Server-Side Rendering with Pug Templates, Bootstrap 5, CSS3, JavaScript ES6+, Socket.IO Client, OpenLayers Map Picker with OpenStreetMap/Nominatim Geocoding.
 - **Backend:** Node.js, Express 5, TypeScript (Strict Mode, Fully Typed), Socket.IO Server, Groq API (LLaMA 3.1), Passport.js (OAuth2), Nodemailer, Bcryptjs, Joi, Axios, gzip response compression, CSV import/export (`papaparse` / `json2csv`), OpenMap.vn Reverse Geocoding (GoShip address resolution).
-- **Database & Storage:** MongoDB Atlas (Mongoose ORM with Type Generics & Embedded Sub-Schemas), Atlas Search Engine with Regex Fallback, NodeCache (In-Memory Chat & Settings Cache), Dynamic SEO Sub-Schema (`SeoSchema`), Standalone FileManager Microservice.
+- **Database & Storage:** MongoDB Atlas (Mongoose ORM with Type Generics, Embedded Sub-Schemas, & Partial Filter Indexes), Atlas Search Engine with Regex Fallback, NodeCache (In-Memory Chat & Settings Cache), Dynamic SEO Sub-Schema (`SeoSchema`), Standalone FileManager Microservice.
 - **Infrastructure & Design Patterns:** 3-Tier Layered Architecture (Routes → Controllers → Services → Models), DTO-Driven Domain Services, Shared Helper Layer (admin CRUD/trash lifecycle, paginated list queries, SEO payload builder, order resource rollback, FileManager client), Payment Gateway Services, Admin Audit Trail Logging, Token Theft Detection & Refresh Token Rotation, Cascading Media Propagation, Path Traversal Protection, HttpOnly Cookies, Multer Disk Staging, OS Graceful Shutdown.
 
 ---
@@ -77,7 +82,7 @@ Ecom/
     ├── middlewares/                  # Security guards, RBAC matrices, & request logger
     │   ├── admin/                    # Admin authentication & permission guards
     │   ├── client/                   # Customer auth & session verification
-    │   └── request-logger.middleware.ts # HTTP access logger middleware (Apache common format)
+    │   └── request-logger.middleware.ts # Structured HTTP access & slow-request logger with query redaction
     ├── models/                       # Mongoose data models with TypeScript generics & sub-schemas
     │   └── schemas/                  # Embedded sub-documents & reusable schema definitions
     ├── public/                       # Client & Admin static web assets (CSS, JS, images)

@@ -26,14 +26,18 @@ export interface IProductFormattable {
 }
 
 export const formatProductItem = (item: IProductFormattable) => {
-  item.discount = Math.floor((((item.priceOld ?? 0) - (item.priceNew ?? 0)) / (item.priceOld ?? 1)) * 100);
+  const priceOld = item.priceOld ?? 0;
+  const priceNew = item.priceNew ?? 0;
+  item.discount = (priceOld > 0 && priceNew > 0 && priceOld > priceNew)
+    ? Number((((priceOld - priceNew) / priceOld) * 100).toFixed(2))
+    : 0;
 
   const colorSet = new Set<string>();
   (item.variants || [])
     .filter((variant: IProductVariant) => variant.status)
     .forEach((variant: IProductVariant) => {
       (variant.attributeValue || []).forEach((attr: IProductAttributeValue) => {
-        if ((attr as IProductAttributeValue & { attrType?: string }).attrType === "color") {
+        if (attr.attrType === "color" || (attr.value && attr.value.startsWith("#"))) {
           colorSet.add(attr.value);
         }
       });
@@ -59,30 +63,19 @@ export const getProductByCategory = async (getByCategory: GetByCategoryOptions) 
 
   const limit = getByCategory.limit ?? 10;
 
-  const sortByDiscount = getByCategory.sort?.by === "discount";
-
   const sort: Record<string, 1 | -1 | "asc" | "desc"> = {};
-  if (getByCategory.sort?.by && getByCategory.sort?.type && !sortByDiscount) {
+  if (getByCategory.sort?.by && getByCategory.sort?.type) {
     sort[getByCategory.sort.by] = getByCategory.sort.type as 1 | -1 | "asc" | "desc";
   }
 
-  let query = Product
+  const productList = await Product
     .find(find)
-    .select("_id name slug priceOld priceNew images variants category status ratingAvg ratingCount");
-  if (!sortByDiscount) {
-    query = query.sort(sort).limit(limit);
-  }
-
-  const productList = await query;
+    .select("_id name slug priceOld priceNew discount images variants category status ratingAvg ratingCount")
+    .sort(sort)
+    .limit(limit);
 
   for (const item of productList) {
     formatProductItem(item);
-  }
-
-  if (sortByDiscount) {
-    const dir = getByCategory.sort?.type === "asc" || getByCategory.sort?.type === 1 ? 1 : -1;
-    productList.sort((a, b) => dir * ((a.discount ?? 0) - (b.discount ?? 0)));
-    return productList.slice(0, limit);
   }
 
   return productList;

@@ -8,6 +8,7 @@ export interface IOrderItem {
   quantity: number;
   price: number;
   variant: string[];
+  rawVariant?: Array<{ attrId?: string; value?: string; label?: string }>;
   image?: string;
   name?: string;
   review?: IReview | null;
@@ -44,6 +45,7 @@ export interface IOrder extends Document {
   shipping?: IOrderShipping;
   usedPoint: number;
   pointDiscount: number;
+  pointEarned?: number;
   deleted: boolean;
   deletedBy?: string;
   deletedAt?: Date;

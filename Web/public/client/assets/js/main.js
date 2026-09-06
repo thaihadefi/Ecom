@@ -74,20 +74,28 @@ const confirmAction = (message, onConfirm) => {
 
 const resolveItemPricing = (item) => {
   const { detail } = item;
-  if (!item.variant) {
-    return { priceOld: detail.priceOld, priceNew: detail.priceNew, stock: detail.stock, variantMatched: null };
+  if (!item.variant || !detail.variants || detail.variants.length === 0) {
+    return {
+      priceOld: detail.priceOld,
+      priceNew: detail.priceNew,
+      stock: detail.stock,
+      image: (detail.images && detail.images[0]) || "",
+      variantMatched: null
+    };
   }
   const variantMatched = detail.variants.find(v =>
-    v.attributeValue.every(attr => {
-      const selected = item.variant.find(x => x.attrId === attr.attrId);
-      return selected && selected.value === attr.value;
+    (v.attributeValue || []).length === item.variant.length &&
+    (v.attributeValue || []).every(attr => {
+      const selected = item.variant.find(x => String(x.attrId) === String(attr.attrId));
+      return selected && String(selected.value) === String(attr.value);
     })
   );
   return {
-    priceOld: variantMatched.priceOld,
-    priceNew: variantMatched.priceNew,
-    stock: variantMatched.stock,
-    variantMatched,
+    priceOld: variantMatched ? (variantMatched.priceOld ?? null) : detail.priceOld,
+    priceNew: variantMatched ? (variantMatched.priceNew ?? variantMatched.price ?? detail.priceNew) : detail.priceNew,
+    stock: variantMatched ? (variantMatched.stock ?? 0) : (detail.stock ?? 0),
+    image: (variantMatched && variantMatched.image) ? variantMatched.image : ((detail.images && detail.images[0]) || ""),
+    variantMatched: variantMatched || null,
   };
 };
 
@@ -866,22 +874,26 @@ const drawCart = () => {
 
           data.cart.forEach(item => {
             const { detail } = item;
-            const { priceOld, priceNew, stock } = resolveItemPricing(item);
+            const { priceOld, priceNew, stock, image } = resolveItemPricing(item);
+            const itemImage = image || (detail.images && detail.images[0]) || "";
             let htmlVariant = "";
             let htmlVariantSummary = "";
 
-            if(item.variant) {
+            if(item.variant && detail.attributeList) {
               detail.attributeList.forEach(attr => {
-                const variant = item.variant.find(v => v.attrId === attr._id);
-                htmlVariant += `
-                  <span>
-                    <b>${attr.name}:</b> ${variant.label}
-                  </span>
-                `;
+                const variant = item.variant.find(v => String(v.attrId) === String(attr._id));
+                if (variant) {
+                  const label = variant.label || variant.value || "";
+                  htmlVariant += `
+                    <span>
+                      <b>${attr.name}:</b> ${label}
+                    </span>
+                  `;
 
-                htmlVariantSummary += `
-                  <p>${attr.name}: ${variant.label}</p>
-                `;
+                  htmlVariantSummary += `
+                    <p>${attr.name}: ${label}</p>
+                  `;
+                }
               })
             }
 
@@ -896,7 +908,7 @@ const drawCart = () => {
                 ${item.variant ? `variant="${encodeURIComponent(JSON.stringify(item.variant))}"` : ''}
               >
                 <a class="cart_img" href="/product/detail/${detail.slug}">
-                  <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${detail.images[0]}">
+                  <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}">
                 </a>
                 <div class="cart_text">
                   <a class="cart_title" href="/product/detail/${detail.slug}">
@@ -930,7 +942,7 @@ const drawCart = () => {
                 </td>
                 <td class="cart_page_img">
                   <div class="img">
-                    <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${detail.images[0]}" />
+                    <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}" />
                   </div>
                 </td>
                 <td class="cart_page_details">
@@ -976,7 +988,7 @@ const drawCart = () => {
               htmlCartSummary += `
                 <li>
                   <a class="img" href="/product/detail/${detail.slug}">
-                    <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${detail.images[0]}">
+                    <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}">
                   </a>
                   <div class="text">
                     <a class="title" href="/product/detail/${detail.slug}">
@@ -1057,11 +1069,31 @@ const drawCart = () => {
 
           let pointData = data.point || null;
           let maxPointDiscount = 0;
+          let pointsToUse = 0;
           if(pointData && pointData.canUsePoint > 0) {
-            maxPointDiscount = pointData.canUsePoint * pointData.POINT_TO_MONEY;
+            const maxPayable = Math.max(0, subTotal - discount);
+            const maxPointsNeeded = Math.ceil(maxPayable / pointData.POINT_TO_MONEY);
+            pointsToUse = Math.min(pointData.canUsePoint, maxPointsNeeded);
+            maxPointDiscount = Math.min(maxPayable, pointsToUse * pointData.POINT_TO_MONEY);
           }
 
-          let pointDiscount = 0;
+          const pointRow = document.querySelector("[point-row]");
+          const usePointCheckbox = document.querySelector("[use-point-checkbox]");
+          if(pointRow) {
+            if(pointData && pointsToUse > 0) {
+              pointRow.style.display = "";
+              const availablePointEl = pointRow.querySelector("[available-point]");
+              if(availablePointEl) {
+                availablePointEl.textContent = `(${pointsToUse} / ${pointData.canUsePoint} points)`;
+              }
+            } else {
+              pointRow.style.display = "none";
+              if(usePointCheckbox) usePointCheckbox.checked = false;
+            }
+          }
+
+          const isUsingPoints = usePointCheckbox ? usePointCheckbox.checked : false;
+          let pointDiscount = isUsingPoints ? maxPointDiscount : 0;
 
           let total = Math.max(0, subTotal + shippingFee - discount - pointDiscount);
 
@@ -1090,15 +1122,6 @@ const drawCart = () => {
             elementDiscount.innerHTML = formatCurrencyAmount(discount, currencyState.current);
           }
 
-          const pointRow = document.querySelector("[point-row]");
-          if(pointRow && pointData && pointData.canUsePoint > 0) {
-            pointRow.style.display = "";
-            const availablePointEl = pointRow.querySelector("[available-point]");
-            if(availablePointEl) {
-              availablePointEl.textContent = `(${pointData.canUsePoint} points)`;
-            }
-          }
-
           const elementPointDiscount = document.querySelector("[point-discount]");
           if(elementPointDiscount) {
             elementPointDiscount.dataset.basePrice = pointDiscount;
@@ -1111,22 +1134,23 @@ const drawCart = () => {
             elementTotal.innerHTML = formatCurrencyAmount(total, currencyState.current);
           }
 
-          const usePointCheckbox = document.querySelector("[use-point-checkbox]");
           if(usePointCheckbox) {
-            usePointCheckbox.addEventListener("change", function() {
-              pointDiscount = this.checked ? maxPointDiscount : 0;
-              total = Math.max(0, subTotal + shippingFee - discount - pointDiscount);
+            usePointCheckbox.dataset.maxDiscount = maxPointDiscount;
+            usePointCheckbox.onchange = function() {
+              const currentMaxPointDiscount = parseFloat(this.dataset.maxDiscount || "0");
+              const currentPointDiscount = this.checked ? currentMaxPointDiscount : 0;
+              const currentTotal = Math.max(0, subTotal + shippingFee - discount - currentPointDiscount);
 
               if(elementPointDiscount) {
-                elementPointDiscount.dataset.basePrice = pointDiscount;
-                elementPointDiscount.innerHTML = formatCurrencyAmount(pointDiscount, currencyState.current);
+                elementPointDiscount.dataset.basePrice = currentPointDiscount;
+                elementPointDiscount.innerHTML = formatCurrencyAmount(currentPointDiscount, currencyState.current);
               }
               if(elementTotal) {
-                elementTotal.dataset.basePrice = total;
-                elementTotal.innerHTML = formatCurrencyAmount(total, currencyState.current);
+                elementTotal.dataset.basePrice = currentTotal;
+                elementTotal.innerHTML = formatCurrencyAmount(currentTotal, currencyState.current);
               }
               refreshCurrencyDisplay(document.body);
-            });
+            };
           }
 
           const elementShippingList = document.querySelector("[shipping-list]");
@@ -1221,35 +1245,79 @@ if(shopDetailsText) {
 
       const selectedValues = Object.values(selected);
       if(selectedValues.length > 0) {
-        const variantMatched = productVariants.find(variantItem => {
-          return variantItem.attributeValue.every(attr => selected[attr.attrId] == attr.value)
-        })
+        const totalAttrs = shopDetailsText.querySelectorAll(".details_single_variant").length;
+        const allAttrsSelected = totalAttrs > 0 ? Object.keys(selected).length === totalAttrs : true;
 
-        if(variantMatched) {
+        const variantMatched = allAttrsSelected
+          ? productVariants.find(variantItem => {
+              return (
+                (variantItem.attributeValue || []).length === Object.keys(selected).length &&
+                variantItem.attributeValue.every(attr => String(selected[attr.attrId]) === String(attr.value))
+              );
+            })
+          : null;
+
+        if(variantMatched && variantMatched.status !== false) {
+          const currentVariantPrice = variantMatched.priceNew ?? variantMatched.price ?? 0;
           if (elementPriceNew) {
-            elementPriceNew.innerHTML = (variantMatched.priceNew || 0).toLocaleString('vi-VN') + ' VND';
+            elementPriceNew.innerHTML = currentVariantPrice.toLocaleString('vi-VN') + ' VND';
           }
           if (elementPriceOld) {
             elementPriceOld.innerHTML = variantMatched.priceOld ? variantMatched.priceOld.toLocaleString('vi-VN') + ' VND' : '';
           }
 
+          variantSelected = variantMatched;
           if(variantMatched.stock > 0) {
             elementStock.innerHTML = `In stock (${variantMatched.stock})`;
             elementStock.classList.remove("out_stock");
             inputQuantity.value = 1;
-            variantSelected = variantMatched;
           } else {
             elementStock.innerHTML = `Out of stock`;
             elementStock.classList.add("out_stock");
             inputQuantity.value = 0;
-            variantSelected = null;
           }
 
           inputQuantity.max = variantMatched.stock;
+
+          // Sync product gallery slide if variant has specific image
+          if (variantMatched.image && typeof window !== "undefined" && window.jQuery) {
+            const $thumb = window.jQuery('.details_slider_thumb');
+            if ($thumb.length && typeof $thumb.slick === "function") {
+              const targetImg = $thumb.find('img').filter(function() {
+                const src = window.jQuery(this).attr('src') || '';
+                return src.includes(variantMatched.image);
+              });
+              if (targetImg.length) {
+                const slideIndex = targetImg.closest('.slick-slide').data('slick-index');
+                if (slideIndex !== undefined) {
+                  $thumb.slick('slickGoTo', slideIndex);
+                }
+              }
+            }
+          }
+        } else {
+          variantSelected = null;
+          elementStock.innerHTML = `Unavailable`;
+          elementStock.classList.add("out_stock");
+          inputQuantity.value = 0;
+          inputQuantity.max = 0;
         }
       }
     })
   })
+
+  // Auto-select first in-stock variant on page load
+  if (typeof productVariants !== "undefined" && productVariants && productVariants.length > 0) {
+    const firstActive = productVariants.find(v => v.status && v.stock > 0) || productVariants.find(v => v.status) || productVariants[0];
+    if (firstActive && firstActive.attributeValue) {
+      firstActive.attributeValue.forEach(attr => {
+        const matchingLi = shopDetailsText.querySelector(`.details_single_variant li[attribute-id="${attr.attrId}"][variant="${attr.value}"]`);
+        if (matchingLi) {
+          matchingLi.click();
+        }
+      });
+    }
+  }
 
   buttonPlus.addEventListener("click", () => {
     const quantity = parseInt(inputQuantity.value);
@@ -1270,13 +1338,29 @@ if(shopDetailsText) {
   buttonAddCart.addEventListener("click", () => {
     const productId = buttonAddCart.getAttribute("product-id");
     const quantity = parseInt(inputQuantity.value);
+
+    if (typeof productVariants !== "undefined" && productVariants && productVariants.length > 0) {
+      if (!variantSelected) {
+        notyf.error("Please select product options before adding to cart!");
+        return;
+      }
+      if ((variantSelected.stock ?? 0) <= 0 || quantity <= 0) {
+        notyf.error("Selected variant is currently out of stock!");
+        return;
+      }
+    } else if (quantity <= 0) {
+      notyf.error("This product is currently out of stock!");
+      return;
+    }
+
     if(productId && quantity > 0) {
+
       const dataItem = {
         productId: productId,
         quantity: quantity,
         checked: true
       };
-      const cart = JSON.parse(localStorage.getItem("cart"));
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
       if(productVariants && productVariants.length > 0 && variantSelected) {
         dataItem.variant = variantSelected.attributeValue;
@@ -1289,28 +1373,28 @@ if(shopDetailsText) {
           const oldAttrs = item.variant;
           const newAttrs = dataItem.variant;
 
-          if(oldAttrs.length !== newAttrs.length) {
+          if(!oldAttrs || !newAttrs || oldAttrs.length !== newAttrs.length) {
             return false;
           }
 
           return oldAttrs.every(attr => {
-            const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
+            const match = newAttrs.find(a => String(a.attrId) === String(attr.attrId) && String(a.value) === String(attr.value));
             return match ? true : false;
           });
         })
 
         if(existItem) {
-          existItem.quantity = dataItem.quantity;
+          existItem.quantity += dataItem.quantity;
           notyf.success("Cart quantity updated successfully!");
         } else {
           cart.unshift(dataItem);
           notyf.success("Added to cart!");
         }
       } else {
-        const existItem = cart.find(item => item.productId === dataItem.productId);
+        const existItem = cart.find(item => item.productId === dataItem.productId && !item.variant);
 
         if(existItem) {
-          existItem.quantity = dataItem.quantity;
+          existItem.quantity += dataItem.quantity;
           notyf.success("Cart quantity updated successfully!");
         } else {
           cart.unshift(dataItem);
@@ -1328,10 +1412,14 @@ if(shopDetailsText) {
   buttonAddCompare.addEventListener("click", () => {
     const productId = buttonAddCompare.getAttribute("product-id");
     if(productId) {
+      if (typeof productVariants !== "undefined" && productVariants && productVariants.length > 0 && !variantSelected) {
+        notyf.error("Please select product options first!");
+        return;
+      }
       const dataItem = {
         productId: productId
       };
-      const compareList = JSON.parse(localStorage.getItem("compare"));
+      const compareList = JSON.parse(localStorage.getItem("compare") || "[]");
 
       if(compareList.length < 5) {
         if(productVariants && productVariants.length > 0 && variantSelected) {
@@ -1345,12 +1433,12 @@ if(shopDetailsText) {
             const oldAttrs = item.variant;
             const newAttrs = dataItem.variant;
 
-            if(oldAttrs.length !== newAttrs.length) {
+            if(!oldAttrs || !newAttrs || oldAttrs.length !== newAttrs.length) {
               return false;
             }
 
             return oldAttrs.every(attr => {
-              const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
+              const match = newAttrs.find(a => String(a.attrId) === String(attr.attrId) && String(a.value) === String(attr.value));
               return match ? true : false;
             });
           })
@@ -1362,7 +1450,7 @@ if(shopDetailsText) {
             notyf.success("Added to comparison list!");
           }
         } else {
-          const existItem = compareList.find(item => item.productId === dataItem.productId);
+          const existItem = compareList.find(item => item.productId === dataItem.productId && !item.variant);
 
           if(existItem) {
             notyf.success("Product is already in comparison list!");
@@ -1383,13 +1471,17 @@ if(shopDetailsText) {
   const buttonAddWishlist = shopDetailsText.querySelector("[button-add-wishlist]");
   buttonAddWishlist.addEventListener("click", () => {
     const productId = buttonAddWishlist.getAttribute("product-id");
-    const quantity = parseInt(inputQuantity.value);
-    if(productId && quantity > 0) {
+    const quantity = Math.max(1, parseInt(inputQuantity.value) || 1);
+    if(productId) {
+      if (typeof productVariants !== "undefined" && productVariants && productVariants.length > 0 && !variantSelected) {
+        notyf.error("Please select product options first!");
+        return;
+      }
       const dataItem = {
         productId: productId,
         quantity: quantity
       };
-      const wishlist = JSON.parse(localStorage.getItem("wishlist"));
+      const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
 
       if(productVariants && productVariants.length > 0 && variantSelected) {
         dataItem.variant = variantSelected.attributeValue;
@@ -1402,12 +1494,12 @@ if(shopDetailsText) {
           const oldAttrs = item.variant;
           const newAttrs = dataItem.variant;
 
-          if(oldAttrs.length !== newAttrs.length) {
+          if(!oldAttrs || !newAttrs || oldAttrs.length !== newAttrs.length) {
             return false;
           }
 
           return oldAttrs.every(attr => {
-            const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
+            const match = newAttrs.find(a => String(a.attrId) === String(attr.attrId) && String(a.value) === String(attr.value));
             return match ? true : false;
           });
         })
@@ -1419,7 +1511,7 @@ if(shopDetailsText) {
           notyf.success("Added to wishlist!");
         }
       } else {
-        const existItem = wishlist.find(item => item.productId === dataItem.productId);
+        const existItem = wishlist.find(item => item.productId === dataItem.productId && !item.variant);
 
         if(existItem) {
           notyf.success("Product is already in wishlist!");
@@ -1456,15 +1548,23 @@ const eventAddItemToCartInCompare = () => {
   listButtonAdd.forEach(button => {
     button.addEventListener("click", () => {
       const index = button.getAttribute("button-add");
-      const compareList = JSON.parse(localStorage.getItem("compare"));
+      if (button.getAttribute("data-has-variants") === "true") {
+        const slug = button.getAttribute("data-slug");
+        if (slug) {
+          window.location.href = `/product/detail/${slug}`;
+          return;
+        }
+      }
+      const compareList = JSON.parse(localStorage.getItem("compare") || "[]");
       const compareItem = compareList[index];
+      if (!compareItem) return;
       const dataItem = {
         productId: compareItem.productId,
         quantity: 1,
         checked: true
       };
 
-      const cart = JSON.parse(localStorage.getItem("cart"));
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
       if(compareItem.variant) {
         dataItem.variant = compareItem.variant;
@@ -1477,27 +1577,29 @@ const eventAddItemToCartInCompare = () => {
           const oldAttrs = item.variant;
           const newAttrs = dataItem.variant;
 
-          if(oldAttrs.length !== newAttrs.length) {
+          if(!oldAttrs || !newAttrs || oldAttrs.length !== newAttrs.length) {
             return false;
           }
 
           return oldAttrs.every(attr => {
-            const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
+            const match = newAttrs.find(a => String(a.attrId) === String(attr.attrId) && String(a.value) === String(attr.value));
             return match ? true : false;
           });
         })
 
         if(existItem) {
-          notyf.success("Product is already in cart!");
+          existItem.quantity += 1;
+          notyf.success("Cart quantity updated!");
         } else {
           cart.unshift(dataItem);
           notyf.success("Added to cart!");
         }
       } else {
-        const existItem = cart.find(item => item.productId === dataItem.productId);
+        const existItem = cart.find(item => item.productId === dataItem.productId && !item.variant);
 
         if(existItem) {
-          notyf.success("Product is already in cart!");
+          existItem.quantity += 1;
+          notyf.success("Cart quantity updated!");
         } else {
           cart.unshift(dataItem);
           notyf.success("Added to cart!");
@@ -1553,21 +1655,25 @@ const drawComparePage = () => {
 
           data.compareList.forEach((item, index) => {
             const { detail } = item;
-            const { priceOld, priceNew, stock } = resolveItemPricing(item);
+            const { priceOld, priceNew, stock, image } = resolveItemPricing(item);
+            const itemImage = image || (detail.images && detail.images[0]) || "";
             let htmlVariant = "";
 
-            if(item.variant) {
+            if(item.variant && detail.attributeList) {
               detail.attributeList.forEach(attr => {
-                const variant = item.variant.find(v => v.attrId === attr._id);
-                htmlVariant += `
-                  <p>${attr.name}: ${variant.label}</p>
-                `;
+                const variant = item.variant.find(v => String(v.attrId) === String(attr._id));
+                if (variant) {
+                  const label = variant.label || variant.value || "";
+                  htmlVariant += `
+                    <p>${attr.name}: ${label}</p>
+                  `;
+                }
               })
             }
 
             html1 += `
               <td>
-                <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${detail.images[0]}">
+                <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}">
                 <a class="title" href="/product/detail/${detail.slug}">${detail.name}</a>
               </td>
             `;
@@ -1610,7 +1716,7 @@ const drawComparePage = () => {
               <td>
                 ${
                   stock > 0 ?
-                  '<a class="common_btn" href="javascript:;" button-add="'+index+'">Add to Cart</a>'
+                  `<a class="common_btn" href="javascript:;" button-add="${index}" data-slug="${detail.slug || ''}" data-has-variants="${detail.variants && detail.variants.length > 0 && !item.variant ? 'true' : 'false'}">${detail.variants && detail.variants.length > 0 && !item.variant ? 'Select Options' : 'Add to Cart'}</a>`
                   :
                   '<div class="text-danger">Out of stock</div>'
                 }
@@ -1722,15 +1828,23 @@ const eventAddItemToCartInWishlist = () => {
   listButtonAdd.forEach(button => {
     button.addEventListener("click", () => {
       const index = button.getAttribute("button-add");
-      const wishlist = JSON.parse(localStorage.getItem("wishlist"));
+      if (button.getAttribute("data-has-variants") === "true") {
+        const slug = button.getAttribute("data-slug");
+        if (slug) {
+          window.location.href = `/product/detail/${slug}`;
+          return;
+        }
+      }
+      const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
       const wishItem = wishlist[index];
+      if (!wishItem) return;
       const dataItem = {
         productId: wishItem.productId,
-        quantity: wishItem.quantity,
+        quantity: wishItem.quantity || 1,
         checked: true
       };
 
-      const cart = JSON.parse(localStorage.getItem("cart"));
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
       if(wishItem.variant) {
         dataItem.variant = wishItem.variant;
@@ -1743,29 +1857,29 @@ const eventAddItemToCartInWishlist = () => {
           const oldAttrs = item.variant;
           const newAttrs = dataItem.variant;
 
-          if(oldAttrs.length !== newAttrs.length) {
+          if(!oldAttrs || !newAttrs || oldAttrs.length !== newAttrs.length) {
             return false;
           }
 
           return oldAttrs.every(attr => {
-            const match = newAttrs.find(a => a.attrId === attr.attrId && a.value === attr.value);
+            const match = newAttrs.find(a => String(a.attrId) === String(attr.attrId) && String(a.value) === String(attr.value));
             return match ? true : false;
           });
         })
 
         if(existItem) {
-          existItem.quantity = dataItem.quantity;
-          notyf.success("Product is already in cart!");
+          existItem.quantity += dataItem.quantity;
+          notyf.success("Cart quantity updated!");
         } else {
           cart.unshift(dataItem);
           notyf.success("Added to cart!");
         }
       } else {
-        const existItem = cart.find(item => item.productId === dataItem.productId);
+        const existItem = cart.find(item => item.productId === dataItem.productId && !item.variant);
 
         if(existItem) {
-          existItem.quantity = dataItem.quantity;
-          notyf.success("Product is already in cart!");
+          existItem.quantity += dataItem.quantity;
+          notyf.success("Cart quantity updated!");
         } else {
           cart.unshift(dataItem);
           notyf.success("Added to cart!");
@@ -1816,17 +1930,21 @@ const drawWishlistPage = () => {
 
           data.wishlist.forEach((item, index) => {
             const { detail } = item;
-            const { priceOld, priceNew, stock } = resolveItemPricing(item);
+            const { priceOld, priceNew, stock, image } = resolveItemPricing(item);
+            const itemImage = image || (detail.images && detail.images[0]) || "";
             let htmlVariant = "";
 
-            if(item.variant) {
+            if(item.variant && detail.attributeList) {
               detail.attributeList.forEach(attr => {
-                const variant = item.variant.find(v => v.attrId === attr._id);
-                htmlVariant += `
-                  <span>
-                    <b>${attr.name}:</b> ${variant.label}
-                  </span>
-                `;
+                const variant = item.variant.find(v => String(v.attrId) === String(attr._id));
+                if (variant) {
+                  const label = variant.label || variant.value || "";
+                  htmlVariant += `
+                    <span>
+                      <b>${attr.name}:</b> ${label}
+                    </span>
+                  `;
+                }
               })
             }
 
@@ -1838,7 +1956,7 @@ const drawWishlistPage = () => {
               >
                 <td class="cart_page_img">
                   <div class="img">
-                    <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${detail.images[0]}">
+                    <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}">
                   </div>
                 </td>
                 <td class="cart_page_details">
@@ -1875,7 +1993,7 @@ const drawWishlistPage = () => {
                 <td class="cart_page_action">
                   ${
                     stock > 0 ?
-                    '<a class="common_btn" href="javascript:;" button-add="'+index+'">Add to Cart</a>'
+                    `<a class="common_btn" href="javascript:;" button-add="${index}" data-slug="${detail.slug || ''}" data-has-variants="${detail.variants && detail.variants.length > 0 && !item.variant ? 'true' : 'false'}">${detail.variants && detail.variants.length > 0 && !item.variant ? 'Select Options' : 'Add to Cart'}</a>`
                     :
                     '<div class="text-danger">Out of stock</div>'
                   }
@@ -2855,6 +2973,12 @@ if(buttonOrder) {
 
           sessionStorage.removeItem("couponDetail");
 
+          if (data.paymentStatus === "paid" || data.total === 0) {
+            drawNotify(data.code, data.message);
+            window.location.href = `/order/success?orderCode=${data.orderCode}&phone=${data.phone}`;
+            return;
+          }
+
           switch (dataPaymentMethod) {
             case "money":
               drawNotify(data.code, data.message);
@@ -3139,6 +3263,12 @@ document.addEventListener('click', (e) => {
   const btnCart = e.target.closest('[btn-cart-quick]');
   if (btnCart) {
     e.preventDefault();
+    const hasVariants = btnCart.getAttribute('data-has-variants') === 'true';
+    const slug = btnCart.getAttribute('data-slug');
+    if (hasVariants && slug) {
+      window.location.href = `/product/detail/${slug}`;
+      return;
+    }
     const productId = btnCart.getAttribute('data-product-id');
     if (!productId) return;
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');

@@ -13,7 +13,7 @@ export const autoCancelUnpaidOrders = () => {
       orderStatus: "pending",
       deleted: false,
       createdAt: { $lt: threshold }
-    }).select("_id code items userId usedPoint coupon");
+    }).select("_id code items userId usedPoint pointEarned coupon");
 
     if (staleOrders.length === 0) return;
 
@@ -25,7 +25,7 @@ export const autoCancelUnpaidOrders = () => {
           await session.withTransaction(async () => {
             const result = await Order.updateOne(
               { _id: order._id, orderStatus: "pending" },
-              { orderStatus: "cancelled" },
+              { orderStatus: "cancelled", pointEarned: 0 },
               { session }
             );
 

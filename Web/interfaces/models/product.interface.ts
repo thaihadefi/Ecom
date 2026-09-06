@@ -3,6 +3,7 @@ import { ISeo } from "./seo.interface";
 
 export interface IProductAttributeValue {
   attrId?: string;
+  attrType?: string;
   label: string;
   value: string;
 }
@@ -10,6 +11,8 @@ export interface IProductAttributeValue {
 export interface IProductVariant {
   status: boolean;
   price?: number;
+  priceOld?: number;
+  priceNew?: number;
   stock?: number;
   image?: string;
   sku?: string;

@@ -6,23 +6,48 @@ import { sendMail, emailTemplates } from "./mail.helper";
 import { IOrder } from "../interfaces/models/order.interface";
 
 export const releaseOrderResources = async (
-  order: Pick<IOrder, "items" | "usedPoint" | "coupon" | "userId">,
+  order: Pick<IOrder, "items" | "usedPoint" | "pointEarned" | "coupon" | "userId">,
   session: ClientSession,
 ): Promise<void> => {
   const tasks: Promise<unknown>[] = [];
 
   if (order.items && order.items.length > 0) {
-    tasks.push(
-      Product.bulkWrite(
-        order.items.map((item) => ({
-          updateOne: {
-            filter: { _id: item.productId },
-            update: { $inc: { stock: item.quantity || 0 } },
-          },
-        })),
-        { session },
-      ),
-    );
+    for (const item of order.items) {
+      const product = await Product.findOne({ _id: item.productId }).session(session);
+      if (product) {
+        if (typeof product.stock === "number") {
+          product.stock += item.quantity || 0;
+        }
+        const rawVariant = (item as { rawVariant?: Array<{ attrId?: string; value?: string }> }).rawVariant;
+        if (rawVariant && rawVariant.length > 0 && product.variants && product.variants.length > 0) {
+          const vMatched = product.variants.find((v) =>
+            v.attributeValue &&
+            v.attributeValue.length === rawVariant.length &&
+            v.attributeValue.every((attr) => {
+              const sel = rawVariant.find((s) => String(s.attrId) === String(attr.attrId));
+              return sel && String(sel.value) === String(attr.value);
+            })
+          );
+          if (vMatched && typeof vMatched.stock === "number") {
+            vMatched.stock += item.quantity || 0;
+            product.markModified("variants");
+          }
+        } else if (item.variant && item.variant.length > 0 && product.variants && product.variants.length > 0) {
+          const vMatched = product.variants.find((v) => {
+            const vStrings = (v.attributeValue || []).map((av) => (av.label || av.value || "").toLowerCase());
+            return (item.variant || []).every((iv) => {
+              const val = iv.includes(":") ? iv.split(":")[1].trim().toLowerCase() : iv.trim().toLowerCase();
+              return vStrings.includes(val);
+            });
+          });
+          if (vMatched && typeof vMatched.stock === "number") {
+            vMatched.stock += item.quantity || 0;
+            product.markModified("variants");
+          }
+        }
+        await product.save({ session });
+      }
+    }
   }
 
   if (order.usedPoint && order.usedPoint > 0) {
@@ -30,6 +55,16 @@ export const releaseOrderResources = async (
       AccountUser.updateOne(
         { _id: order.userId },
         { $inc: { usedPoint: -order.usedPoint } },
+        { session },
+      ),
+    );
+  }
+
+  if (order.pointEarned && order.pointEarned > 0) {
+    tasks.push(
+      AccountUser.updateOne(
+        { _id: order.userId },
+        { $inc: { totalPoint: -order.pointEarned } },
         { session },
       ),
     );

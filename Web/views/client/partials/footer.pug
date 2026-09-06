@@ -15,22 +15,22 @@ footer(class="footer_main pt_100")
             | Your one-stop destination for quality products delivered fast. Shop with confidence every day.
           .footer_social_follow
             span Follow :
-            a.footer_social_icon(href="https://www.facebook.com/UIT.Fanpage" aria-label="Facebook")
+            a.footer_social_icon(href="https://www.facebook.com/UIT.Fanpage" target="_blank" rel="noopener noreferrer" aria-label="Facebook")
               i.fab.fa-facebook-f(aria-hidden="true")
-            a.footer_social_icon(href="https://www.youtube.com/@uitchannel" aria-label="YouTube")
+            a.footer_social_icon(href="https://www.youtube.com/@uitchannel" target="_blank" rel="noopener noreferrer" aria-label="YouTube")
               i.fab.fa-youtube(aria-hidden="true")
-            a.footer_social_icon(href="https://www.instagram.com/uituniversity" aria-label="Instagram")
+            a.footer_social_icon(href="https://www.instagram.com/uituniversity" target="_blank" rel="noopener noreferrer" aria-label="Instagram")
               i.fab.fa-instagram(aria-hidden="true")
-            a.footer_social_icon(href="https://www.linkedin.com/school/university-of-information-technology" aria-label="LinkedIn")
+            a.footer_social_icon(href="https://www.linkedin.com/school/university-of-information-technology" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn")
               i.fab.fa-linkedin-in(aria-hidden="true")
       .col-xl-2.col-lg-2.col-md-3.col-sm-6
         div(class="footer_link")
           h2 Company
           ul
             li
-              a(href="/about") About Us
+              a(href="/about" target="_self") About Us
             li
-              a(href="/contact") Contact Us
+              a(href="/contact" target="_self") Contact Us
       .col-xl-2.col-lg-2.col-md-3.col-sm-6
         div(class="footer_link")
           h2 Category
@@ -38,7 +38,7 @@ footer(class="footer_main pt_100")
             if categoryProductList && categoryProductList.length > 0
               each category in categoryProductList.slice(0, 5)
                 li
-                  a(href=`/product/category/${category.slug}`) #{category.name}
+                  a(href=`/product/category/${category.slug}` target="_self") #{category.name}
             else
               li
                 a(href="javascript:void(0)") No categories yet
@@ -47,13 +47,13 @@ footer(class="footer_main pt_100")
           h2 Quick Links
           ul
             li
-              a(href="/privacy-policy") Privacy Policy
+              a(href="/privacy-policy" target="_blank" rel="noopener noreferrer") Privacy Policy
             li
-              a(href="/terms-and-conditions") Terms & Conditions
+              a(href="/terms-and-conditions" target="_blank" rel="noopener noreferrer") Terms & Conditions
             li
-              a(href="/return-policy") Return Policy
+              a(href="/return-policy" target="_blank" rel="noopener noreferrer") Return Policy
             li
-              a(href="/faq") FAQ’s
+              a(href="/faq" target="_blank" rel="noopener noreferrer") FAQ’s
       .col-xl-3.col-lg-3.col-md-3.col-sm-6
         div(class="footer_link footer_logo_area")
           h2 Get In Touch
@@ -62,7 +62,7 @@ footer(class="footer_main pt_100")
           span
             b
               i.fas.fa-map-marker-alt.text-white.me-2(aria-hidden="true")
-            | Quarter 34, Linh Xuan Ward, Ho Chi Minh City, Vietnam
+            a(href="https://maps.google.com/?q=Quarter+34,+Linh+Xuan+Ward,+Ho+Chi+Minh+City,+Vietnam" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;") Quarter 34, Linh Xuan Ward, Ho Chi Minh City, Vietnam
           span
             b
               i.fas.fa-phone-alt.text-white.me-2(aria-hidden="true")

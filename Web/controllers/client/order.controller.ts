@@ -19,7 +19,9 @@ export const createPost = async (req: Request, res: Response) => {
       code: "success",
       message: result.message,
       orderCode: result.orderCode,
-      phone: result.phone
+      phone: result.phone,
+      total: result.total,
+      paymentStatus: result.paymentStatus
     });
   } catch (error) {
     console.error("order createPost error:", error);
@@ -42,7 +44,8 @@ export const success = async (req: Request, res: Response) => {
 
   res.render("client/pages/order-success", {
     pageTitle: "Order Success",
-    orderDetail: orderDetail
+    orderDetail: orderDetail,
+    orderCode: orderDetail.code || String(orderCode)
   });
 };
 
