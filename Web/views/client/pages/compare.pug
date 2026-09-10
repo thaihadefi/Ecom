@@ -1,0 +1,49 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner(
+    {
+      name: pageTitle
+    },
+    `/compare`
+  )
+
+  section(class="compare_page mt_100 mb_100")
+    .container
+      .row
+        .col-12
+          .wow.fadeInUp(class="compare_list_area")
+            .table-responsive
+              table.table
+                tbody
+                  tr
+                    td
+                      p
+                        b Products
+                    td(html-1)
+                  tr
+                    td
+                      p
+                        b Description
+                    td(html-2)
+                  tr
+                    td
+                      p
+                        b Price
+                    td(html-3)
+                  tr
+                    td
+                      p
+                        b Variants
+                    td(html-4)
+                  tr
+                    td
+                      p
+                        b Reviews
+                    td(html-5)
+                  tr
+                    td
+                      p
+                        b Action
+                    td(html-6)

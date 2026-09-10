@@ -1,0 +1,24 @@
+include ../mixins/index.pug
+
+if blockData && blockProductList && blockProductList.length
+  section(class="flash_sell flash_sell mt_95")
+    .container
+      .row.align-items-center
+        .col-xxl-6.col-md-3.col-xl-4
+          div(class="section_heading section_heading")
+            h2
+              span #{blockData.title.highlight}
+              |  #{blockData.title.normal}
+        .col-xxl-6.col-md-9.col-xl-8
+          .d-flex.flex-wrap.justify-content-end
+            .simply-countdown.simply-countdown-one(data-end-time=blockData.endTime)
+            if (blockData.linkViewAll)
+              div(class="view_all_btn_area")
+                a(
+                  href=blockData.linkViewAll
+                  class="view_all_btn"
+                  ) #{blockData.viewAll}
+      .row(class="mt_25 flash_sell_slider")
+        each item in blockProductList
+          .col-12.wow.fadeInUp
+            +product-item(item)

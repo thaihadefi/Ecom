@@ -1,0 +1,91 @@
+include ../mixins/index.pug
+
+- const isVideo = (url) => url && /\.(mp4|webm|ogg|mov)$/i.test(url)
+
+section(class="banner_main")
+  .container
+    .row
+      - const hasCat = blockData.categories && blockData.categories.enable
+      if hasCat
+        .col-xxl-2.d-none.d-xxl-block
+          +renderCategory(categoryProductList, 0)
+      div(class=hasCat ? "col-12 col-lg-8 col-xxl-7" : "col-12 col-lg-8 col-xxl-8")
+        div(class="banner_content")
+          .row(class="banner_slider")
+            each slider in blockData.sliders
+              .col-xl-12
+                if isVideo(getFullUrl(slider.background))
+                  .wow.fadeInUp(
+                    class="banner_slider_2 position-relative overflow-hidden"
+                  )
+                    video(
+                      autoplay
+                      muted
+                      loop
+                      playsinline
+                      class="position-absolute w-100 h-100 object-fit-cover start-0 top-0"
+                      style="z-index: 1;"
+                    )
+                      source(src=getFullUrl(slider.background))
+                    div(class="banner_slider_2_text position-relative" style="z-index: 2;")
+                      p.banner_eyebrow #{slider.subtitle}
+                      h2 #{slider.title}
+                      a(
+                        href=slider.button.link
+                        class="common_btn"
+                      )
+                        | #{slider.button.text}
+                        i.fas.fa-long-arrow-right(aria-hidden="true")
+                else
+                  .wow.fadeInUp(
+                    style=`background: url(${getFullUrl(slider.background)});`
+                    class="banner_slider_2"
+                  )
+                    div(class="banner_slider_2_text")
+                      p.banner_eyebrow #{slider.subtitle}
+                      h2 #{slider.title}
+                      a(
+                        href=slider.button.link
+                        class="common_btn"
+                      )
+                        | #{slider.button.text}
+                        i.fas.fa-long-arrow-right(aria-hidden="true")
+      div(class=hasCat ? "col-12 col-lg-4 col-xxl-3" : "col-12 col-lg-4 col-xxl-4")
+        .row
+          .col-xl-12
+            if isVideo(getFullUrl(blockData.sideBanner.background))
+              .wow.fadeInUp(
+                class="banner_add position-relative overflow-hidden"
+              )
+                video(
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  class="position-absolute w-100 h-100 object-fit-cover start-0 top-0"
+                  style="z-index: 1;"
+                )
+                  source(src=getFullUrl(blockData.sideBanner.background))
+                .text.position-relative(style="z-index: 2;")
+                  p.banner_eyebrow #{blockData.sideBanner.subtitle}
+                  h3 #{blockData.sideBanner.title}
+                  a(
+                    href=blockData.sideBanner.button.link
+                    class="common_btn"
+                  )
+                    | #{blockData.sideBanner.button.text}
+                    i.fas.fa-long-arrow-right(aria-hidden="true")
+            else
+              .wow.fadeInUp(
+                style=`background: url(${getFullUrl(blockData.sideBanner.background)});`
+                class="banner_add"
+              )
+                .text
+                  p.banner_eyebrow #{blockData.sideBanner.subtitle}
+                  h3 #{blockData.sideBanner.title}
+                  a(
+                    href=blockData.sideBanner.button.link
+                    class="common_btn"
+                  )
+                    | #{blockData.sideBanner.button.text}
+                    i.fas.fa-long-arrow-right(aria-hidden="true")

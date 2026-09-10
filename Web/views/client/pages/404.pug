@@ -1,0 +1,14 @@
+extends ../layouts/default.pug
+
+block main
+  section.error_page
+    .container
+      .row
+        .col-12
+          .error_text
+            p.error_code 404
+            h1 Page not found
+            p The page you’re looking for doesn’t exist or has been moved.
+            .d-flex.flex-wrap.gap-3.justify-content-center
+              a.common_btn(href="/") Back to Home
+              a.common_btn(href="javascript:history.back()") Back

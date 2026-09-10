@@ -1,0 +1,45 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="accountAdminCreateForm")
+        .row
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="fullName") Full Name *
+              input.form-control(id="fullName" type="text" name="fullName")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="email") Email *
+              input.form-control(id="email" type="email" name="email")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="password") Password *
+              input.form-control(id="password" type="text" name="password")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="status") Status
+              select.form-select(id="status" name="status")
+                option(value="initial") Initial
+                option(value="active") Active
+                option(value="inactive") Inactive
+          .col-md-6.col-lg-6
+            .mb-3
+              +form-group-file(
+                "Avatar",
+                "avatar",
+                "avatar"
+              )
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label Permissions
+              div(class="checkbox-list" checkbox-list="roles")
+                +checkbox-list(roleList)
+        button.btn.btn-primary(type="submit") Create New
+        a.btn.btn-danger.ms-1(href=`/${pathAdmin}/account-admin/list`) Cancel

@@ -1,0 +1,29 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner(
+    productDetail,
+    `/product/detail/${productDetail.slug}`
+  )
+
+  section(class="shop_details mt_100")
+    .container
+      .row
+        .col-xl-9.col-xxl-10
+          .row
+            .col-lg-6.col-12.wow.fadeInLeft
+              include ../partials/shop-details-slider-area.pug
+            .col-lg-6.col-12.wow.fadeInUp
+              include ../partials/shop-details-text.pug
+          include ../partials/bought-together-products.pug
+          .row.wow.fadeInUp(class="mt_90")
+            .col-12
+              include ../partials/shop-details-des-area.pug
+        .col-xl-3.col-xxl-2.wow.fadeInRight
+          include ../partials/sticky-sidebar-shop-detail.pug
+  if (relatedProducts.length > 0)
+    +products-slider("Products", "Related", relatedProducts)
+
+  if (viewedProducts.length > 0)
+    +products-slider("Products", "Viewed", viewedProducts)

@@ -1,0 +1,38 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner(
+    {
+      name: pageTitle
+    },
+    `/dashboard/profile`
+  )
+
+  section.dashboard(class="mb_100")
+    .container
+      .row
+        .col-lg-4.col-xl-3.wow.fadeInUp
+          include ../partials/dashboard-sidebar.pug
+        .col-lg-8.col-xl-9.wow.fadeInRight
+          div(class="dashboard_content mt_100")
+            h3(class="dashboard_title")
+              | #{pageTitle}
+              a(
+                href="/dashboard/profile/edit"
+                class="common_btn"
+                ) Edit
+            div(class="dashboard_profile_info_list")
+              ul
+                li
+                  span Full Name:
+                  span.notranslate(translate="no") #{accountUser.fullName}
+                li
+                  span Email:
+                  | #{accountUser.email}
+                li
+                  span Phone:
+                  | #{accountUser.phone}
+                li
+                  span Reward Points:
+                  | #{((accountUser.totalPoint || 0) - (accountUser.usedPoint || 0)).toLocaleString("vi-VN")} Points

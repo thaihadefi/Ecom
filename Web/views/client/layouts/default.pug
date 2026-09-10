@@ -1,0 +1,231 @@
+doctype html
+html(lang="en")
+  head
+    script.
+      (function() {
+        const savedLang = localStorage.getItem("selectedLanguage") || "en";
+        if (savedLang && savedLang !== "en") {
+          document.documentElement.classList.add("translation-pending");
+          setTimeout(function() {
+            document.documentElement.classList.remove("translation-pending");
+          }, 500);
+          const observer = new MutationObserver(function(mutations) {
+            if (document.documentElement.classList.contains("translated-ltr") ||
+                document.documentElement.classList.contains("translated-rtl")) {
+              document.documentElement.classList.remove("translation-pending");
+              observer.disconnect();
+            }
+          });
+          observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+        }
+      })();
+    style.
+      html.translation-pending body {
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+      }
+    script.
+      const domainCDN = "#{domainCDN}";
+    meta(charset="UTF-8")
+    meta(
+      content="width=device-width, initial-scale=1.0"
+      name="viewport"
+      )
+
+    title #{seo ? seo.title : pageTitle}
+    meta(name="description" content=(seo ? seo.description : ""))
+    meta(name="keywords" content=(seo && seo.keywords.length > 0 ? seo.keywords.join(", ") : ""))
+
+    meta(
+      name="robots",
+      content=`${seo && seo.robots.index ? 'index' : 'noindex'}, ${seo && seo.robots.follow ? 'follow' : 'nofollow'}`
+    )
+
+    meta(property="og:title" content=(seo ? seo.og.title : ""))
+    meta(property="og:description" content=(seo ? seo.og.description : ""))
+    meta(property="og:image" content=(seo && seo.og.image ? `${domainCDN}${seo.og.image}` : ""))
+
+    link(rel="canonical" href=canonicalUrl)
+
+    link(rel="preconnect" href="https://fonts.googleapis.com")
+    link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+    link(rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap")
+    link(rel="stylesheet", href=`/client/assets/css/notyf.min.css?v=${assetVersion}`)
+    link(
+      href=`${settingGeneral && settingGeneral.favicon ? domainCDN + settingGeneral.favicon : '/images/favicon.ico'}?v=${assetVersion}`
+      type="image/x-icon"
+      rel="icon"
+      )
+    link(
+      href=`/client/assets/css/all.min.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/bootstrap.min.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/animate.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/mobile_menu.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/nice-select.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/scroll_button.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/slick.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/venobox.min.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/jquery.pwstabs.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/range_slider.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/multiple-image-video.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/custom_spacing.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/style.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/responsive.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+    link(
+      href=`/client/assets/css/polish.css?v=${assetVersion}`
+      rel="stylesheet"
+      )
+  body(class="default_home")
+    a.skip-to-main(href="#main-content") Skip to main content
+    div#sr-live-region(aria-live="polite" aria-atomic="true" class="sr-only-live")
+    include ../partials/header.pug
+    include ../partials/main-menu.pug
+    include ../partials/mini-cart.pug
+    include ../partials/mobile-menu-area.pug
+
+    main#main-content
+      block main
+
+    include ../partials/footer.pug
+
+    include ../partials/chat.pug
+
+    include ../partials/scroll-button.pug
+
+    include ../partials/modal-confirm.pug
+
+    #modalReportReview.modal.fade(tabindex="-1" aria-labelledby="modalReportReviewLabel" aria-hidden="true")
+      .modal-dialog.modal-dialog-centered.modal-sm
+        .modal-content(style="border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);")
+          .modal-body.text-center.px-4.pt-4.pb-2
+            .mx-auto.mb-3(style="width:56px; height:56px; background:#fff0f0; border-radius:50%; display:flex; align-items:center; justify-content:center;")
+              i.fas.fa-flag(style="font-size:22px; color:#e74c3c;")
+            h2.fw-bold.mb-1(style="font-size:16px;" id="modalReportReviewLabel") Report this review?
+            p.text-muted.mb-0(style="font-size:13px; line-height:1.5;") This will flag the review for admin to inspect. Only report content that is fake or inappropriate.
+          .modal-footer.border-0.justify-content-center.gap-2.pb-4
+            button.btn.btn-light.px-4(type="button" data-bs-dismiss="modal" style="border-radius:20px; font-size:14px;") Cancel
+            button#btnConfirmReport.btn.btn-danger.px-4(type="button" style="border-radius:20px; font-size:14px;")
+              i.fas.fa-flag.me-1
+              | Report
+
+    #modalPhoneConfirm.modal.fade(aria-hidden="true" tabindex="-1")
+      .modal-dialog.modal-dialog-centered
+        .modal-content(style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);")
+          .modal-body.text-center.py-4(style="position: relative;")
+            button.btn-close.position-absolute.top-0.end-0.m-3(type="button" data-bs-dismiss="modal" aria-label="Close")
+            .avatar-md.rounded-circle.mx-auto.mb-3.d-flex.align-items-center.justify-content-center(style="width: 60px; height: 60px; font-size: 24px; color: #0057B7; background-color: #e6f0fa; margin: 0 auto 15px;")
+              i.fas.fa-phone-alt(aria-hidden="true")
+            h2.fw-semibold.mb-2(style="color: #0057B7; font-weight: 600; font-size: 20px;") Contact Hotline
+            p.text-muted.small.mb-0#modalPhoneConfirmMessage(style="font-size: 14px;") Would you like to call (028) 372 52002?
+          .modal-footer.border-0.justify-content-center.pt-0.pb-4
+            button.btn.btn-light.px-4(type="button" data-bs-dismiss="modal" style="border-radius: 20px; font-weight: 500;") Cancel
+            a.btn.btn-primary.px-4#modalPhoneConfirmCall(href="" style="border-radius: 20px; font-weight: 500; background-color: #0057B7; border-color: #0057B7;") Call Now
+
+    script(src=`/client/assets/js/jquery-3.7.1.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/bootstrap.bundle.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/jquery.waypoints.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/jquery.countup.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/jquery.nice-select.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/simplyCountdown.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/slick.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/venobox.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/wow.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/jquery.pwstabs.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/scroll_button.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/range_slider.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/sticky_sidebar.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/multiple-image-video.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/notyf.min.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/just-validate.min.js?v=${assetVersion}`)
+    script(src="https://cdn.gtranslate.net/widgets/latest/dwf.js" defer)
+    script(src=`/client/assets/js/custom.js?v=${assetVersion}`)
+    script(src=`/client/assets/js/main.js?v=${assetVersion}`)
+    script(src="/socket.io/socket.io.js")
+    script(src=`/client/assets/js/chat.js?v=${assetVersion}`)
+
+    script(type="speculationrules").
+      {
+        "prefetch": [
+          {
+            "source": "document",
+            "where": {
+              "and": [
+                { "href_matches": "/*" },
+                { "not": { "href_matches": "/admin/*" } },
+                { "not": { "href_matches": "/auth/*" } },
+                { "not": { "href_matches": "/checkout/*" } },
+                { "not": { "href_matches": "/order/*" } }
+              ]
+            },
+            "eagerness": "moderate"
+          }
+        ]
+      }
+    script.
+      (function() {
+        if (!('fetch' in window)) return;
+        const prefetched = new Set();
+        const prefetch = function(url) {
+          if (!url || prefetched.has(url)) return;
+          prefetched.add(url);
+          const link = document.createElement('link');
+          link.rel = 'prefetch';
+          link.href = url;
+          document.head.appendChild(link);
+        };
+        document.addEventListener('mouseover', function(e) {
+          const a = e.target.closest('a');
+          if (!a || !a.href || a.origin !== location.origin || a.target === '_blank') return;
+          const p = a.pathname;
+          if (p.startsWith('/admin') || p.startsWith('/auth') || p.startsWith('/checkout') || p.startsWith('/order')) return;
+          prefetch(p + a.search);
+        }, { passive: true });
+        document.addEventListener('touchstart', function(e) {
+          const a = e.target.closest('a');
+          if (!a || !a.href || a.origin !== location.origin || a.target === '_blank') return;
+          const p = a.pathname;
+          if (p.startsWith('/admin') || p.startsWith('/auth') || p.startsWith('/checkout') || p.startsWith('/order')) return;
+          prefetch(p + a.search);
+        }, { passive: true });
+      })();

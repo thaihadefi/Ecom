@@ -1,0 +1,29 @@
+extends ../layouts/default.pug
+
+block main
+  if permissions.includes('dashboard')
+    .row
+      .col-md-12
+        .card
+          .card-header
+            h4.card-title Top 10 Best Selling Products
+          .card-body
+            table.table.table-bordered.table-hover
+              thead
+                tr
+                  th.text-center(scope="col") No.
+                  th(scope="col") Product Name
+                  th.text-center(scope="col") Quantity Sold
+                  th.text-end(scope="col") Revenue
+              tbody
+                if (topProducts.length > 0)
+                  each item, index in topProducts
+                    tr
+                      td.text-center #{index + 1}
+                      td #{item.name}
+                      td.text-center #{item.totalQuantity}
+                      td.text-end #{(item.totalRevenue || 0).toLocaleString("vi-VN")} ₫
+                else
+                  tr
+                    td(colspan="4" class="text-center text-muted")
+                      | No data available

@@ -1,0 +1,77 @@
+extends ../layouts/default.pug
+
+block main
+  if permissions.includes('dashboard')
+    .row.mb-3
+      .col-12
+        .card
+          .card-body.py-2
+            form#formDateFilterRevenue.d-flex.align-items-center.flex-wrap.gap-2(data-date-filter data-chart="revenue")
+              label.mb-0.text-muted.small.me-1 From
+              input.form-control.form-control-sm(
+                type="date"
+                name="from"
+                style="width:150px"
+              )
+              label.mb-0.text-muted.small.mx-1 To
+              input.form-control.form-control-sm(
+                type="date"
+                name="to"
+                style="width:150px"
+              )
+              button.btn.btn-primary.btn-sm(type="submit") Filter
+              button#btnRevenueReset.btn.btn-outline-secondary.btn-sm(type="button" style="display:none") Reset
+
+    #revenueCustomSection(style="display:none")
+      .row
+        .col-12
+          .card
+            .card-header
+              h4.card-title#revenueCustomTitle Custom Range Revenue
+            .card-body.pt-0
+              canvas#revenueChartCustom
+
+    #revenueDefaultSection
+      .row
+        .col-md-12.col-lg-12
+          .card
+            .card-header
+              .row.align-items-center
+                .col
+                  h4.card-title Revenue Chart by Hour
+            .card-body.pt-0
+              canvas#revenueChartHour
+
+      .row
+        .col-md-12.col-lg-12
+          .card
+            .card-header
+              .row.align-items-center
+                .col
+                  h4.card-title Revenue Chart by Day
+            .card-body.pt-0
+              canvas#revenueChartDay
+
+      .row
+        .col-md-12.col-lg-12
+          .card
+            .card-header
+              .row.align-items-center
+                .col
+                  h4.card-title Revenue Chart by Month
+            .card-body.pt-0
+              canvas#revenueChartMonth
+
+block script
+  script(src="https://cdn.jsdelivr.net/npm/chart.js")
+  script.
+    const labelsHour = !{JSON.stringify(labelsHour)};
+    const todayData = !{JSON.stringify(todayData)};
+    const yesterdayData = !{JSON.stringify(yesterdayData)};
+    const labelsDay = !{JSON.stringify(labelsDay)};
+    const thisMonthData = !{JSON.stringify(thisMonthData)};
+    const lastMonthData = !{JSON.stringify(lastMonthData)};
+    const labelsMonth = !{JSON.stringify(labelsMonth)};
+    const thisYearData = !{JSON.stringify(thisYearData)};
+    const lastYearData = !{JSON.stringify(lastYearData)};
+  script(src="/admin/assets/js/my-chart.js")

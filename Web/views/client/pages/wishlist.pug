@@ -1,0 +1,28 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner(
+    {
+      name: pageTitle
+    },
+    `/wishlist`
+  )
+
+  section(class="wishlist_page cart_page mt_100 mb_100")
+    .container
+      .row.justify-content-center
+        .col-xxl-10.col-xl-11
+          .wow.fadeInUp(class="cart_table_area")
+            .table-responsive
+              table.table
+                thead
+                  tr
+                    th(class="cart_page_img") Product Image
+                    th(class="cart_page_details") Product Details
+                    th(class="cart_page_price") Price
+                    th(class="cart_page_quantity") Quantity
+                    th(class="cart_page_price") Subtotal
+                    th(class="cart_page_action") Action
+                tbody(wishlist-table)
+

@@ -1,0 +1,50 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner({ name: pageTitle }, "/faq")
+
+  section.mt_80.mb_100
+    .container
+      .row.justify-content-center
+        .col-lg-8
+          .accordion#faqAccordion
+            .accordion-item.faq-item
+              h2.accordion-header
+                button.accordion-button(type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true" aria-controls="faq1")
+                  | What products and categories do you offer?
+              .accordion-collapse.collapse.show#faq1(data-bs-parent="#faqAccordion")
+                .accordion-body.faq-body
+                  | We offer a diverse selection of high-quality products across multiple categories including electronics, home essentials, lifestyle goods, and fashion. All items undergo strict quality verification to ensure authentic quality and customer satisfaction.
+
+            .accordion-item.faq-item
+              h2.accordion-header
+                button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2")
+                  | How are shipping fees and delivery times calculated?
+              .accordion-collapse.collapse#faq2(data-bs-parent="#faqAccordion")
+                .accordion-body.faq-body
+                  | Shipping fees are calculated in real-time based on your exact delivery address via our integrated carrier network. Standard delivery typically takes 2–4 business days with end-to-end tracking provided in your account dashboard.
+
+            .accordion-item.faq-item
+              h2.accordion-header
+                button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3")
+                  | What payment methods do you support?
+              .accordion-collapse.collapse#faq3(data-bs-parent="#faqAccordion")
+                .accordion-body.faq-body
+                  | We support flexible and secure payment methods including Cash on Delivery (COD), digital wallets (ZaloPay, VNPay), and major credit/debit cards. All online transactions are protected by industry-standard encryption.
+
+            .accordion-item.faq-item
+              h2.accordion-header
+                button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4")
+                  | Can I cancel or change my order?
+              .accordion-collapse.collapse#faq4(data-bs-parent="#faqAccordion")
+                .accordion-body.faq-body
+                  | Orders can be cancelled or modified directly from your dashboard while in Pending status, or by contacting our 24/7 support team via live chat before dispatch.
+
+            .accordion-item.faq-item
+              h2.accordion-header
+                button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5")
+                  | What is your return and warranty policy?
+              .accordion-collapse.collapse#faq5(data-bs-parent="#faqAccordion")
+                .accordion-body.faq-body
+                  | We offer a 30-day hassle-free return policy for eligible unused items in original packaging, along with official warranty support for all electronic and mechanical products.

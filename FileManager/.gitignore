@@ -1,0 +1,9 @@
+node_modules/
+.env
+dist/
+
+# Temporary and dynamic user uploads storage
+media/temp/*
+!media/temp/.gitkeep
+media/users/*
+!media/users/.gitkeep

@@ -1,0 +1,58 @@
+header(class="header_main")
+  .container
+    .row.align-items-center
+      .col-lg-2.col-xl-2.col-xxl-2
+        div(class="header_logo_area")
+          a(
+            class="header_logo"
+            href="/"
+            )
+            img.img-fluid.w-100.notranslate(
+              alt="Logo"
+              src=`${settingGeneral && settingGeneral.logo ? domainCDN + settingGeneral.logo : '/images/logo.png'}`
+              translate="no"
+              )
+          button.d-block.d-lg-none(
+            aria-controls="offcanvasWithBothOptions"
+            aria-label="Open menu"
+            data-bs-target="#offcanvasWithBothOptions"
+            data-bs-toggle="offcanvas"
+            class="mobile_menu_icon"
+            type="button"
+            )
+            span(class="mobile_menu_icon")
+              i.fas.fa-bars(class="menu_icon_bar" aria-hidden="true")
+      .col-lg-5.col-xl-5.col-xxl-5.d-none.d-lg-block
+        form(form-search)
+          .input
+            span(class="inner-voice" button-voice)
+              <i class="fas fa-microphone" aria-hidden="true"></i>
+            input(
+              placeholder="Search products..."
+              type="text"
+              name="keyword"
+              aria-label="Search products"
+              )
+            button(type="submit" aria-label="Search")
+              i.fas.fa-search(aria-hidden="true")
+          .inner-suggest(style="display: none;")
+            .inner-title Suggested Products
+            .inner-list
+      .col-lg-5.col-xl-5.col-xxl-5.d-none.d-lg-flex.align-items-center.justify-content-end.gap-3.gap-xl-4
+        .header_support_user
+          div(class="header_support")
+            a.icon(href="tel:02837252002" aria-label="Call Hotline")
+              i.fas.fa-phone-alt(aria-hidden="true")
+            .header_hotline
+              span.header_hotline_label Hotline:
+              a(href="tel:02837252002")
+                span (028) 372 52002
+        .d-flex.align-items-center.topbar_right
+          .gtranslate_wrapper
+          select(class="select_js notranslate" translate="no" aria-label="Select currency" data-currency-switcher)
+            option(value="VND") VND
+            option(value="USD") USD
+            option(value="EUR") EUR
+            option(value="JPY") JPY
+            option(value="GBP") GBP
+            option(value="CNY") CNY

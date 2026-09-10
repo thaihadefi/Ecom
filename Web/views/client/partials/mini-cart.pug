@@ -1,0 +1,27 @@
+div(class="mini_cart" mini-cart)
+  #offcanvasRight.offcanvas.offcanvas-end(
+    aria-labelledby="offcanvasRightLabel"
+    tabindex="-1"
+    )
+    .offcanvas-header
+      h2#offcanvasRightLabel.offcanvas-title
+        | Cart (
+        span(mini-cart-quantity) 0
+        | )
+      button.btn-close(
+        aria-label="Close"
+        data-bs-dismiss="offcanvas"
+        type="button"
+        )
+        i.fas.fa-times(aria-hidden="true")
+    .offcanvas-body
+      ul
+      p.minicart_subtotal
+        | Subtotal
+        span
+          span(sub-total) 0
+      div(class="minicart_btn_area")
+        a(
+          href="/cart"
+          class="common_btn"
+          ) View Cart

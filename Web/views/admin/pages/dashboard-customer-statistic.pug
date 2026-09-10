@@ -1,0 +1,78 @@
+extends ../layouts/default.pug
+
+block main
+  if permissions.includes('dashboard')
+    .row
+      .col-md-12.col-lg-12
+        .card
+          .card-header
+            .row.align-items-center
+              .col
+                h4.card-title Total Customers
+          .card-body.pt-0
+            .row.g-3
+              .col-md-6.col-lg-3
+                .card.shadow-none.border.mb-3.mb-lg-0.h-100
+                  .card-body
+                    .row.align-items-center
+                      .col.text-center
+                        h6.text-muted.mb-2.m-0 Total Customers
+                        div.fs-18.fw-semibold #{totalUsers.toLocaleString("vi-VN")}
+              .col-md-6.col-lg-3
+                .card.shadow-none.border.mb-3.mb-lg-0.h-100
+                  .card-body
+                    .row.align-items-center
+                      .col.text-center
+                        h6.text-muted.mb-2.m-0 New Customers Today
+                        div.fs-18.fw-semibold #{todayUsers.toLocaleString("vi-VN")}
+                        div
+                          if todayPercent >= 0
+                            | Increase
+                            span.text-success.mx-1 #{todayPercent.toFixed(1)}%
+                          else
+                            | Decrease
+                            span.text-danger.mx-1 #{Math.abs(todayPercent).toFixed(1)}%
+                          |  compared to yesterday
+              .col-md-6.col-lg-3
+                .card.shadow-none.border.mb-3.mb-lg-0.h-100
+                  .card-body
+                    .row.align-items-center
+                      .col.text-center
+                        h6.text-muted.mb-2.m-0 New Customers This Month
+                        div.fs-18.fw-semibold #{thisMonthUsers.toLocaleString("vi-VN")}
+                        div
+                          if monthPercent >= 0
+                            | Increase
+                            span.text-success.mx-1 #{monthPercent.toFixed(1)}%
+                          else
+                            | Decrease
+                            span.text-danger.mx-1 #{Math.abs(monthPercent).toFixed(1)}%
+                          |  compared to last month
+
+    .row
+      .col-md-12
+        .card
+          .card-header
+            h4.card-title Top 10 Best Customers
+          .card-body
+            table.table.table-bordered.table-hover
+              thead
+                tr
+                  th.text-center(scope="col") No.
+                  th(scope="col") Customer
+                  th(scope="col") Phone
+                  th.text-center(scope="col") Orders
+                  th.text-end(scope="col") Total Spent
+              tbody
+                if (topUsers.length > 0)
+                  each item, index in topUsers
+                    tr
+                      td.text-center #{index + 1}
+                      td #{item.fullName}
+                      td #{item.phone}
+                      td.text-center #{item.totalOrders}
+                      td.text-end #{(item.totalSpent || 0).toLocaleString("vi-VN")} ₫
+                else
+                  tr
+                    td(colspan="5" class="text-center text-muted")
+                      | No data available

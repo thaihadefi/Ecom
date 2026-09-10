@@ -1,0 +1,133 @@
+import { toSearchText } from '../../helpers/slugify.helper';
+import CategoryProduct from '../../models/category-product.model';
+import { ICategoryProduct, ICategoryProductInput } from '../../interfaces/models/category-product.interface';
+import { buildCategoryTree } from '../../helpers/category.helper';
+import { softDeleteMany, restoreMany, permanentlyDeleteMany } from "../../helpers/admin-crud.helper";
+import { paginatedSearch } from "../../helpers/list-query.helper";
+import { metadataCache, CACHE_KEYS, invalidateCategoryProductTree } from "../../helpers/metadata-cache.helper";
+
+export const getCategoryProductList = async (rawKeyword?: unknown, rawPage?: unknown) => {
+  const { recordList, pagination } = await paginatedSearch(CategoryProduct, rawKeyword, rawPage, {
+    select: "_id name slug parent avatar status view",
+  });
+
+  const parentIds = [...new Set(recordList.filter((i) => i.parent).map((i) => String(i.parent)))];
+  if (parentIds.length > 0) {
+    const parents = await CategoryProduct.find({ _id: { $in: parentIds } }).select("name");
+    const parentMap = new Map(parents.map((p) => [String(p._id), p.name]));
+    for (const item of recordList) {
+      if (item.parent) item.parentName = parentMap.get(String(item.parent));
+    }
+  }
+
+  return {
+    recordList,
+    pagination
+  };
+};
+
+export const getCategoryProductTree = async (filter: Record<string, unknown> = {}) => {
+  const isDefaultClientFilter = Object.keys(filter).length === 1 && filter.deleted === false;
+  if (isDefaultClientFilter) {
+    const cached = metadataCache.get(CACHE_KEYS.CATEGORY_PRODUCT_TREE);
+    if (cached) return cached as ReturnType<typeof buildCategoryTree>;
+  }
+
+  const categoryList = await CategoryProduct.find(filter).select("_id name slug parent status");
+  const tree = buildCategoryTree(categoryList);
+
+  if (isDefaultClientFilter) {
+    metadataCache.set(CACHE_KEYS.CATEGORY_PRODUCT_TREE, tree);
+  }
+
+  return tree;
+};
+
+
+export const createCategoryProduct = async (data: ICategoryProductInput): Promise<{ success: boolean; message: string; category?: ICategoryProduct }> => {
+  const existSlug = await CategoryProduct.findOne({
+    slug: String(data.slug || "")
+  }).select("_id");
+
+  if (existSlug) {
+    return { success: false, message: "Slug already exists!" };
+  }
+
+  data.search = toSearchText(`${data.name}`);
+  const newRecord = new CategoryProduct(data);
+  await newRecord.save();
+  invalidateCategoryProductTree();
+
+  return { success: true, message: "Category created successfully!", category: newRecord };
+};
+
+export const getCategoryProductById = async (id: string) => {
+  return CategoryProduct.findOne({ _id: id, deleted: false });
+};
+
+export const updateCategoryProduct = async (id: string, data: ICategoryProductInput): Promise<{ success: boolean; message: string }> => {
+  const existSlug = await CategoryProduct.findOne({
+    _id: { $ne: id },
+    slug: String(data.slug || "")
+  }).select("_id");
+
+  if (existSlug) {
+    return { success: false, message: "Slug already exists!" };
+  }
+
+  data.search = toSearchText(`${data.name}`);
+  await CategoryProduct.updateOne({ _id: id, deleted: false }, data);
+  invalidateCategoryProductTree();
+
+  return { success: true, message: "Updated successfully!" };
+};
+
+export const softDeleteCategoryProduct = async (id: string) => {
+  await CategoryProduct.updateOne({ _id: id }, { deleted: true, deletedAt: Date.now() });
+  invalidateCategoryProductTree();
+  return { success: true, message: "Category deleted successfully!" };
+};
+
+export const restoreCategoryProduct = async (id: string) => {
+  await CategoryProduct.updateOne({ _id: id }, { deleted: false });
+  invalidateCategoryProductTree();
+  return { success: true, message: "Restored successfully!" };
+};
+
+export const permanentlyDeleteCategoryProduct = async (id: string) => {
+  await CategoryProduct.deleteOne({ _id: id });
+  invalidateCategoryProductTree();
+  return { success: true, message: "Deleted permanently!" };
+};
+
+export const getCategoryProductTrash = async () => {
+  const recordList = await CategoryProduct.find({ deleted: true }).sort({ deletedAt: "desc" });
+  const parentIds = [...new Set(recordList.filter((i) => i.parent).map((i) => String(i.parent)))];
+  if (parentIds.length > 0) {
+    const parents = await CategoryProduct.find({ _id: { $in: parentIds } }).select("name");
+    const parentMap = new Map(parents.map((p) => [String(p._id), p.name]));
+    for (const item of recordList) {
+      if (item.parent) item.parentName = parentMap.get(String(item.parent));
+    }
+  }
+  return recordList;
+};
+
+export const softDeleteManyCategoryProducts = async (ids: string[]) => {
+  const res = await softDeleteMany(CategoryProduct, ids, "category");
+  invalidateCategoryProductTree();
+  return res;
+};
+
+export const restoreManyCategoryProducts = async (ids: string[]) => {
+  const res = await restoreMany(CategoryProduct, ids, "category");
+  invalidateCategoryProductTree();
+  return res;
+};
+
+export const permanentlyDeleteManyCategoryProducts = async (ids: string[]) => {
+  const res = await permanentlyDeleteMany(CategoryProduct, ids, "category");
+  invalidateCategoryProductTree();
+  return res;
+};
+

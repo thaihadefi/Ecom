@@ -1,0 +1,11 @@
+#modalConfirm.modal.fade(tabindex="-1" aria-labelledby="modalConfirmLabel" aria-hidden="true")
+  .modal-dialog.modal-dialog-centered.modal-sm
+    .modal-content.confirm_modal
+      .modal-body
+        span.confirm_modal_icon
+          i.fas.fa-exclamation-triangle(aria-hidden="true")
+        h2#modalConfirmLabel.confirm_modal_title Are you sure?
+        p#modalConfirmMessage.confirm_modal_text This action cannot be undone.
+      .modal-footer
+        button.confirm_modal_cancel(type="button" data-bs-dismiss="modal") Cancel
+        button#modalConfirmOk.confirm_modal_ok(type="button") Confirm

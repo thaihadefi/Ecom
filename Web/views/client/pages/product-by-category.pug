@@ -1,0 +1,35 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner(
+    categoryDetail,
+    `/product/category/${categoryDetail.slug}`
+  )
+  section(class="shop_page mt_100 mb_100")
+    .container
+      .row
+        .col-xxl-3.col-lg-4.col-xl-3
+          include ../partials/sticky-sidebar-shop.pug
+        .col-xxl-9.col-lg-8.col-xl-9
+          include ../partials/product-page-top.pug
+          #nav-tabContent.tab-content
+            #nav-home.tab-pane.fade.show.active(
+              tabindex="0"
+              aria-labelledby="nav-home-tab"
+              role="tabpanel"
+              )
+              .row
+                each item in productList
+                  .col-6.col-md-4.col-lg-4.col-xl-4.col-xxl-4.wow.fadeInUp
+                    +product-item(item)
+            #nav-profile.tab-pane.fade(
+              tabindex="0"
+              aria-labelledby="nav-profile-tab"
+              role="tabpanel"
+              )
+              .row
+                each item in productList
+                  .col-12
+                    +product-list-item(item)
+          include ../partials/pagination-area.pug
