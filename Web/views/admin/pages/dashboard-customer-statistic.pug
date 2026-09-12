@@ -62,7 +62,7 @@ block main
                   th(scope="col") Customer
                   th(scope="col") Phone
                   th.text-center(scope="col") Orders
-                  th.text-end(scope="col") Total Spent
+                  th.text-end.text-nowrap(scope="col") Total Spent
               tbody
                 if (topUsers.length > 0)
                   each item, index in topUsers
@@ -71,7 +71,7 @@ block main
                       td #{item.fullName}
                       td #{item.phone}
                       td.text-center #{item.totalOrders}
-                      td.text-end #{(item.totalSpent || 0).toLocaleString("vi-VN")} ₫
+                      td.text-end.text-nowrap #{formatVND(item.totalSpent)}
                 else
                   tr
                     td(colspan="5" class="text-center text-muted")

@@ -56,6 +56,13 @@ const schema = new mongoose.Schema(
     search: String,
     tags: [String],
     boughtTogether: [String],
+    cfRecommendations: [
+      {
+        productId: String,
+        score: Number,
+        _id: false
+      }
+    ],
     ratingAvg: {
       type: Number,
       default: 0

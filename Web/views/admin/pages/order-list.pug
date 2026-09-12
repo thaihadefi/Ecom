@@ -37,11 +37,11 @@ block main
                   th(scope="col") No.
                   th(scope="col") Order Code
                   th(scope="col") Customer
-                  th(scope="col") Total
+                  th.text-nowrap(scope="col") Total
                   th(scope="col") Payment
                   th(scope="col") Payment Status
                   th(scope="col") Order Status
-                  th(scope="col") Date Created
+                  th.text-nowrap(scope="col") Date Created
                   th.text-end(scope="col") Action
               tbody
                 if !recordList || !recordList.length
@@ -57,8 +57,8 @@ block main
                       td
                         div #{item.fullName}
                         small.text-muted #{item.phone}
-                      td
-                        b.text-danger #{(item.total || 0).toLocaleString('vi-VN')} VND
+                      td.text-nowrap
+                        b.text-danger #{(item.total || 0).toLocaleString('vi-VN')}&nbsp;₫
                       td
                         case item.paymentMethod
                           when "money"
@@ -89,8 +89,8 @@ block main
                             span.badge.bg-danger Cancelled
                           when "returned"
                             span.badge.bg-dark Returned
-                      td
-                        | #{item.createdAt ? item.createdAt.toLocaleString('vi-VN') : ''}
+                      td.text-nowrap
+                        | #{formatDateTime(item.createdAt)}
                       td.text-end
                         a.tbl-action(
                           href=`/${pathAdmin}/order/edit/${item.id}`

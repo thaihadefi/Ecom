@@ -46,9 +46,9 @@ block main
                                   if (index < item.variant.length - 1)
                                     | ,
                                 | )
-                            td #{(item.price || 0).toLocaleString("vi-VN")} VND
+                            td.text-nowrap #{(item.price || 0).toLocaleString("vi-VN")}&nbsp;₫
                             td #{item.quantity}
-                            td #{((item.price || 0) * item.quantity).toLocaleString("vi-VN")} VND
+                            td.text-nowrap #{((item.price || 0) * item.quantity).toLocaleString("vi-VN")}&nbsp;₫
                             td
                               if (item.review)
                                 div
@@ -103,7 +103,7 @@ block main
                         | #{orderDetail.address}
                       li
                         span Order Date:
-                        | #{orderDetail.createdAt ? orderDetail.createdAt.toLocaleString('vi-VN') : ''}
+                        | #{formatDateTime(orderDetail.createdAt)}
 
   div(class="rating_modal")
     #modalReview.modal.fade(

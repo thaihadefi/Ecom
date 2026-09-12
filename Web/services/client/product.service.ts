@@ -7,6 +7,7 @@ import AccountUser from '../../models/account-user.model';
 import { formatProductItem } from '../../helpers/product.helper';
 import { PAGINATION } from '../../configs/pagination.config';
 import { PRODUCT_DISPLAY_CONFIG } from '../../configs/product-display.config';
+import { RECOMMENDATION_CONFIG } from '../../configs/recommendation.config';
 import { getPagination } from '../../helpers/pagination.helper';
 import { IAccountUser } from '../../interfaces/models/account-user.interface';
 import { ICategoryProduct } from '../../interfaces/models/category-product.interface';
@@ -343,7 +344,16 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
       slug: c.slug ?? ""
     }));
 
-    const [relatedProducts, boughtTogetherProducts, reviewList] = await Promise.all([
+    // Admin-curated boughtTogether wins when set; otherwise fall back to CF (services/admin/recommendation.service.ts).
+    const usingCfFallback = !productDetail.boughtTogether || productDetail.boughtTogether.length === 0;
+    const cfIdsByScore = usingCfFallback
+      ? [...(productDetail.cfRecommendations || [])]
+          .sort((a, b) => b.score - a.score)
+          .map((r) => r.productId)
+      : [];
+    const boughtTogetherIds = usingCfFallback ? cfIdsByScore : productDetail.boughtTogether;
+
+    const [relatedProducts, boughtTogetherProductsRaw, reviewList] = await Promise.all([
       Product.find({
         _id: { $ne: productDetail.id },
         category: { $in: productDetail.category },
@@ -353,18 +363,41 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
         .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
         .sort({ view: "desc" })
         .limit(PRODUCT_DISPLAY_CONFIG.RELATED_PRODUCTS_LIMIT),
-      Product.find({
-        _id: { $in: productDetail.boughtTogether },
-        deleted: false,
-        status: "active"
-      })
-        .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
-        .sort({ position: "desc" })
-        .limit(PRODUCT_DISPLAY_CONFIG.BOUGHT_TOGETHER_LIMIT),
+      usingCfFallback
+        ? Product.find({
+            _id: { $in: boughtTogetherIds },
+            deleted: false,
+            status: "active"
+          })
+            .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
+            // Defensive cap at TOP_N, not the smaller display limit - capping there before filtering out deleted items under-fills the list.
+            .limit(RECOMMENDATION_CONFIG.TOP_N)
+        : Product.find({
+            _id: { $in: boughtTogetherIds },
+            deleted: false,
+            status: "active"
+          })
+            .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
+            .sort({ position: "desc" })
+            .limit(PRODUCT_DISPLAY_CONFIG.BOUGHT_TOGETHER_LIMIT),
       Review.find({ productId: productDetail.id, status: { $ne: "rejected" } })
         .select("userId rating comment images reportCount reportedBy createdAt")
         .sort({ createdAt: "desc" })
     ]);
+
+    // Preserve CF ranking order (Mongo doesn't guarantee $in order); limit only after filtering deleted/inactive candidates.
+    const cfBoughtTogetherProducts = usingCfFallback
+      ? (cfIdsByScore
+          .map((id) => boughtTogetherProductsRaw.find((p) => String(p.id) === String(id)))
+          .filter((p) => Boolean(p)) as typeof boughtTogetherProductsRaw
+        ).slice(0, PRODUCT_DISPLAY_CONFIG.BOUGHT_TOGETHER_LIMIT)
+      : boughtTogetherProductsRaw;
+
+    // Cold-start fallback: no CF data yet, so backfill with same-category bestsellers instead of an empty section.
+    const boughtTogetherProducts =
+      usingCfFallback && cfBoughtTogetherProducts.length === 0
+        ? relatedProducts.slice(0, PRODUCT_DISPLAY_CONFIG.BOUGHT_TOGETHER_LIMIT)
+        : cfBoughtTogetherProducts;
 
     const reviewUserIds = [...new Set(reviewList.map((r) => String(r.userId)).filter(Boolean))];
     if (reviewUserIds.length > 0) {

@@ -57,7 +57,7 @@ block main
                           span.badge.bg-success Read
                         else
                           span.badge.bg-warning Unread
-                      td #{item.createdAt ? item.createdAt.toLocaleString("vi-VN") : ''}
+                      td.text-nowrap #{formatDateTime(item.createdAt)}
                       td.text-end
                         if (!item.read)
                           a.tbl-action(

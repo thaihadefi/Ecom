@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { getApiAppPassword, getGeneral } from "../configs/setting.config";
+import { formatVND } from "./format.helper";
 
 const BRAND_BLUE = "#0057B7";
 const BRAND_YELLOW = "#FFD700";
@@ -15,10 +16,6 @@ function htmlEscape(str: string): string {
 async function getStoreName(): Promise<string> {
   const general = await getGeneral();
   return String(general.websiteName || "Store");
-}
-
-function formatVND(amount: number): string {
-  return amount.toLocaleString("vi-VN") + "đ";
 }
 
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
@@ -225,7 +222,7 @@ export const emailTemplates = {
     const color = statusColor[newStatus] || "#374151";
 
     return {
-      subject: `Order #${order.code} — ${label} - ${storeName}`,
+      subject: `Order #${order.code} - ${label} - ${storeName}`,
       html: buildEmailHtml(
         storeName,
         "Your order status has been updated",

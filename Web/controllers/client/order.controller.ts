@@ -5,7 +5,7 @@ import * as vnpayService from '../../services/payment/vnpay.service';
 
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const result = await orderService.createOrder(req.body, res.locals.accountUser);
+    const result = await orderService.createOrder(req.body, res.locals.accountUser, req.ip);
 
     if (!result.success) {
       res.json({

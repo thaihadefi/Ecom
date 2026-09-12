@@ -87,11 +87,11 @@ document.querySelectorAll('[data-date-filter]').forEach(function(form) {
   validator
     .addField('#' + formId + ' [name="from"]', [
       { rule: 'required', errorMessage: 'Please select a start date' },
-      { rule: 'custom', validator: isValidDate, errorMessage: 'Invalid date — check day, month (1–12), year' },
+      { rule: 'custom', validator: isValidDate, errorMessage: 'Invalid date - check day, month (1-12), year' },
     ])
     .addField('#' + formId + ' [name="to"]', [
       { rule: 'required', errorMessage: 'Please select an end date' },
-      { rule: 'custom', validator: isValidDate, errorMessage: 'Invalid date — check day, month (1–12), year' },
+      { rule: 'custom', validator: isValidDate, errorMessage: 'Invalid date - check day, month (1-12), year' },
       {
         rule: 'custom',
         validator: function(val) {

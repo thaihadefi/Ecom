@@ -81,6 +81,18 @@ const schema = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    isAnomalous: {
+      type: Boolean,
+      default: false
+    },
+    anomalyScore: {
+      type: Number,
+      default: 0
+    },
+    anomalyReason: String,
+    anomalyDismissedAt: Date,
+    anomalyScoredAt: Date,
+    ip: String,
     deleted: {
       type: Boolean,
       default: false
@@ -102,6 +114,12 @@ schema.index({ createdAt: -1 });
 schema.index({ paymentStatus: 1, orderStatus: 1, deleted: 1 });
 schema.index({ userId: 1, createdAt: -1 });
 schema.index({ deleted: 1, createdAt: -1 });
+// Matches getFlaggedOrders' filter+sort shape.
+schema.index({ isAnomalous: 1, deleted: 1, anomalyScore: -1, createdAt: -1 });
+schema.index({ phone: 1, createdAt: -1 });
+schema.index({ coupon: 1, createdAt: -1 });
+schema.index({ ip: 1, createdAt: -1 });
+schema.index({ anomalyScoredAt: 1, createdAt: -1 });
 
 import { IOrder } from '../interfaces/models/order.interface';
 

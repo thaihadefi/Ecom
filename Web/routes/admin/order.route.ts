@@ -5,6 +5,10 @@ import { checkPermission } from "../../middlewares/admin/auth.middleware";
 const router = Router();
 
 router.get('/list', orderController.list);
+router.get('/flagged', checkPermission("order-edit"), orderController.flaggedList);
+router.post('/flagged/retrain', checkPermission("order-edit"), orderController.retrainAnomalyModelPost);
+router.get('/flagged/retrain/status', checkPermission("order-edit"), orderController.retrainAnomalyModelStatus);
+router.patch('/flagged/dismiss/:id', checkPermission("order-edit"), orderController.dismissAnomalyPost);
 router.get('/trash', orderController.trash);
 router.get('/edit/:id', orderController.edit);
 router.get('/export/csv', orderController.exportCSV);

@@ -33,6 +33,8 @@
                   li.nav-item
                     a.nav-link(href=`/${pathAdmin}/dashboard/top-selling-products`) Top Selling Products
                   li.nav-item
+                    a.nav-link(href=`/${pathAdmin}/dashboard/inventory-forecast`) Inventory Forecast
+                  li.nav-item
                     a.nav-link(href=`/${pathAdmin}/dashboard/customer-statistic`) Customer Statistics
           if (permissionsSafe.includes("product-create") || permissionsSafe.includes("product-edit") || permissionsSafe.includes("product-delete"))
             li.nav-item
@@ -156,6 +158,13 @@
                 )
                 i.iconoir-bag.menu-icon
                 span Order Management
+          if (permissionsSafe.includes("order-edit"))
+            li.nav-item
+              a.nav-link(
+                href=`/${pathAdmin}/order/flagged`
+                )
+                i.iconoir-shield-alert.menu-icon
+                span Flagged Orders
           if (permissionsSafe.includes("review-edit") || permissionsSafe.includes("review-delete"))
             li.nav-item
               a.nav-link(

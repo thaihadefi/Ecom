@@ -17,18 +17,18 @@ block main
                 .card.shadow-none.border.h-100.mb-0
                   .card-body.text-center
                     p.text-muted.small.mb-1 Total Revenue
-                    .fs-18.fw-semibold #{fmt(totalRevenue)} VND
+                    .fs-18.fw-semibold #{fmt(totalRevenue)} ₫
               .col-sm-6.col-lg-4
                 .card.shadow-none.border.h-100.mb-0
                   .card-body.text-center
                     p.text-muted.small.mb-1 Today
-                    .fs-18.fw-semibold #{fmt(todayRevenue)} VND
+                    .fs-18.fw-semibold #{fmt(todayRevenue)} ₫
                     small(class=pctClass(todayPercent)) #{pct(todayPercent)} vs yesterday
               .col-sm-6.col-lg-4
                 .card.shadow-none.border.h-100.mb-0
                   .card-body.text-center
                     p.text-muted.small.mb-1 This Month
-                    .fs-18.fw-semibold #{fmt(thisMonthRevenue)} VND
+                    .fs-18.fw-semibold #{fmt(thisMonthRevenue)} ₫
                     small(class=pctClass(monthPercent)) #{pct(monthPercent)} vs last month
 
     .row.mt-3

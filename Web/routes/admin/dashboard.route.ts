@@ -16,6 +16,8 @@ router.get('/order-statistic/data', db, dashboardController.orderStatisticData);
 
 router.get('/top-selling-products', db, dashboardController.topSellingProducts);
 
+router.get('/inventory-forecast', db, dashboardController.inventoryForecast);
+
 router.get('/customer-statistic', db, dashboardController.customerStatistic);
 
 export default router;

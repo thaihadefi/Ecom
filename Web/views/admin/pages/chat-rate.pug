@@ -20,7 +20,7 @@ block main
                       else
                         span.text-muted ★
                   .text-muted
-                    | #{item.ratedAt ? item.ratedAt.toLocaleString("vi-VN") : ''}
+                    | #{formatDateTime(item.ratedAt)}
                 if item.comment
                   .mt-2
                     | #{item.comment}

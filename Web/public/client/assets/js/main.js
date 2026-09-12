@@ -369,9 +369,9 @@ if(formSearch) {
                       <div class="inner-name">${item.name}</div>
                       <div class="inner-prices">
                         <div class="inner-price-new">
-                          ${(item.priceNew || 0).toLocaleString('vi-VN')} VND
+                          ${(item.priceNew || 0).toLocaleString('vi-VN')} ₫
                         </div>
-                        ${item.priceOld ? `<div class="inner-price-old">${item.priceOld.toLocaleString('vi-VN')} VND</div>` : ''}
+                        ${item.priceOld ? `<div class="inner-price-old">${item.priceOld.toLocaleString('vi-VN')} ₫</div>` : ''}
                       </div>
                     </div>
                   </a>
@@ -915,8 +915,8 @@ const drawCart = () => {
                     ${detail.name}
                   </a>
                   <p>
-                    ${priceNew.toLocaleString('vi-VN')} VND
-                    <del>${priceOld.toLocaleString('vi-VN')} VND</del>
+                    ${priceNew.toLocaleString('vi-VN')} ₫
+                    <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
                   </p>
                   <span>
                     <b>Quantity:</b> ${item.quantity}
@@ -948,13 +948,13 @@ const drawCart = () => {
                 <td class="cart_page_details">
                   <a class="title" href="/product/detail/${detail.slug}">${detail.name}</a>
                   <p>
-                    ${priceNew.toLocaleString('vi-VN')} VND
-                    <del>${priceOld.toLocaleString('vi-VN')} VND</del>
+                    ${priceNew.toLocaleString('vi-VN')} ₫
+                    <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
                   </p>
                   ${htmlVariant}
                 </td>
                 <td class="cart_page_price">
-                  <h3>${priceNew.toLocaleString('vi-VN')} VND</h3>
+                  <h3>${priceNew.toLocaleString('vi-VN')} ₫</h3>
                 </td>
                 <td class="cart_page_quantity">
                   <div class="details_qty_input">
@@ -974,7 +974,7 @@ const drawCart = () => {
                   </div>
                 </td>
                 <td class="cart_page_total">
-                  <h3>${(priceNew * item.quantity).toLocaleString('vi-VN')} VND</h3>
+                  <h3>${(priceNew * item.quantity).toLocaleString('vi-VN')} ₫</h3>
                 </td>
                 <td class="cart_page_action">
                   <a href="javascript:;" button-remove-item>
@@ -994,7 +994,7 @@ const drawCart = () => {
                     <a class="title" href="/product/detail/${detail.slug}">
                       ${detail.name}
                     </a>
-                    <p>${priceNew.toLocaleString('vi-VN')} VND × ${item.quantity}</p>
+                    <p>${priceNew.toLocaleString('vi-VN')} ₫ × ${item.quantity}</p>
                     ${htmlVariantSummary}
                   </div>
                 </li>
@@ -1026,7 +1026,7 @@ const drawCart = () => {
                     <small>${item.carrier_name} (${item.service} - ${item.expected}):</small>
                     <span>
                       <span>(+) </span>
-                      <span>${item.total_fee.toLocaleString('vi-VN')} VND</span>
+                      <span>${item.total_fee.toLocaleString('vi-VN')} ₫</span>
                     </span>
                   </label>
                 </div>
@@ -1062,7 +1062,7 @@ const drawCart = () => {
                 elementCoupon.innerHTML = couponDetail.code;
               }
             } else {
-              notyf.error(`Order has not reached minimum value: ${couponDetail.minOrderValue} VND`);
+              notyf.error(`Order has not reached minimum value: ${(couponDetail.minOrderValue || 0).toLocaleString('vi-VN')} ₫`);
               sessionStorage.removeItem("couponDetail");
             }
           }
@@ -1710,8 +1710,8 @@ const drawComparePage = () => {
             html3 += `
               <td>
                 <p>
-                  ${priceNew.toLocaleString('vi-VN')} VND
-                  <del>${priceOld.toLocaleString('vi-VN')} VND</del>
+                  ${priceNew.toLocaleString('vi-VN')} ₫
+                  <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
                 </p>
               </td>
             `;
@@ -1985,13 +1985,13 @@ const drawWishlistPage = () => {
                 <td class="cart_page_details">
                   <a class="title" href="/product/detail/${detail.slug}">${detail.name}</a>
                   <p>
-                    ${priceNew.toLocaleString('vi-VN')} VND
-                    <del>${priceOld.toLocaleString('vi-VN')} VND</del>
+                    ${priceNew.toLocaleString('vi-VN')} ₫
+                    <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
                   </p>
                   ${htmlVariant}
                 </td>
                 <td class="cart_page_price">
-                  <h3>${priceNew.toLocaleString('vi-VN')} VND</h3>
+                  <h3>${priceNew.toLocaleString('vi-VN')} ₫</h3>
                 </td>
                 <td class="cart_page_quantity">
                   <div class="details_qty_input">
@@ -2011,7 +2011,7 @@ const drawWishlistPage = () => {
                   </div>
                 </td>
                 <td class="cart_page_price">
-                  <h3>${(item.quantity*priceNew).toLocaleString('vi-VN')} VND</h3>
+                  <h3>${(item.quantity*priceNew).toLocaleString('vi-VN')} ₫</h3>
                 </td>
                 <td class="cart_page_action">
                   ${

@@ -46,6 +46,12 @@ export interface IOrder extends Document {
   usedPoint: number;
   pointDiscount: number;
   pointEarned?: number;
+  isAnomalous?: boolean;
+  anomalyScore?: number;
+  anomalyReason?: string;
+  anomalyDismissedAt?: Date;
+  anomalyScoredAt?: Date;
+  ip?: string;
   deleted: boolean;
   deletedBy?: string;
   deletedAt?: Date;

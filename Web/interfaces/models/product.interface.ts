@@ -8,6 +8,11 @@ export interface IProductAttributeValue {
   value: string;
 }
 
+export interface ICfRecommendation {
+  productId: string;
+  score: number;
+}
+
 export interface IProductVariant {
   status: boolean;
   price?: number;
@@ -40,6 +45,7 @@ export interface IProduct extends Document {
   search?: string;
   tags: string[];
   boughtTogether: string[];
+  cfRecommendations?: ICfRecommendation[];
   ratingAvg: number;
   ratingCount: number;
   colorList?: string[];

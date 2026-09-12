@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export const formatFileSize = (bytes: number): string => {
   if (bytes < 1024) return bytes + " B";
   if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
@@ -22,14 +24,21 @@ export function timeAgo(date: Date) {
   return "Just now";
 }
 
+export const formatDate = (date: Date | string | number | undefined): string => {
+  if (date === undefined || date === null || date === "") return "";
+  const m = moment(date);
+  return m.isValid() ? m.format("DD/MM/YYYY") : "";
+};
+
 export const formatDateTime = (date: Date | string | number | undefined): string => {
-  if (!date) return "";
-  return new Date(date).toLocaleString("vi-VN");
+  if (date === undefined || date === null || date === "") return "";
+  const m = moment(date);
+  return m.isValid() ? m.format("HH:mm DD/MM/YYYY") : "";
 };
 
 export const formatVND = (amount: number | string | undefined): string => {
-  if (amount === undefined || amount === null || amount === "") return "0 ₫";
+  if (amount === undefined || amount === null || amount === "") return "0\u00A0₫";
   const num = typeof amount === "number" ? amount : parseFloat(amount);
-  if (isNaN(num)) return "0 ₫";
-  return num.toLocaleString("vi-VN") + " ₫";
+  if (isNaN(num)) return "0\u00A0₫";
+  return num.toLocaleString("vi-VN") + "\u00A0₫";
 };

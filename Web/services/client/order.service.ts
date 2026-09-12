@@ -16,6 +16,7 @@ import { invalidateUserDashboardCache } from './dashboard.service';
 import { invalidateUserAuthCache } from './auth.service';
 import { invalidateAdminDashboardCaches } from '../admin/dashboard.service';
 import { invalidateProductCaches } from '../../helpers/metadata-cache.helper';
+import { scoreOrderForAnomaly } from '../admin/anomaly-detection.service';
 
 export interface OrderItemInput {
   productId: string;
@@ -50,7 +51,8 @@ export interface CreateOrderPayload {
 
 export const createOrder = async (
   payload: CreateOrderPayload,
-  accountUser?: { id?: string; email?: string; totalPoint?: number; usedPoint?: number }
+  accountUser?: { id?: string; email?: string; totalPoint?: number; usedPoint?: number },
+  clientIp?: string
 ) => {
   const dataFinal: {
     userId?: string;
@@ -79,6 +81,7 @@ export const createOrder = async (
       cod?: number;
     };
     total: number;
+    ip?: string;
   } = {
     items: [],
     subTotal: 0,
@@ -90,6 +93,7 @@ export const createOrder = async (
   };
 
   dataFinal.userId = accountUser?.id || "";
+  dataFinal.ip = clientIp;
 
   let code = "";
   let existCode = true;
@@ -359,6 +363,7 @@ export const createOrder = async (
     dataFinal.paymentStatus = "paid";
   }
 
+  let savedOrderId: string | undefined;
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
@@ -434,6 +439,7 @@ export const createOrder = async (
 
       const newRecord = new Order(dataFinal);
       await newRecord.save({ session });
+      savedOrderId = String(newRecord._id);
 
       if (accountUser?.id && dataFinal.usedPoint > 0) {
         await AccountUser.updateOne(
@@ -463,6 +469,11 @@ export const createOrder = async (
   }
   invalidateAdminDashboardCaches();
   invalidateProductCaches();
+
+  if (savedOrderId) {
+    // Advisory-only: never blocks checkout or changes order status.
+    scoreOrderForAnomaly(savedOrderId).catch((error) => console.error("Anomaly scoring error:", error));
+  }
 
   if (accountUser?.email) {
     emailTemplates.orderConfirmation({

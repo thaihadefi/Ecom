@@ -104,6 +104,9 @@ router.patch('/undo-many', checkPermission("product-edit"), productController.un
 router.delete('/destroy/:id', checkPermission("product-delete"), productController.destroyDelete);
 router.delete('/destroy-many', checkPermission("product-delete"), productController.destroyManyDelete);
 
+router.post('/recompute-recommendations', checkPermission("product-edit"), productController.recomputeRecommendationsPost);
+router.get('/recompute-recommendations/status', checkPermission("product-edit"), productController.recomputeRecommendationsStatus);
+
 router.get('/export/csv', productController.exportCSV);
 
 router.post(

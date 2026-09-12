@@ -1,0 +1,59 @@
+extends ../layouts/default.pug
+
+block main
+  if permissions.includes('dashboard')
+    .row
+      .col-md-12
+        .card
+          .card-header
+            h4.card-title Inventory Forecast &amp; Reorder Points
+            p.text-muted.mb-0
+              | Forecasted daily demand uses Holt's linear trend method (double exponential smoothing) over the
+              |  last #{lookbackDays} days of paid orders. Reorder point assumes a #{leadTimeDays}-day supplier
+              |  lead time and a 95% service level (safety stock).
+          .card-body
+            table.table.table-bordered.table-hover
+              thead
+                tr
+                  th(scope="col") Product
+                  th.text-center(scope="col") Current Stock
+                  th.text-center(scope="col") Forecasted Daily Demand
+                  th.text-center(scope="col") Reorder Point
+                  th.text-center(scope="col") Days of Supply
+                  th.text-center(scope="col") Status
+                  th.text-center(scope="col") Suggested Reorder Qty
+              tbody
+                if (items.length > 0)
+                  each item in items
+                    tr(class=item.needsReorder ? "table-danger" : "")
+                      td #{item.name}
+                      td.text-center #{item.currentStock}
+                      td.text-center
+                        | #{item.forecastedDailyDemand.toFixed(2)}
+                        if (item.insufficientData)
+                          br
+                          span.badge.bg-secondary.mt-1(title="Fewer than 5 sale-days in the window - using a flat average instead of a fitted trend") Low data
+                      td.text-center #{item.reorderPoint.toFixed(1)}
+                      td.text-center
+                        if (item.daysOfSupply === Infinity)
+                          | -
+                        else
+                          | #{item.daysOfSupply.toFixed(1)}
+                      td.text-center
+                        if (item.needsReorder && item.suggestedReorderQty === 0)
+                          span.badge.bg-warning.text-dark(title="Zero stock and no sales history to size a reorder from - review manually") Needs review
+                        else if (item.needsReorder)
+                          span.badge.bg-danger Reorder now
+                        else
+                          span.badge.bg-success OK
+                      td.text-center
+                        if (item.needsReorder && item.suggestedReorderQty === 0)
+                          | Unknown
+                        else if (item.needsReorder)
+                          | #{item.suggestedReorderQty}
+                        else
+                          | -
+                else
+                  tr
+                    td(colspan="7" class="text-center text-muted")
+                      | No products to forecast yet.

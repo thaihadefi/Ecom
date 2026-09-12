@@ -69,6 +69,15 @@ export const topSellingProducts = async (_req: Request, res: Response) => {
   });
 };
 
+export const inventoryForecast = async (_req: Request, res: Response) => {
+  const data = await dashboardService.getInventoryForecast();
+
+  res.render("admin/pages/dashboard-inventory-forecast.pug", {
+    pageTitle: "Inventory Forecast",
+    ...data
+  });
+};
+
 export const customerStatistic = async (_req: Request, res: Response) => {
   const data = await dashboardService.getCustomerStatistics();
 

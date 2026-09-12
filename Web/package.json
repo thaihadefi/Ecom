@@ -9,7 +9,11 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "lint:any": "bash -c '! grep -rn --include=\"*.ts\" --exclude-dir={node_modules,dist} \": any\\b\" .'"
+    "lint:any": "bash -c '! grep -rn --include=\"*.ts\" --exclude-dir={node_modules,dist} \": any\\b\" .'",
+    "seed:demo:products": "ts-node scripts/seed-demo-products.ts",
+    "seed:demo": "ts-node scripts/seed-demo-data.ts",
+    "seed:demo:undo": "ts-node scripts/unseed-demo-data.ts",
+    "calibrate:anomaly": "ts-node scripts/calibrate-anomaly-detection.ts"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.9",

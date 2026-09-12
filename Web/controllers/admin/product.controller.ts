@@ -5,6 +5,7 @@ import { logAdminAction } from '../../helpers/log.helper';
 import * as categoryProductService from '../../services/admin/category-product.service';
 import * as attributeProductService from '../../services/admin/attribute-product.service';
 import * as productService from '../../services/admin/product.service';
+import * as recommendationService from '../../services/admin/recommendation.service';
 
 export const category = async (req: Request, res: Response) => {
   const data = await categoryProductService.getCategoryProductList(req.query.keyword, req.query.page);
@@ -590,6 +591,27 @@ export const undoManyPatch = async (req: Request, res: Response) => {
     console.error("undoManyPatch error:", error);
     res.json({ code: "error", message: "Invalid data!" });
   }
+};
+
+// Kicks off the recompute in the background instead of awaiting it in the
+// request - same reasoning as anomaly-detection's retrain endpoint: a full
+// order-history scan + Product.bulkWrite can run past a browser/proxy HTTP
+// timeout at real order volumes. The admin UI polls
+// recomputeRecommendationsStatus for progress/result instead of waiting on
+// this response.
+export const recomputeRecommendationsPost = async (req: Request, res: Response) => {
+  const wasRunning = recommendationService.getManualRecomputeStatus().status === "running";
+  const status = recommendationService.triggerManualRecompute();
+  logAdminAction(req, "Triggered CF recommendation recompute (running in background)");
+  res.json({
+    code: "success",
+    message: wasRunning ? "A recompute is already in progress." : "Recompute started.",
+    status
+  });
+};
+
+export const recomputeRecommendationsStatus = async (_req: Request, res: Response) => {
+  res.json({ code: "success", status: recommendationService.getManualRecomputeStatus() });
 };
 
 export const changeMultiPatch = async (req: Request, res: Response) => {

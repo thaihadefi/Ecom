@@ -36,7 +36,7 @@ if (revenueChartHour) {
               return (
                 context.dataset.label +
                 ": " +
-                context.parsed.y.toLocaleString('vi-VN') + ' VND'
+                context.parsed.y.toLocaleString('vi-VN') + ' ₫'
               );
             },
           },
@@ -46,7 +46,7 @@ if (revenueChartHour) {
         y: {
           ticks: {
             callback: function (value) {
-              return value.toLocaleString('vi-VN') + ' VND';
+              return value.toLocaleString('vi-VN') + ' ₫';
             },
           },
         },
@@ -93,7 +93,7 @@ if (revenueChartDay) {
               return (
                 context.dataset.label +
                 ": " +
-                context.parsed.y.toLocaleString('vi-VN') + ' VND'
+                context.parsed.y.toLocaleString('vi-VN') + ' ₫'
               );
             },
           },
@@ -103,7 +103,7 @@ if (revenueChartDay) {
         y: {
           ticks: {
             callback: function (value) {
-              return value.toLocaleString('vi-VN') + ' VND';
+              return value.toLocaleString('vi-VN') + ' ₫';
             },
           },
         },
@@ -252,9 +252,9 @@ function drawRevenueChart(from, to) {
           responsive: true,
           plugins: {
             legend: { position: 'top' },
-            tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('vi-VN') + ' VND'; } } },
+            tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('vi-VN') + ' ₫'; } } },
           },
-          scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString('vi-VN') + ' VND'; } } } },
+          scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString('vi-VN') + ' ₫'; } } } },
         },
       });
 

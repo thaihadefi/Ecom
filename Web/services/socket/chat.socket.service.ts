@@ -41,7 +41,7 @@ async function runAtomically(
       const code = (err as { code?: number }).code;
       if (code !== 20 && !TXN_UNSUPPORTED.test(msg)) throw err;
       transactionsUnsupported = true;
-      console.warn('[Socket] MongoDB has no transaction support — chat writes fall back to non-atomic mode.');
+      console.warn('[Socket] MongoDB has no transaction support - chat writes fall back to non-atomic mode.');
     } finally {
       session.endSession();
     }
@@ -132,7 +132,7 @@ async function initAdminRoom(adminId: string, roomId: string): Promise<IChatRoom
   if (!roomId || !/^[0-9a-fA-F]{24}$/.test(roomId)) return null;
   const chatRoom = await ChatRoom.findOne({ _id: roomId }).select('adminId userId');
   if (!chatRoom || (chatRoom.adminId && chatRoom.adminId !== adminId)) {
-    console.warn(`[Socket] Admin ${adminId} attempted to access room ${roomId} — denied`);
+    console.warn(`[Socket] Admin ${adminId} attempted to access room ${roomId} - denied`);
     return null;
   }
   return chatRoom;

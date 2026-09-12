@@ -110,7 +110,7 @@ block main
                           span.badge.bg-warning.text-dark Hidden
                         else
                           span.badge.bg-success Visible
-                      td.text-nowrap.fs-12 #{item.createdAt ? item.createdAt.toLocaleString("vi-VN") : ''}
+                      td.text-nowrap.fs-12 #{formatDateTime(item.createdAt)}
                       td.text-end.text-nowrap
                         if item.reportCount > 0
                           a.tbl-action(

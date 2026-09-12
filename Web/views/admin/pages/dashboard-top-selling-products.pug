@@ -14,7 +14,7 @@ block main
                   th.text-center(scope="col") No.
                   th(scope="col") Product Name
                   th.text-center(scope="col") Quantity Sold
-                  th.text-end(scope="col") Revenue
+                  th.text-end.text-nowrap(scope="col") Revenue
               tbody
                 if (topProducts.length > 0)
                   each item, index in topProducts
@@ -22,7 +22,7 @@ block main
                       td.text-center #{index + 1}
                       td #{item.name}
                       td.text-center #{item.totalQuantity}
-                      td.text-end #{(item.totalRevenue || 0).toLocaleString("vi-VN")} ₫
+                      td.text-end.text-nowrap #{formatVND(item.totalRevenue)}
                 else
                   tr
                     td(colspan="4" class="text-center text-muted")

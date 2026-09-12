@@ -1,0 +1,136 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-header
+          .row.align-items-center
+            .col
+              h4.card-title #{pageTitle}
+              p.text-muted.mb-0 #{pagination.totalRecord} flagged order(s) in review queue (advisory only).
+            .col-auto
+              button#retrain-btn.btn.btn-outline-primary(
+                data-retrain-api=`/${pathAdmin}/order/flagged/retrain`
+                data-status-api=`/${pathAdmin}/order/flagged/retrain/status`
+                title="Retrain the anomaly model now from the latest order history"
+              )
+                i.fa-solid.fa-wand-magic-sparkles.me-1
+                span#retrain-btn-label Retrain Model
+        .card-body.pt-0
+          .table-responsive
+            table.table.table-striped.mb-0
+              thead.table-light
+                tr
+                  th(scope="col") No.
+                  th(scope="col") Order Code
+                  th(scope="col") Customer
+                  th(scope="col") Phone
+                  th.text-end.text-nowrap(scope="col") Total
+                  th.text-center(scope="col") Anomaly Score
+                  th(scope="col") Reason
+                  th.text-center(scope="col") Status
+                  th.text-nowrap(scope="col") Placed At
+                  th.text-end(scope="col")
+              tbody
+                if (flaggedOrders.length > 0)
+                  each item, index in flaggedOrders
+                    tr
+                      td #{pagination.skip + index + 1}
+                      td #{item.code}
+                      td #{item.fullName}
+                      td #{item.phone}
+                      td.text-end.text-nowrap #{formatVND(item.total)}
+                      td.text-center
+                        span.badge.bg-danger #{(item.anomalyScore || 0).toFixed(2)}
+                      td
+                        - const reasons = (item.anomalyReason || "").split("+")
+                        each reason in reasons
+                          if (reason === "velocity_discount_rule")
+                            span.badge.bg-warning.text-dark.me-1 Rapid orders + high discount
+                          else if (reason === "coupon_stampede_rule")
+                            span.badge.bg-warning.text-dark.me-1 Coupon stampede
+                          else
+                            span.badge.bg-secondary.me-1 Isolation Forest
+                      td.text-center #{item.orderStatus}
+                      td.text-nowrap #{formatDateTime(item.createdAt)}
+                      td.text-end
+                        a.tbl-action(
+                          href=`/${pathAdmin}/order/edit/${item.id}`
+                          title="Review order"
+                          aria-label="Review order"
+                        )
+                          i.las.la-search.text-secondary.fs-20
+                        a.tbl-action(
+                          href="javascript:;"
+                          button-api
+                          data-method="PATCH"
+                          data-api=`/${pathAdmin}/order/flagged/dismiss/${item.id}`
+                          title="Dismiss - not a bot, remove from this queue"
+                          aria-label="Dismiss flag"
+                        )
+                          i.las.la-check-circle.text-secondary.fs-20
+                else
+                  tr
+                    td(colspan="10" class="text-center text-muted")
+                      | No flagged orders right now.
+          +pagination()
+
+block script
+  script.
+    (() => {
+      const btn = document.getElementById("retrain-btn");
+      const label = document.getElementById("retrain-btn-label");
+      if (!btn) return;
+
+      const retrainApi = btn.getAttribute("data-retrain-api");
+      const statusApi = btn.getAttribute("data-status-api");
+      let pollTimer = null;
+
+      const setRunning = (running) => {
+        btn.disabled = running;
+        label.textContent = running ? "Retraining..." : "Retrain Model";
+      };
+
+      const poll = () => {
+        fetch(statusApi)
+          .then((res) => res.json())
+          .then((data) => {
+            const status = data.status;
+            if (status.status === "running") {
+              pollTimer = setTimeout(poll, 2000);
+              return;
+            }
+            setRunning(false);
+            if (status.lastError) {
+              notyf.error("Retrain failed: " + status.lastError);
+            } else if (status.lastResult) {
+              const r = status.lastResult;
+              if (r.trained) {
+                drawNotify("success", `Retrained on ${r.ordersUsed} orders. Backfilled ${r.backfilled} previously unscored orders.`);
+                location.reload();
+              } else {
+                notyf.error(`Not enough order history yet (${r.ordersUsed} orders, need at least 10).`);
+              }
+            }
+          })
+          .catch(() => {
+            setRunning(false);
+          });
+      };
+
+      btn.addEventListener("click", () => {
+        setRunning(true);
+        fetch(retrainApi, { method: "POST" })
+          .then((res) => res.json())
+          .then(() => {
+            clearTimeout(pollTimer);
+            poll();
+          })
+          .catch(() => {
+            setRunning(false);
+            notyf.error("Failed to start retrain.");
+          });
+      });
+    })();

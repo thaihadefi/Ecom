@@ -62,11 +62,11 @@ block main
                           | Percentage
                         else if (item.typeDiscount == "fixed")
                           | Fixed Amount
-                      td
+                      td.text-nowrap
                         if (item.typeDiscount == "percentage")
                           | #{item.value}%
                         else if (item.typeDiscount == "fixed")
-                          | #{(item.value || 0).toLocaleString("vi-VN")} VND
+                          | #{(item.value || 0).toLocaleString("vi-VN")}&nbsp;₫
                       td #{item.usageLimit}
                       td #{item.usedCount}
                       td

@@ -20,6 +20,13 @@ block main
               )
                 i.fa-solid.fa-trash.me-1
                 | Move to Trash
+              button#recompute-recommendations-btn.btn.btn-outline-primary.me-1(
+                data-recompute-api=`/${pathAdmin}/product/recompute-recommendations`
+                data-status-api=`/${pathAdmin}/product/recompute-recommendations/status`
+                title="Recompute item-based collaborative filtering recommendations from order history"
+              )
+                i.fa-solid.fa-wand-magic-sparkles.me-1
+                span#recompute-recommendations-btn-label Recompute Recommendations
               a.btn.btn-primary(
                 href=`/${pathAdmin}/product/create`
                 )
@@ -55,8 +62,8 @@ block main
                   th(scope="col") No.
                   th(scope="col") Avatar
                   th(scope="col") Product Name
-                  th(scope="col") Old Price (VND)
-                  th(scope="col") New Price (VND)
+                  th.text-nowrap(scope="col") Old Price (₫)
+                  th.text-nowrap(scope="col") New Price (₫)
                   th(scope="col") Stock
                   th(scope="col") Variants Count
                   th(scope="col") Position
@@ -121,3 +128,56 @@ block main
                         )
                           i.las.la-trash-alt.text-secondary.fs-20
           +pagination()
+
+block script
+  script.
+    (() => {
+      const btn = document.getElementById("recompute-recommendations-btn");
+      const label = document.getElementById("recompute-recommendations-btn-label");
+      if (!btn) return;
+
+      const recomputeApi = btn.getAttribute("data-recompute-api");
+      const statusApi = btn.getAttribute("data-status-api");
+      let pollTimer = null;
+
+      const setRunning = (running) => {
+        btn.disabled = running;
+        label.textContent = running ? "Recomputing..." : "Recompute Recommendations";
+      };
+
+      const poll = () => {
+        fetch(statusApi)
+          .then((res) => res.json())
+          .then((data) => {
+            const status = data.status;
+            if (status.status === "running") {
+              pollTimer = setTimeout(poll, 2000);
+              return;
+            }
+            setRunning(false);
+            if (status.lastError) {
+              notyf.error("Recompute failed: " + status.lastError);
+            } else if (status.lastResult) {
+              const r = status.lastResult;
+              drawNotify("success", `Recomputed recommendations for ${r.productsUpdated} products (scanned ${r.ordersScanned} orders).`);
+            }
+          })
+          .catch(() => {
+            setRunning(false);
+          });
+      };
+
+      btn.addEventListener("click", () => {
+        setRunning(true);
+        fetch(recomputeApi, { method: "POST" })
+          .then((res) => res.json())
+          .then(() => {
+            clearTimeout(pollTimer);
+            poll();
+          })
+          .catch(() => {
+            setRunning(false);
+            notyf.error("Failed to start recompute.");
+          });
+      });
+    })();

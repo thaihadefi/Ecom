@@ -45,11 +45,11 @@ block main
                       each v in p.variant
                         div.small.text-muted #{v}
                     else
-                      span.text-muted —
+                      span.text-muted -
                   td #{p.quantity}
-                  td #{(p.price || 0).toLocaleString('vi-VN')} VND
-                  td.text-danger
-                    b #{((p.price || 0) * p.quantity).toLocaleString('vi-VN')} VND
+                  td.text-nowrap #{(p.price || 0).toLocaleString('vi-VN')}&nbsp;₫
+                  td.text-danger.text-nowrap
+                    b #{((p.price || 0) * p.quantity).toLocaleString('vi-VN')}&nbsp;₫
         h5.mt-4 Payment & Shipping
         .row
           .col-md-4
@@ -90,15 +90,15 @@ block main
           .col-md-3
             .mb-3
               label.form-label Subtotal
-              input.form-control(disabled value=(orderDetail.subTotal || 0).toLocaleString('vi-VN') + ' VND')
+              input.form-control(disabled value=(orderDetail.subTotal || 0).toLocaleString('vi-VN') + ' ₫')
           .col-md-3
             .mb-3
               label.form-label Coupon Code
-              input.form-control(disabled value=orderDetail.coupon || '—')
+              input.form-control(disabled value=orderDetail.coupon || '-')
           .col-md-3
             .mb-3
               label.form-label Discount
-              input.form-control(disabled value=(orderDetail.discount || 0).toLocaleString('vi-VN') + ' VND')
+              input.form-control(disabled value=(orderDetail.discount || 0).toLocaleString('vi-VN') + ' ₫')
           .col-md-3
             .mb-3
               label.form-label Shipping Fee
@@ -106,8 +106,8 @@ block main
                 disabled
                 value=
                   orderDetail.shipping && orderDetail.shipping.fee
-                    ? orderDetail.shipping.fee.toLocaleString('vi-VN') + ' VND'
-                    : '0 VND'
+                    ? orderDetail.shipping.fee.toLocaleString('vi-VN') + ' ₫'
+                    : '0 ₫'
                 )
         .row
           .col-md-3
@@ -117,7 +117,7 @@ block main
           .col-md-3
             .mb-3
               label.form-label Points Discount
-              input.form-control(disabled value=(orderDetail.pointDiscount || 0).toLocaleString('vi-VN') + ' VND')
+              input.form-control(disabled value=(orderDetail.pointDiscount || 0).toLocaleString('vi-VN') + ' ₫')
           .col-md-3
             .mb-3
               label.form-label Points Earned
@@ -127,7 +127,7 @@ block main
               label.form-label Total Payment
               input.form-control.text-danger(
                 disabled
-                value=(orderDetail.total || 0).toLocaleString('vi-VN') + ' VND'
+                value=(orderDetail.total || 0).toLocaleString('vi-VN') + ' ₫'
               )
         h5.mt-4 Order Status
         .row

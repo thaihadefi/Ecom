@@ -39,7 +39,7 @@ block main
                         | #{orderDetail.address}
                       li
                         span Order Date:
-                        | #{orderDetail.createdAt ? orderDetail.createdAt.toLocaleString('vi-VN') : ''}
+                        | #{formatDateTime(orderDetail.createdAt)}
                       li
                         span Payment Method:
                         case orderDetail.paymentMethod
@@ -98,31 +98,31 @@ block main
                                   if (index < item.variant.length - 1)
                                     | ,
                                 | )
-                            td #{(item.price || 0).toLocaleString("vi-VN")} VND
+                            td.text-nowrap #{(item.price || 0).toLocaleString("vi-VN")}&nbsp;₫
                             td #{item.quantity}
-                            td #{((item.price || 0) * item.quantity).toLocaleString("vi-VN")} VND
+                            td.text-nowrap #{((item.price || 0) * item.quantity).toLocaleString("vi-VN")}&nbsp;₫
                       tfoot
                         tr
                           td(colspan="3")
                             b Subtotal
-                          td
-                            b #{(orderDetail.subTotal || 0).toLocaleString("vi-VN")} VND
+                          td.text-nowrap
+                            b #{(orderDetail.subTotal || 0).toLocaleString("vi-VN")}&nbsp;₫
                         if (orderDetail.discount)
                           tr
                             td(colspan="3") Discount (#{orderDetail.coupon})
-                            td -#{(orderDetail.discount || 0).toLocaleString("vi-VN")} VND
+                            td.text-nowrap -#{(orderDetail.discount || 0).toLocaleString("vi-VN")}&nbsp;₫
                         if (orderDetail.pointDiscount)
                           tr
                             td(colspan="3") Points Discount (#{orderDetail.usedPoint} pts)
-                            td -#{(orderDetail.pointDiscount || 0).toLocaleString("vi-VN")} VND
+                            td.text-nowrap -#{(orderDetail.pointDiscount || 0).toLocaleString("vi-VN")}&nbsp;₫
                         tr
                           td(colspan="3") Shipping Fee
-                          td #{(orderDetail.shipping && orderDetail.shipping.fee != null ? orderDetail.shipping.fee : 0).toLocaleString("vi-VN")} VND
+                          td.text-nowrap #{(orderDetail.shipping && orderDetail.shipping.fee != null ? orderDetail.shipping.fee : 0).toLocaleString("vi-VN")}&nbsp;₫
                         tr
                           td(colspan="3")
                             b Total
-                          td
-                            b #{(orderDetail.total || 0).toLocaleString("vi-VN")} VND
+                          td.text-nowrap
+                            b #{(orderDetail.total || 0).toLocaleString("vi-VN")}&nbsp;₫
                         if (orderDetail.pointEarned)
                           tr
                             td(colspan="3")

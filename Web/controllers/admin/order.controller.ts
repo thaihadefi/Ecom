@@ -3,6 +3,7 @@ import { pathAdmin } from '../../configs/variable.config';
 import { Parser } from 'json2csv';
 import { logAdminAction } from '../../helpers/log.helper';
 import * as orderService from '../../services/admin/order.service';
+import * as anomalyDetectionService from '../../services/admin/anomaly-detection.service';
 
 export const list = async (req: Request, res: Response) => {
   const data = await orderService.getOrderList(req.query.keyword, req.query.page);
@@ -11,6 +12,50 @@ export const list = async (req: Request, res: Response) => {
     pageTitle: "Order Management",
     ...data
   });
+};
+
+export const flaggedList = async (req: Request, res: Response) => {
+  const { recordList, pagination } = await anomalyDetectionService.getFlaggedOrders(req.query.page);
+
+  res.render("admin/pages/order-flagged-list", {
+    pageTitle: "Flagged Orders (Bot/Scalper Detection)",
+    flaggedOrders: recordList,
+    pagination
+  });
+};
+
+export const dismissAnomalyPost = async (req: Request, res: Response) => {
+  try {
+    const result = await anomalyDetectionService.dismissAnomalyFlag(req.params.id);
+    if (!result.dismissed) {
+      res.json({ code: "error", message: "Order not found or already dismissed!" });
+      return;
+    }
+    logAdminAction(req, `Dismissed anomaly flag on order (Id: ${req.params.id})`);
+    res.json({ code: "success", message: "Flag dismissed. This order won't show in the review queue anymore." });
+  } catch (error) {
+    console.error("dismissAnomalyPost error:", error);
+    res.json({ code: "error", message: "Failed to dismiss flag!" });
+  }
+};
+
+// Kicks off training + the self-healing backfill in the background instead
+// of awaiting them in the request - at real order volumes that combination
+// can run past a browser/proxy HTTP timeout. The admin UI polls
+// retrainAnomalyModelStatus for progress/result instead of waiting on this
+// response.
+export const retrainAnomalyModelPost = async (req: Request, res: Response) => {
+  const status = anomalyDetectionService.triggerManualRetrain();
+  logAdminAction(req, "Triggered anomaly model retrain (running in background)");
+  res.json({
+    code: "success",
+    message: status.status === "running" ? "Retrain started." : "A retrain is already in progress.",
+    status
+  });
+};
+
+export const retrainAnomalyModelStatus = async (_req: Request, res: Response) => {
+  res.json({ code: "success", status: anomalyDetectionService.getManualRetrainStatus() });
 };
 
 export const edit = async (req: Request, res: Response) => {

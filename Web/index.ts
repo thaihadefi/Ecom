@@ -22,7 +22,7 @@ import { startJobs } from './jobs/index.job';
 import * as adminAuth from './middlewares/admin/auth.middleware';
 import { validateEnv } from './configs/env.config';
 import { requestLogger } from './middlewares/request-logger.middleware';
-import { formatDateTime, formatVND } from './helpers/format.helper';
+import { formatDate, formatDateTime, formatVND } from './helpers/format.helper';
 
 dotenv.config();
 validateEnv();
@@ -81,6 +81,13 @@ app.set('views', path.join(process.cwd(), 'views'));
 app.set('view engine', 'pug');
 app.enable('view cache');
 
+// Trust the first proxy hop so req.ip is the real client IP behind a
+// reverse proxy/load balancer (nginx, Heroku, Railway, etc.) instead of the
+// proxy's own address - request-logger.middleware.ts and the anomaly
+// detection IP-reuse feature both key off req.ip and would otherwise treat
+// every visitor as sharing one "IP".
+app.set('trust proxy', 1);
+
 
 const buildFullUrl = (cdn: string, url?: string): string => {
   if (!url) return "";
@@ -94,6 +101,7 @@ app.locals.pathAdmin = pathAdmin;
 app.locals.domainCDN = mediaBase;
 app.locals.getFullUrl = (url: string) => buildFullUrl(mediaBase, url);
 app.locals.tinymceApiKey = process.env.TINYMCE_API_KEY || '';
+app.locals.formatDate = formatDate;
 app.locals.formatDateTime = formatDateTime;
 app.locals.formatVND = formatVND;
 

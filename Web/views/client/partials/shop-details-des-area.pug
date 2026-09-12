@@ -47,7 +47,7 @@ div(class="shop_details_des_area")
                   | #{item.user ? item.user.fullName : 'Anonymous'}
                   span
                     +stars(item)
-                p.date #{item.createdAt ? item.createdAt.toLocaleString("vi-VN") : ''}
+                p.date #{formatDateTime(item.createdAt)}
                 p.description
                   | #{item.comment}
                 ul
