@@ -25,6 +25,7 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 - **Product Reviews, Recommendations & Flash Sales:** 5-star rating system with order-verified review submission, community review violation reporting (`Web/models/review.model.ts`), wishlist bookmarking, reward points earn-on-purchase lifecycle, flash sales (`Web/views/client/blocks/flash-sale.pug`), and "frequently bought together" recommendations (`Web/views/client/partials/bought-together-products.pug`) powered by an item-based Collaborative Filtering engine built from scratch (`Web/helpers/recommendation.helper.ts`) with recency-weighted co-occurrence scoring, category diversity re-ranking, and same-category bestseller fallback for cold-start products, recomputed nightly (`Web/jobs/recommendation.job.ts`) with an admin-triggered manual recompute using async polling status.
 - **Editorial Blog & Information Pages:** Rich-content blog hub (`/article`) with category filtering, cookie-guarded view count deduplication, publication lifecycle (`draft`, `published`, `archived`), sticky sidebar navigation, customer inquiry submission (`/contact`), and dedicated static pages (`/about`, `/faq`, store policies with tab-safe external links).
 - **Multi-Currency & Internationalization:** Client-side dynamic currency conversion supporting 6 major currencies (`VND`, `USD`, `EUR`, `JPY`, `GBP`, `CNY`) with live exchange rate fetching (`exchangerate.host` primary, `open.er-api.com` fallback), localized decimal precision, `localStorage` caching with 6-hour TTL, and integrated GTranslate multilingual support.
+- **Progressive Web App (PWA):** Installable storefront with a dynamically generated `Web App Manifest` (`/manifest.webmanifest`) reflecting live admin store settings (name, short name, favicon-derived icons), a Service Worker (`Web/public/sw.js`) implementing cache-first static assets and network-first HTML pages, and a dedicated offline fallback page (`Web/public/offline.html`) served when navigation requests fail without network connectivity.
 
 ### Store Manager Workflow
 - **Catalog & Rich Editor:** Rich-text product editor (TinyMCE) supporting image uploads, dynamic multi-attribute specifications (`Web/models/attribute-product.model.ts`: color swatches, dropdown selects, text attributes), variant matrix management with normalized pricing and stock aggregation, bulk product import via CSV upload (`papaparse`), and soft-delete trash recovery across all entities.
@@ -49,7 +50,7 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 
 ## Technology Stack
 
-- **Frontend:** Server-Side Rendering with Pug Templates, Bootstrap 5, CSS3, JavaScript ES6+, Socket.IO Client, OpenLayers Map Picker with OpenStreetMap/Nominatim Geocoding.
+- **Frontend:** Server-Side Rendering with Pug Templates, Bootstrap 5, CSS3, JavaScript ES6+, Socket.IO Client, OpenLayers Map Picker with OpenStreetMap/Nominatim Geocoding, Progressive Web App (Service Worker, dynamic Web App Manifest, offline fallback page).
 - **Backend:** Node.js, Express 5, TypeScript (Strict Mode, Fully Typed), Socket.IO Server, Groq API (LLaMA 3.1), Passport.js (OAuth2), Nodemailer, Bcryptjs, Joi, Axios, gzip response compression, CSV import/export (`papaparse` / `json2csv`), OpenMap.vn Reverse Geocoding (GoShip address resolution).
 - **Database & Storage:** MongoDB Atlas (Mongoose ORM with Type Generics, Embedded Sub-Schemas, & Partial Filter Indexes), Aggregation Pipeline Engine (Multi-Facet Metrics, Timezone Time-Series, & Unwind Operations), Atlas Search Engine with Regex Fallback, NodeCache (In-Memory Multi-Tier Caching: Metadata, Settings, Realtime Chat & Presence), Dynamic SEO Sub-Schema (`SeoSchema`), Standalone FileManager Microservice.
 - **Infrastructure & Design Patterns:** 3-Tier Layered Architecture (Routes → Controllers → Services → Models), DTO-Driven Domain Services, Shared Helper Layer (metadata cache invalidation, admin CRUD/trash lifecycle, paginated list queries, SEO payload builder, order resource rollback, FileManager client, media propagation), Zero N+1 Batch Query Resolution, Event-Driven Active Cache Invalidation, Payment Gateway Services, Admin Audit Trail Logging, Token Theft Detection & Refresh Token Rotation, Cascading Media Propagation, Path Traversal Protection, HttpOnly Cookies, Multer Disk Staging, OS Graceful Shutdown.
@@ -91,7 +92,9 @@ Ecom/
     │   └── schemas/                  # Embedded sub-documents & reusable schema definitions
     ├── public/                       # Client & Admin static web assets (CSS, JS, images)
     │   ├── admin/                    # Admin panel custom scripts, styles, & plugins
-    │   └── client/                   # Storefront styles, JS scripts, & icons
+    │   ├── client/                   # Storefront styles, JS scripts, & icons
+    │   ├── offline.html              # PWA offline fallback page
+    │   └── sw.js                     # PWA Service Worker (cache-first assets, network-first HTML)
     ├── routes/                       # Express routing modules (admin/, client/)
     │   ├── admin/                    # Admin management routes & RBAC endpoints
     │   └── client/                   # Customer-facing shopping & account routes

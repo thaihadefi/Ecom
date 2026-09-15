@@ -9,7 +9,7 @@ import { IAccountAdmin } from '../../interfaces/models/account-admin.interface';
 import { IBlog } from '../../interfaces/models/blog.interface';
 import { metadataCache } from '../../helpers/metadata-cache.helper';
 
-const populateAuthors = async (articles: IBlog[]) => {
+export const populateAuthors = async (articles: IBlog[]) => {
   const adminIds = [...new Set(articles.map((i) => String(i.updatedBy || i.createdBy)).filter(Boolean))];
   const adminMap = new Map<string, string>();
   if (adminIds.length > 0) {

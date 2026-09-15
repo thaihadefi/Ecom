@@ -9,6 +9,7 @@ import adminRoutes from "./routes/admin/index.route";
 import clientRoutes from "./routes/client/index.route";
 import { pathAdmin, domainCDN, mediaBase } from './configs/variable.config';
 import { connectDB } from './configs/database.config';
+import { getGeneral } from './configs/setting.config';
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "passport";
@@ -48,6 +49,53 @@ app.use(express.static(path.join(process.cwd(), 'public'), {
   maxAge: 7 * 24 * 60 * 60 * 1000
 }));
 
+app.get('/manifest.webmanifest', async (_req, res) => {
+  try {
+    const general = await getGeneral();
+    const name = (general?.websiteName || '').trim() || 'Ecom Store';
+    const iconUrl = general?.favicon
+      ? `${mediaBase}${general.favicon}`
+      : '/images/favicon.ico';
+
+    const spaceIdx = name.lastIndexOf(' ', 12);
+    const shortName = name.length > 12
+      ? name.slice(0, spaceIdx <= 0 ? 12 : spaceIdx).trim()
+      : name;
+
+    const iconUrlLower = iconUrl.toLowerCase();
+    const iconMimeType = iconUrlLower.endsWith('.ico')
+      ? 'image/x-icon'
+      : iconUrlLower.endsWith('.svg')
+        ? 'image/svg+xml'
+        : iconUrlLower.endsWith('.webp')
+          ? 'image/webp'
+          : iconUrlLower.endsWith('.jpg') || iconUrlLower.endsWith('.jpeg')
+            ? 'image/jpeg'
+            : 'image/png';
+
+    const manifest = {
+      name,
+      short_name: shortName,
+      description: `${name} - Online Shopping`,
+      start_url: '/',
+      display: 'standalone',
+      background_color: '#ffffff',
+      theme_color: '#0057B7',
+      icons: [
+        { src: iconUrl, sizes: '192x192', type: iconMimeType, purpose: 'any' },
+        { src: iconUrl, sizes: '512x512', type: iconMimeType, purpose: 'any' },
+      ],
+    };
+
+    res.set('Content-Type', 'application/manifest+json');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.json(manifest);
+  } catch (err) {
+    console.error('[PWA] manifest error:', err instanceof Error ? err.message : err);
+    res.status(500).json({});
+  }
+});
+
 app.get(/^\/+media\//, async (req, res) => {
   const upstreamPath = req.originalUrl.replace(/^\/+/, "/"); // collapse any leading //
   try {
@@ -81,11 +129,6 @@ app.set('views', path.join(process.cwd(), 'views'));
 app.set('view engine', 'pug');
 app.enable('view cache');
 
-// Trust the first proxy hop so req.ip is the real client IP behind a
-// reverse proxy/load balancer (nginx, Heroku, Railway, etc.) instead of the
-// proxy's own address - request-logger.middleware.ts and the anomaly
-// detection IP-reuse feature both key off req.ip and would otherwise treat
-// every visitor as sharing one "IP".
 app.set('trust proxy', 1);
 
 

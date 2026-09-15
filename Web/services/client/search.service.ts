@@ -4,8 +4,23 @@ import { findIdsByKeyword } from '../../helpers/atlas-search.helper';
 import { formatProductItem } from '../../helpers/product.helper';
 import { PAGINATION } from '../../configs/pagination.config';
 import { metadataCache } from '../../helpers/metadata-cache.helper';
+import { populateAuthors } from './article.service';
+import { IProduct } from '../../interfaces/models/product.interface';
+import { IBlog } from '../../interfaces/models/blog.interface';
 
-export const searchProductsAndArticles = async (keyword: string, rawPage: unknown) => {
+export interface SearchServiceResult {
+  keyword: string;
+  productList: IProduct[];
+  articleList: IBlog[];
+  pagination: {
+    totalPage: number;
+    currentPage: number;
+    totalRecord: number;
+    skip: number;
+  };
+}
+
+export const searchProductsAndArticles = async (keyword: string, rawPage: unknown): Promise<SearchServiceResult> => {
   const trimmed = `${keyword || ""}`.trim();
   if (!trimmed) {
     return {
@@ -25,7 +40,7 @@ export const searchProductsAndArticles = async (keyword: string, rawPage: unknow
   const skip = (page - 1) * limitItems;
 
   const searchCacheKey = `search:${trimmed.toLowerCase()}:p${page}`;
-  const cached = metadataCache.get<any>(searchCacheKey);
+  const cached = metadataCache.get<SearchServiceResult>(searchCacheKey);
   if (cached) return cached;
 
   const [productIds, articleIds] = await Promise.all([
@@ -53,7 +68,7 @@ export const searchProductsAndArticles = async (keyword: string, rawPage: unknow
       .skip(skip)
       .sort({ createdAt: "desc" }),
     Blog.find(articleFind)
-      .select("name avatar slug")
+      .select("name avatar slug createdBy updatedBy createdAt updatedAt")
       .limit(5)
       .sort({ createdAt: "desc" }),
   ]);
@@ -63,6 +78,7 @@ export const searchProductsAndArticles = async (keyword: string, rawPage: unknow
   for (const item of productList) {
     formatProductItem(item);
   }
+  await populateAuthors(articleList);
 
   const result = {
     keyword: trimmed,

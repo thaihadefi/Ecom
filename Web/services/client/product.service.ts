@@ -254,7 +254,7 @@ export const getProductsByCategory = async (
 export const getProductSuggestions = async (rawKeyword?: unknown) => {
   const keywordStr = `${rawKeyword || ""}`.trim();
   const cacheKey = `suggestions:${keywordStr}`;
-  const cached = metadataCache.get<any>(cacheKey);
+  const cached = metadataCache.get<IProduct[]>(cacheKey);
   if (cached) return cached;
 
   const find: {
@@ -344,7 +344,6 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
       slug: c.slug ?? ""
     }));
 
-    // Admin-curated boughtTogether wins when set; otherwise fall back to CF (services/admin/recommendation.service.ts).
     const usingCfFallback = !productDetail.boughtTogether || productDetail.boughtTogether.length === 0;
     const cfIdsByScore = usingCfFallback
       ? [...(productDetail.cfRecommendations || [])]
@@ -370,7 +369,6 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
             status: "active"
           })
             .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
-            // Defensive cap at TOP_N, not the smaller display limit - capping there before filtering out deleted items under-fills the list.
             .limit(RECOMMENDATION_CONFIG.TOP_N)
         : Product.find({
             _id: { $in: boughtTogetherIds },
@@ -385,7 +383,6 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
         .sort({ createdAt: "desc" })
     ]);
 
-    // Preserve CF ranking order (Mongo doesn't guarantee $in order); limit only after filtering deleted/inactive candidates.
     const cfBoughtTogetherProducts = usingCfFallback
       ? (cfIdsByScore
           .map((id) => boughtTogetherProductsRaw.find((p) => String(p.id) === String(id)))
@@ -393,7 +390,6 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
         ).slice(0, PRODUCT_DISPLAY_CONFIG.BOUGHT_TOGETHER_LIMIT)
       : boughtTogetherProductsRaw;
 
-    // Cold-start fallback: no CF data yet, so backfill with same-category bestsellers instead of an empty section.
     const boughtTogetherProducts =
       usingCfFallback && cfBoughtTogetherProducts.length === 0
         ? relatedProducts.slice(0, PRODUCT_DISPLAY_CONFIG.BOUGHT_TOGETHER_LIMIT)

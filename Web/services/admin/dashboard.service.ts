@@ -2,8 +2,88 @@ import Order from '../../models/order.model';
 import AccountUser from '../../models/account-user.model';
 import Product from '../../models/product.model';
 import { metadataCache } from '../../helpers/metadata-cache.helper';
-import { computeReorderForecast } from '../../helpers/forecast.helper';
+import { computeReorderForecast, IReorderForecast } from '../../helpers/forecast.helper';
 import { FORECAST_CONFIG } from '../../configs/forecast.config';
+
+export interface DashboardSummaryResult {
+  totalRevenue: number;
+  todayRevenue: number;
+  todayPercent: number;
+  thisMonthRevenue: number;
+  monthPercent: number;
+  totalOrders: number;
+  todayOrders: number;
+  todayOrderPercent: number;
+  thisMonthOrders: number;
+  monthOrderPercent: number;
+  orderStatusStats: Record<string, {
+    total: number;
+    today: number;
+    todayPercent: number;
+    thisMonth: number;
+    monthPercent: number;
+  }>;
+}
+
+export interface RevenueByTimeOverviewResult {
+  labelsHour: string[];
+  todayData: number[];
+  yesterdayData: number[];
+  labelsDay: string[];
+  thisMonthData: number[];
+  lastMonthData: number[];
+  labelsMonth: string[];
+  thisYearData: number[];
+  lastYearData: number[];
+}
+
+export interface PieChartData {
+  labels: string[];
+  datasets: Array<{ data: number[]; backgroundColor: string[] }>;
+}
+
+export interface OrderStatisticsOverviewResult {
+  pieToday: PieChartData;
+  pieThisMonth: PieChartData;
+  pieThisYear: PieChartData;
+}
+
+export interface TopSellingProductItem {
+  _id: unknown;
+  name: string;
+  totalQuantity: number;
+  totalRevenue: number;
+}
+
+export interface TopUserItem {
+  userId: unknown;
+  fullName?: string;
+  phone?: string;
+  totalOrders: number;
+  totalSpent: number;
+}
+
+export interface CustomerStatisticsResult {
+  totalUsers: number;
+  todayUsers: number;
+  todayPercent: number;
+  thisMonthUsers: number;
+  monthPercent: number;
+  topUsers: TopUserItem[];
+}
+
+export interface InventoryForecastItem extends IReorderForecast {
+  productId: string;
+  name?: string;
+  slug?: string;
+  currentStock: number;
+}
+
+export interface InventoryForecastResult {
+  items: InventoryForecastItem[];
+  leadTimeDays: number;
+  lookbackDays: number;
+}
 
 export const invalidateAdminDashboardCaches = () => {
   metadataCache.del([
@@ -67,9 +147,9 @@ export const buildDateRanges = () => {
   return { startToday, endToday, startYesterday, endYesterday, startThisMonth, endThisMonth, startLastMonth, endLastMonth };
 };
 
-export const getDashboardSummary = async () => {
+export const getDashboardSummary = async (): Promise<DashboardSummaryResult> => {
   const cacheKey = "admin:dashboard:summary";
-  const cached = metadataCache.get<any>(cacheKey);
+  const cached = metadataCache.get<DashboardSummaryResult>(cacheKey);
   if (cached) return cached;
 
   const { startToday, endToday, startYesterday, endYesterday, startThisMonth, endThisMonth, startLastMonth, endLastMonth } = buildDateRanges();
@@ -326,9 +406,9 @@ export const buildRevenueRangeData = async (from: string, to: string) => {
   return { granularity, labels, data };
 };
 
-export const getRevenueByTimeOverview = async () => {
+export const getRevenueByTimeOverview = async (): Promise<RevenueByTimeOverviewResult> => {
   const cacheKey = "admin:dashboard:revenue_time";
-  const cached = metadataCache.get<any>(cacheKey);
+  const cached = metadataCache.get<RevenueByTimeOverviewResult>(cacheKey);
   if (cached) return cached;
 
   const { startToday, endToday, startYesterday, endYesterday, startThisMonth, endThisMonth, startLastMonth, endLastMonth } = buildDateRanges();
@@ -487,9 +567,9 @@ export const buildPie = (rawData: Array<{ _id: string; total: number }>) => {
   };
 };
 
-export const getOrderStatisticsOverview = async () => {
+export const getOrderStatisticsOverview = async (): Promise<OrderStatisticsOverviewResult> => {
   const cacheKey = "admin:dashboard:order_stats";
-  const cached = metadataCache.get<any>(cacheKey);
+  const cached = metadataCache.get<OrderStatisticsOverviewResult>(cacheKey);
   if (cached) return cached;
 
   const { startToday, endToday, startThisMonth, endThisMonth } = buildDateRanges();
@@ -546,9 +626,9 @@ export const getCustomOrderStatistic = async (from: string, to: string) => {
   return { pieCustom: buildPie(result) };
 };
 
-export const getTopSellingProducts = async () => {
+export const getTopSellingProducts = async (): Promise<TopSellingProductItem[]> => {
   const cacheKey = "admin:dashboard:top_selling";
-  const cached = metadataCache.get<any>(cacheKey);
+  const cached = metadataCache.get<TopSellingProductItem[]>(cacheKey);
   if (cached) return cached;
 
   const result = await Order.aggregate([
@@ -570,9 +650,9 @@ export const getTopSellingProducts = async () => {
   return result;
 };
 
-export const getCustomerStatistics = async () => {
+export const getCustomerStatistics = async (): Promise<CustomerStatisticsResult> => {
   const cacheKey = "admin:dashboard:customer_stats";
-  const cached = metadataCache.get<any>(cacheKey);
+  const cached = metadataCache.get<CustomerStatisticsResult>(cacheKey);
   if (cached) return cached;
 
   const { startToday, endToday, startYesterday, endYesterday, startThisMonth, endThisMonth, startLastMonth, endLastMonth } = buildDateRanges();
@@ -642,13 +722,13 @@ export const getCustomerStatistics = async () => {
           as: "user"
         }
       },
-      { $unwind: "$user" },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
       {
         $project: {
           _id: 0,
           userId: "$_id",
-          fullName: "$user.fullName",
-          phone: "$user.phone",
+          fullName: { $ifNull: ["$user.fullName", "Unknown"] },
+          phone: { $ifNull: ["$user.phone", ""] },
           totalOrders: 1,
           totalSpent: 1
         }
@@ -685,12 +765,6 @@ const FORECAST_LOOKBACK_DAYS = FORECAST_CONFIG.LOOKBACK_DAYS;
 const FORECAST_LEAD_TIME_DAYS = FORECAST_CONFIG.LEAD_TIME_DAYS;
 const FORECAST_REVIEW_PERIOD_DAYS = FORECAST_CONFIG.REVIEW_PERIOD_DAYS;
 
-// Must produce the same "YYYY-MM-DD" string as the aggregation's
-// $dateToString(timezone: "+07:00") below for the day-key map lookups to
-// line up. Safe to hand-roll rather than round-trip through Mongo: Vietnam
-// has used a fixed +07:00 offset with no DST since 1975, so TIMEZONE_OFFSET
-// never drifts out of sync with "+07:00" the way it could for a timezone
-// with daylight saving.
 const formatVnDayKey = (date: Date): string => {
   const vnTime = new Date(date.getTime() + TIMEZONE_OFFSET);
   const y = vnTime.getUTCFullYear();
@@ -699,9 +773,9 @@ const formatVnDayKey = (date: Date): string => {
   return `${y}-${m}-${d}`;
 };
 
-export const getInventoryForecast = async () => {
+export const getInventoryForecast = async (): Promise<InventoryForecastResult> => {
   const cacheKey = "admin:dashboard:inventory_forecast";
-  const cached = metadataCache.get<any>(cacheKey);
+  const cached = metadataCache.get<InventoryForecastResult>(cacheKey);
   if (cached) return cached;
 
   const vnNow = getVnNow();
@@ -741,9 +815,6 @@ export const getInventoryForecast = async () => {
     dayKeys.push(formatVnDayKey(new Date(endDate.getTime() - i * 24 * 60 * 60 * 1000)));
   }
 
-  // A zero-stock product with no recent sales is exactly the SKU an admin
-  // most needs a reorder alert for - include it even though there's no
-  // demand data to forecast from (it'll fall back to insufficientData).
   const productIdsWithSales = Array.from(demandByProduct.keys());
   const products = await Product.find({
     deleted: false,

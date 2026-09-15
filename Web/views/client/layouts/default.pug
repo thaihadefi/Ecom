@@ -56,6 +56,16 @@ html(lang="en")
       type="image/x-icon"
       rel="icon"
       )
+    //- PWA
+    link(rel="manifest" href="/manifest.webmanifest")
+    meta(name="theme-color" content="#0057B7")
+    meta(name="apple-mobile-web-app-capable" content="yes")
+    meta(name="apple-mobile-web-app-status-bar-style" content="default")
+    meta(name="apple-mobile-web-app-title" content=`${settingGeneral && settingGeneral.websiteName ? settingGeneral.websiteName : 'Ecom Store'}`)
+    link(
+      rel="apple-touch-icon"
+      href=`${settingGeneral && settingGeneral.favicon ? domainCDN + settingGeneral.favicon : '/images/favicon.ico'}`
+      )
     link(
       href=`/client/assets/css/all.min.css?v=${assetVersion}`
       rel="stylesheet"
@@ -229,3 +239,10 @@ html(lang="en")
           prefetch(p + a.search);
         }, { passive: true });
       })();
+    //- PWA Service Worker registration
+    script.
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
+        });
+      }
