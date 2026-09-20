@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
-import { pathAdmin } from '../../configs/variable.config';
 import { logAdminAction } from '../../helpers/log.helper';
 import { COOKIE_OPTS } from '../../configs/cookie.config';
 import { RequestAccount } from '../../interfaces/request.interface';
 import { REFRESH_TOKEN_TTL_MS } from "../../helpers/token-rotation.helper";
 import * as authService from '../../services/admin/auth.service';
+import { resultStatus } from "../../helpers/http-response.helper";
+import { accessTokenBody } from "../../helpers/access-token.helper";
 
 export const login = async (_req: Request, res: Response) => {
   res.render("admin/pages/account-login", {
@@ -24,7 +25,7 @@ export const loginPost = async (req: RequestAccount, res: Response) => {
   const result = await authService.loginAdmin(email, password, remember);
 
   if (!result.success) {
-    res.json({
+    res.status(resultStatus(result)).json({
       code: "error",
       message: result.message
     });
@@ -51,7 +52,8 @@ export const loginPost = async (req: RequestAccount, res: Response) => {
 
   res.json({
     code: "success",
-    message: result.message
+    message: result.message,
+    ...(result.token ? accessTokenBody(result.token) : {})
   });
 };
 
@@ -62,5 +64,5 @@ export const logout = async (req: Request, res: Response) => {
 
   res.clearCookie("refreshTokenAdmin", COOKIE_OPTS);
   res.clearCookie("tokenAdmin", COOKIE_OPTS);
-  res.redirect(`/${pathAdmin}/account/login`);
+  res.json({ code: "success", message: "Logged out!" });
 };

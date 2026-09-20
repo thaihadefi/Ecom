@@ -1,0 +1,12 @@
+extends ../layouts/default.pug
+
+block main
+  .row
+    .col-12
+      .card
+        .card-body.text-center.py-5
+          h1.display-4 403
+          h4.mb-3 Access denied
+          p.text-muted.mb-4 Your account does not have permission to open this page.
+          .d-flex.flex-wrap.gap-2.justify-content-center
+            a.btn.btn-outline-secondary(href="javascript:history.back()") Back

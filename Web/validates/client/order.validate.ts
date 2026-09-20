@@ -46,14 +46,17 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
       .items(
         Joi.object({
           productId: Joi.string().required(),
-          quantity: Joi.number().integer().min(1).required().messages({
-            "number.min": "Product quantity must be at least 1!"
+          quantity: Joi.number().integer().min(1).max(999).required().messages({
+            "number.min": "Product quantity must be at least 1!",
+            "number.max": "Product quantity is too large!"
           }),
+          checked: Joi.boolean().optional(),
           variant: Joi.array().items(
             Joi.object({
               attrId: Joi.string().required(),
               value: Joi.string().required(),
-              label: Joi.string().required()
+              label: Joi.string().required(),
+              attrType: Joi.string().allow("").optional()
             })
           ).optional()
         })
@@ -85,7 +88,7 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });

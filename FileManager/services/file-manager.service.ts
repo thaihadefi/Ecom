@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import mime from "mime-types";
+import { ALLOWED_EXTENSIONS } from "../config/allowed-extensions";
 
 const mediaRoot = path.resolve(process.cwd(), "media");
 
@@ -25,7 +26,7 @@ export const getRelativePath = (inputPath: string): string => {
 export const isTempPath = (inputPath: string): boolean => {
   const clean = getRelativePath(inputPath);
   const segments = clean.split("/");
-  return segments.includes("temp");
+  return segments.some((segment) => segment.toLowerCase() === "temp");
 };
 
 export const existsAsync = async (filePath: string): Promise<boolean> => {
@@ -119,6 +120,10 @@ export const renameFile = async (
     return { success: false, status: 400, message: "Invalid file name!" };
   }
 
+  if (!ALLOWED_EXTENSIONS.has(path.extname(newFileName).toLowerCase())) {
+    return { success: false, status: 400, message: "This file type is not allowed!" };
+  }
+
   const relativeFolder = getRelativePath(folder || "");
   const mediaDir = path.resolve(mediaRoot, relativeFolder);
   const oldPath = path.resolve(mediaDir, oldFileName);
@@ -183,7 +188,7 @@ export const createFolder = async (
   const relativeFolder = getRelativePath(folderPath || "");
   const targetPath = path.resolve(mediaRoot, relativeFolder, folderName);
 
-  if (!isSafePath(targetPath) || isTempPath(relativeFolder) || folderName === "temp") {
+  if (!isSafePath(targetPath) || isTempPath(relativeFolder) || folderName.toLowerCase() === "temp") {
     return { success: false, status: 403, message: "Access denied!" };
   }
 
@@ -293,7 +298,7 @@ export const renameFolder = async (
   const parentDir = path.dirname(oldDir);
   const newDir = path.resolve(parentDir, newFolderName);
 
-  if (!isSafePath(oldDir) || !isSafePath(newDir) || isTempPath(folderPath) || newFolderName === "temp") {
+  if (!isSafePath(oldDir) || !isSafePath(newDir) || isTempPath(folderPath) || newFolderName.toLowerCase() === "temp") {
     return { success: false, status: 403, message: "Access denied!" };
   }
 

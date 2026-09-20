@@ -3,6 +3,7 @@ import ChatMessage from '../../models/chat-message.model';
 import { timeAgo } from '../../helpers/format.helper';
 import { fmUpload } from '../../helpers/file-manager.client';
 import { hotCache, CK } from '../../helpers/chat-cache.helper';
+import { upstreamStatus } from "../../helpers/http-response.helper";
 
 export const getMessagesByUserId = async (
   userId: string,
@@ -40,12 +41,12 @@ export const getMessagesByUserId = async (
 export const uploadChatFiles = async (userId: string, files: Express.Multer.File[]) => {
   const chatRoomDetail = await ChatRoom.findOne({ userId });
   if (chatRoomDetail?.status === "locked") {
-    return { success: false, message: "Chat room is locked!" };
+    return { success: false, status: 409, message: "Chat room is locked!" };
   }
 
   const upload = await fmUpload(files, `chats/${userId}`);
   if (!upload.success) {
-    return { success: false, message: "Upload error!" };
+    return { success: false, status: upstreamStatus(upload.status), message: upload.message || "Upload error!" };
   }
 
   return {
@@ -54,14 +55,20 @@ export const uploadChatFiles = async (userId: string, files: Express.Multer.File
   };
 };
 
-export const rateChatRoom = async (userId: string, stars: number, comment?: string) => {
+export const rateChatRoom = async (userId: string, rawStars: unknown, rawComment?: unknown) => {
+  const stars = Number(rawStars);
+  if (!Number.isInteger(stars) || stars < 1 || stars > 5) {
+    return { success: false, status: 400, message: "Please choose a rating from 1 to 5 stars!" };
+  }
+  const comment = typeof rawComment === "string" ? rawComment.trim().slice(0, 500) : undefined;
+
   const chatRoom = await ChatRoom.findOne({
     userId: userId,
     status: "open"
   });
 
   if (!chatRoom) {
-    return { success: false, message: "Chat room not found!" };
+    return { success: false, status: 404, message: "Chat room not found!" };
   }
 
   await ChatRoom.updateOne(

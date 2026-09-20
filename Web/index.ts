@@ -1,4 +1,5 @@
 import express from 'express';
+import axios from 'axios';
 import path from 'path';
 import { Readable } from 'node:stream';
 import dotenv from "dotenv";
@@ -11,7 +12,6 @@ import { pathAdmin, domainCDN, mediaBase } from './configs/variable.config';
 import { connectDB } from './configs/database.config';
 import { getGeneral } from './configs/setting.config';
 import cookieParser from "cookie-parser";
-import session from "express-session";
 import passport from "passport";
 import { configureGooglePassport } from './configs/googleOauth.config';
 import { configureFacebookPassport } from './configs/facebookOauth.config';
@@ -24,29 +24,64 @@ import * as adminAuth from './middlewares/admin/auth.middleware';
 import { validateEnv } from './configs/env.config';
 import { requestLogger } from './middlewares/request-logger.middleware';
 import { formatDate, formatDateTime, formatVND } from './helpers/format.helper';
+import { safeHtml, safeJson, safeUrl, safeColor } from './helpers/html-sanitize.helper';
 
 dotenv.config();
 validateEnv();
 
+axios.defaults.timeout = 15000;
+
 const app = express();
+app.disable('x-powered-by');
 const port = parseInt(process.env.PORT || "3000", 10);
 
 const server = createServer(app);
 const io = new Server(server, {
   pingInterval: 25000,
   pingTimeout: 60000,
-  maxHttpBufferSize: 1e6, // 1 MB — chat payloads are text + short file paths; uploads go over HTTP
+  maxHttpBufferSize: 1e6,
   transports: ["websocket", "polling"],
 });
 
 app.use(compression());
+
+app.use((_req, res, next) => {
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
 app.use(requestLogger);
+
+app.use((req, res, next) => {
+  if (req.path === `/${pathAdmin}` || req.path.startsWith(`/${pathAdmin}/`)) {
+    next();
+    return;
+  }
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
 
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
+// The API documentation changes with the specification, so browsers revalidate it (ETag) instead of caching it for a week.
+app.use('/api-docs', express.static(path.join(process.cwd(), 'public', 'api-docs'), { maxAge: 0 }));
+
 app.use(express.static(path.join(process.cwd(), 'public'), {
   maxAge: 7 * 24 * 60 * 60 * 1000
+}));
+
+app.use('/admin/assets/libs/tinymce', express.static(path.join(process.cwd(), 'node_modules', 'tinymce'), {
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  index: false,
+  dotfiles: 'deny'
 }));
 
 app.get('/manifest.webmanifest', async (_req, res) => {
@@ -97,13 +132,16 @@ app.get('/manifest.webmanifest', async (_req, res) => {
 });
 
 app.get(/^\/+media\//, async (req, res) => {
-  const upstreamPath = req.originalUrl.replace(/^\/+/, "/"); // collapse any leading //
+  const upstreamPath = req.originalUrl.replace(/^\/+/, "/");
   try {
-    const upstream = await fetch(`${domainCDN}${upstreamPath}`);
+    const upstream = await fetch(`${domainCDN}${upstreamPath}`, { signal: AbortSignal.timeout(15000) });
     res.status(upstream.status);
     const contentType = upstream.headers.get("content-type");
     if (contentType) res.type(contentType);
-    
+    const contentDisposition = upstream.headers.get("content-disposition");
+    if (contentDisposition) res.set("Content-Disposition", contentDisposition);
+    res.set("X-Content-Type-Options", "nosniff");
+
     res.set("Cache-Control", upstream.ok ? "public, max-age=31536000, immutable" : "no-store");
     if (upstream.body) {
       Readable.fromWeb(upstream.body as Parameters<typeof Readable.fromWeb>[0]).pipe(res);
@@ -129,7 +167,10 @@ app.set('views', path.join(process.cwd(), 'views'));
 app.set('view engine', 'pug');
 app.enable('view cache');
 
-app.set('trust proxy', 1);
+const trustProxyEnv = process.env.TRUST_PROXY;
+app.set('trust proxy', trustProxyEnv === undefined
+  ? (process.env.NODE_ENV === 'production' ? 1 : false)
+  : (Number.isNaN(Number(trustProxyEnv)) ? trustProxyEnv : Number(trustProxyEnv)));
 
 
 const buildFullUrl = (cdn: string, url?: string): string => {
@@ -143,25 +184,17 @@ const buildFullUrl = (cdn: string, url?: string): string => {
 app.locals.pathAdmin = pathAdmin;
 app.locals.domainCDN = mediaBase;
 app.locals.getFullUrl = (url: string) => buildFullUrl(mediaBase, url);
-app.locals.tinymceApiKey = process.env.TINYMCE_API_KEY || '';
 app.locals.formatDate = formatDate;
 app.locals.formatDateTime = formatDateTime;
 app.locals.formatVND = formatVND;
+app.locals.safeHtml = safeHtml;
+app.locals.safeJson = safeJson;
+app.locals.safeUrl = safeUrl;
+app.locals.safeColor = safeColor;
 
 app.use(cookieParser());
 
-app.use(session({
-  secret: `${process.env.SESSION_SECRET}`,
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-  }
-}));
-
 app.use(passport.initialize());
-app.use(passport.session());
 
 app.use(`/${pathAdmin}`, adminRoutes);
 app.use("/", clientRoutes);
@@ -177,13 +210,15 @@ app.use((req, res) => {
   res.status(404).render("client/pages/404", { pageTitle: "404 | Page not found" });
 });
 
-app.use((err: { message?: string; status?: number; statusCode?: number }, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: { name?: string; message?: string; status?: number; statusCode?: number }, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[UnhandledError]', err?.message || err);
   if (res.headersSent) return;
-  const status = err.status || err.statusCode || 500;
-  const isApiRequest = req.xhr || (req.headers.accept || '').includes('application/json');
+  const isUploadError = err.name === 'MulterError' || err.name === 'UploadRejectedError';
+  const status = isUploadError ? 400 : (err.status || err.statusCode || 500);
+  const isApiRequest = isUploadError || req.xhr || req.originalUrl.includes('/api/') || (req.headers.accept || '').includes('application/json');
   if (isApiRequest) {
-    res.status(status).json({ code: 'error', message: err.message || 'Internal Server Error' });
+    const message = status < 500 && err.message ? err.message : 'Internal Server Error';
+    res.status(status).json({ code: 'error', message });
   } else {
     res.status(status).render('client/pages/404', { pageTitle: `${status} | Error` });
   }

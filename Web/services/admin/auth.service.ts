@@ -1,22 +1,28 @@
 import { Response } from 'express';
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import AccountAdmin from '../../models/account-admin.model';
 import Role from '../../models/role.model';
 import RefreshToken from '../../models/refresh-token.model';
-import { issueRefreshToken, rotateRefreshToken } from "../../helpers/token-rotation.helper";
+import { issueRefreshToken, rotateRefreshToken, isIssuedBeforePasswordChange } from "../../helpers/token-rotation.helper";
 import { COOKIE_OPTS } from '../../configs/cookie.config';
 import { IAccountAdmin } from '../../interfaces/models/account-admin.interface';
 import { metadataCache } from '../../helpers/metadata-cache.helper';
+import { permissionList } from '../../configs/variable.config';
 
 export interface AdminLoginResult {
   success: boolean;
+  status?: number;
   message: string;
   token?: string;
   refreshToken?: string;
   cookieMaxAge?: number;
   adminId?: string;
 }
+
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(crypto.randomBytes(16).toString("hex"), 10);
 
 export const loginAdmin = async (
   email: string,
@@ -25,17 +31,13 @@ export const loginAdmin = async (
 ): Promise<AdminLoginResult> => {
   const existAccount = await AccountAdmin.findOne({ email, deleted: false });
 
-  if (!existAccount) {
-    return { success: false, message: "Email does not exist!" };
-  }
-
-  const isPasswordValid = bcrypt.compareSync(password || "", `${existAccount.password}`);
-  if (!isPasswordValid) {
-    return { success: false, message: "Incorrect password!" };
+  const isPasswordValid = bcrypt.compareSync(password || "", existAccount ? `${existAccount.password}` : DUMMY_PASSWORD_HASH);
+  if (!existAccount || !isPasswordValid) {
+    return { success: false, status: 401, message: "Invalid email or password!" };
   }
 
   if (existAccount.status !== "active") {
-    return { success: false, message: "Account is not activated!" };
+    return { success: false, status: 403, message: "Account is not activated!" };
   }
 
   const tokenTTL = remember ? "7d" : "1d";
@@ -78,26 +80,30 @@ export const invalidateAdminAuthCache = (id?: string) => {
   }
 };
 
-export const getAdminAccountForAuth = async (id: string, email: string): Promise<IAccountAdmin | null> => {
+export const getAdminAccountForAuth = async (id: string, email: string, issuedAt?: number): Promise<IAccountAdmin | null> => {
   const cacheKey = `admin:auth:${id}`;
   const cached = metadataCache.get<IAccountAdmin>(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    if (cached.email !== email || isIssuedBeforePasswordChange(issuedAt, cached.passwordChangedAt)) return null;
+    return cached;
+  }
 
   const account = await AccountAdmin.findOne({
     _id: id,
     email,
     deleted: false,
     status: "active"
-  }).select("_id fullName email avatar isSuperAdmin roles status");
+  }).select("_id fullName email avatar isSuperAdmin roles status passwordChangedAt");
 
-  if (account) {
-    metadataCache.set(cacheKey, account, 60);
-  }
+  if (!account || isIssuedBeforePasswordChange(issuedAt, account.passwordChangedAt)) return null;
+
+  metadataCache.set(cacheKey, account, 60);
   return account;
 };
 
 export const getAdminPermissions = async (roleIds: string[]): Promise<string[]> => {
-  if (!roleIds || roleIds.length === 0) return [];
+  roleIds = (roleIds || []).filter((id) => mongoose.isValidObjectId(id));
+  if (roleIds.length === 0) return [];
   const cacheKey = `admin:roles:${[...roleIds].sort().join(",")}`;
   const cached = metadataCache.get<string[]>(cacheKey);
   if (cached) return cached;
@@ -154,4 +160,19 @@ export const handleAdminRefreshTokenRotation = async (
   }
 
   return existAccount;
+};
+
+export const getEffectivePermissions = async (account: { roles?: string[]; isSuperAdmin?: boolean }): Promise<string[]> => {
+  if (account.isSuperAdmin) return permissionList.map((item) => item.id);
+  return getAdminPermissions(account.roles || []);
+};
+
+export const filterAdminIdsWithPermission = async (adminIds: string[], permission: string): Promise<string[]> => {
+  if (adminIds.length === 0) return [];
+  const accounts = await AccountAdmin.find({ _id: { $in: adminIds }, deleted: false, status: "active" }).select("_id roles isSuperAdmin");
+  const allowed: string[] = [];
+  for (const account of accounts) {
+    if ((await getEffectivePermissions(account)).includes(permission)) allowed.push(String(account._id));
+  }
+  return allowed;
 };

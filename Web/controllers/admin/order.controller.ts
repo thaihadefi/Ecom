@@ -1,9 +1,11 @@
+import { safeCsvOptions } from "../../helpers/csv.helper";
 import { Request, Response } from 'express';
 import { pathAdmin } from '../../configs/variable.config';
 import { Parser } from 'json2csv';
 import { logAdminAction } from '../../helpers/log.helper';
 import * as orderService from '../../services/admin/order.service';
 import * as anomalyDetectionService from '../../services/admin/anomaly-detection.service';
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const list = async (req: Request, res: Response) => {
   const data = await orderService.getOrderList(req.query.keyword, req.query.page);
@@ -28,22 +30,17 @@ export const dismissAnomalyPost = async (req: Request, res: Response) => {
   try {
     const result = await anomalyDetectionService.dismissAnomalyFlag(req.params.id);
     if (!result.dismissed) {
-      res.json({ code: "error", message: "Order not found or already dismissed!" });
+      res.status(404).json({ code: "error", message: "Order not found or already dismissed!" });
       return;
     }
     logAdminAction(req, `Dismissed anomaly flag on order (Id: ${req.params.id})`);
     res.json({ code: "success", message: "Flag dismissed. This order won't show in the review queue anymore." });
   } catch (error) {
     console.error("dismissAnomalyPost error:", error);
-    res.json({ code: "error", message: "Failed to dismiss flag!" });
+    sendCaughtError(res, error, "Failed to dismiss flag!", "Failed to dismiss flag!");
   }
 };
 
-// Kicks off training + the self-healing backfill in the background instead
-// of awaiting them in the request - at real order volumes that combination
-// can run past a browser/proxy HTTP timeout. The admin UI polls
-// retrainAnomalyModelStatus for progress/result instead of waiting on this
-// response.
 export const retrainAnomalyModelPost = async (req: Request, res: Response) => {
   const status = anomalyDetectionService.triggerManualRetrain();
   logAdminAction(req, "Triggered anomaly model retrain (running in background)");
@@ -86,7 +83,7 @@ export const editPatch = async (req: Request, res: Response) => {
     const result = await orderService.updateOrderAdmin(id, orderStatus, paymentStatus, note);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -101,10 +98,7 @@ export const editPatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("order editPatch error:", error);
-    res.json({
-      code: "error",
-      message: "An error occurred, please try again!"
-    });
+    sendCaughtError(res, error, "An error occurred, please try again!", "An error occurred, please try again!");
   }
 };
 
@@ -117,7 +111,7 @@ export const exportCSV = async (_req: Request, res: Response) => {
     const BATCH = 500;
     let skip = 0;
     let headerWritten = false;
-    const parser = new Parser({ header: true });
+    const parser = new Parser({ header: true, ...safeCsvOptions });
 
     while (true) {
       const batch = await orderService.getOrdersBatchForExport(skip, BATCH);
@@ -136,6 +130,11 @@ export const exportCSV = async (_req: Request, res: Response) => {
     res.end();
   } catch (err) {
     console.error("Export CSV error:", err);
+    if (res.headersSent) {
+      res.end();
+    } else {
+      res.status(500).json({ code: "error", message: "Export failed!" });
+    }
   }
 };
 
@@ -143,31 +142,31 @@ export const destroyManyDelete = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
 
     const result = await orderService.permanentlyDeleteManyOrders(ids);
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("destroyManyDelete error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
 export const deletePatch = async (req: Request, res: Response) => {
   try {
     const result = await orderService.softDeleteOrder(req.params.id);
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("deletePatch error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -182,20 +181,20 @@ export const undoPatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoPatch error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
 export const destroyDelete = async (req: Request, res: Response) => {
   try {
     const result = await orderService.permanentlyDeleteOrder(req.params.id);
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("destroyDelete error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -203,18 +202,18 @@ export const deleteManyPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
 
     const result = await orderService.softDeleteManyOrders(ids);
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("deleteManyPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -222,7 +221,7 @@ export const undoManyPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
 
@@ -230,36 +229,6 @@ export const undoManyPatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoManyPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
-  }
-};
-
-export const changeMultiPatch = async (req: Request, res: Response) => {
-  try {
-    const { value, ids } = req.body;
-    if (!value || !ids || !ids.length) {
-      res.json({ code: "error", message: "Invalid data!" });
-      return;
-    }
-    switch (value) {
-      case "undo": {
-        const result = await orderService.restoreManyOrders(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      case "destroy": {
-        const result = await orderService.permanentlyDeleteManyOrders(ids);
-        res.json({
-          code: result.success ? "success" : "error",
-          message: result.message
-        });
-        break;
-      }
-      default:
-        res.json({ code: "error", message: "Invalid action!" });
-    }
-  } catch (error) {
-    console.error("changeMultiPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

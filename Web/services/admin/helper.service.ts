@@ -1,4 +1,4 @@
-import slugify from 'slugify';
+import { toSlug } from '../../helpers/slugify.helper';
 import mongoose from 'mongoose';
 import CategoryBlog from '../../models/category-blog.model';
 import Blog from '../../models/blog.model';
@@ -13,15 +13,12 @@ const models: Record<string, mongoose.Model<unknown>> = {
   Product: Product as unknown as mongoose.Model<unknown>
 };
 
-export const generateUniqueSlug = async (rawString: string, modalName: string) => {
-  let slug = slugify(rawString || "", {
-    lower: true,
-    strict: true,
-  });
+export const generateUniqueSlug = async (rawString: unknown, modalName: string) => {
+  let slug = toSlug(typeof rawString === "string" ? rawString : "");
 
-  const Model = models[modalName];
+  const Model = Object.prototype.hasOwnProperty.call(models, modalName) ? models[modalName] : undefined;
   if (!Model) {
-    return { success: false, message: "Invalid model!" };
+    return { success: false, status: 400, message: "Invalid model!" };
   }
 
   const existSlug = await Model.findOne({ slug }).select("_id");

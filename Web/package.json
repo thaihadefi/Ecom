@@ -9,16 +9,11 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "lint:any": "bash -c '! grep -rn --include=\"*.ts\" --exclude-dir={node_modules,dist} \": any\\b\" .'",
-    "seed:demo:products": "ts-node scripts/seed-demo-products.ts",
-    "seed:demo": "ts-node scripts/seed-demo-data.ts",
-    "seed:demo:undo": "ts-node scripts/unseed-demo-data.ts",
-    "calibrate:anomaly": "ts-node scripts/calibrate-anomaly-detection.ts"
+    "lint:any": "bash -c '! grep -rn --include=\"*.ts\" --exclude-dir={node_modules,dist} \": any\\b\" .'"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.9",
     "@types/crypto-js": "^4.2.2",
-    "@types/express-session": "^1.18.2",
     "@types/json2csv": "^5.0.7",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
@@ -36,7 +31,6 @@
     "crypto-js": "^4.2.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
-    "express-session": "^1.18.2",
     "form-data": "^4.0.4",
     "joi": "^18.0.0",
     "json2csv": "^6.0.0-alpha.2",
@@ -52,13 +46,16 @@
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
     "pug": "^3.0.3",
+    "sanitize-html": "^2.17.7",
     "slugify": "^1.6.6",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "tinymce": "^8.9.1"
   },
   "devDependencies": {
     "@types/compression": "^1.8.1",
     "@types/express": "^5.0.3",
     "@types/node": "^24.2.1",
+    "@types/sanitize-html": "^2.16.1",
     "nodemon": "^3.1.10",
     "socket.io-client": "^4.8.3",
     "ts-node": "^10.9.2",

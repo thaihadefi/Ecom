@@ -30,10 +30,10 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
       "number.min": "Usage limit must be at least 0!",
       "number.base": "Usage limit must be a number!"
     }),
-    typeDisplay: Joi.string().allow(''),
-    status: Joi.string().allow(''),
-    startDate: Joi.string().allow(''),
-    endDate: Joi.string().allow(''),
+    typeDisplay: Joi.string().valid('public', 'private', ''),
+    status: Joi.string().valid('active', 'inactive', ''),
+    startDate: Joi.string().pattern(/^\d{2}\/\d{2}\/\d{4}$/).allow(''),
+    endDate: Joi.string().pattern(/^\d{2}\/\d{2}\/\d{4}$/).allow(''),
     description: Joi.string().allow(''),
   }).custom((obj, helpers) => {
     if (obj.typeDiscount === "percentage" && obj.value !== '' && obj.value !== null && parseFloat(obj.value) > 100) {
@@ -47,7 +47,7 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });

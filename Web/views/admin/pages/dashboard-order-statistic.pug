@@ -59,9 +59,9 @@ block main
               canvas#orderStatusYear
 
 block script
-  script(src="https://cdn.jsdelivr.net/npm/chart.js")
+  script(src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous")
   script.
-    const pieToday = !{JSON.stringify(pieToday)};
-    const pieThisMonth = !{JSON.stringify(pieThisMonth)};
-    const pieThisYear = !{JSON.stringify(pieThisYear)};
+    const pieToday = !{safeJson(pieToday)};
+    const pieThisMonth = !{safeJson(pieThisMonth)};
+    const pieThisYear = !{safeJson(pieThisYear)};
   script(src="/admin/assets/js/my-chart.js")

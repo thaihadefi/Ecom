@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { pathAdmin } from '../../configs/variable.config';
 import * as chatService from '../../services/admin/chat.service';
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const myChatList = async (_req: Request, res: Response) => {
   const chatRoomList = await chatService.getAdminChatList(res.locals.accountAdmin.id);
@@ -14,7 +15,7 @@ export const myChatList = async (_req: Request, res: Response) => {
 export const detail = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    const data = await chatService.getAdminChatDetail(id, res.locals.accountAdmin.id);
+    const data = await chatService.getAdminChatDetail(id, res.locals.accountAdmin);
 
     if (!data) {
       res.redirect('/admin/dashboard');
@@ -35,26 +36,28 @@ export const detail = async (req: Request, res: Response) => {
 
 export const messages = async (req: Request, res: Response) => {
   const adminId = res.locals.accountAdmin?.id;
-  const { limit = 20, roomId, lastMessageId } = req.query;
+  const { limit = 20, lastMessageId } = req.query;
+  const roomId = req.params.roomId;
 
   if (!adminId) {
-    res.json({
+    res.status(401).json({
       code: "error",
-      message: "Failed!"
+      message: "Please log in!"
     });
     return;
   }
 
   const data = await chatService.getAdminMessages(
-    roomId as string,
+    String(roomId),
+    res.locals.accountAdmin,
     parseInt(`${limit}`),
     lastMessageId
   );
 
   if (!data) {
-    res.json({
+    res.status(404).json({
       code: "error",
-      message: "Failed!"
+      message: "Chat room not found!"
     });
     return;
   }
@@ -69,21 +72,21 @@ export const messages = async (req: Request, res: Response) => {
 
 export const uploadPost = async (req: Request, res: Response) => {
   try {
-    const roomId = req.body.roomId;
+    const roomId = req.params.roomId;
     const files = req.files as Express.Multer.File[];
 
     if (!files || !files.length) {
-      res.json({
+      res.status(400).json({
         code: "error",
         message: "Please attach a file!"
       });
       return;
     }
 
-    const result = await chatService.uploadAdminChatFiles(roomId, files);
+    const result = await chatService.uploadAdminChatFiles(String(roomId), res.locals.accountAdmin, files);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -97,35 +100,30 @@ export const uploadPost = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("uploadPost admin chat error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
 export const changeStatusPatch = async (req: Request, res: Response) => {
   try {
-    const { roomId, status } = req.body;
-    const result = await chatService.changeChatRoomStatus(roomId, status);
+    const { roomId } = req.params;
+    const { status } = req.body;
+    const result = await chatService.changeChatRoomStatus(String(roomId), res.locals.accountAdmin, String(status));
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("changeStatusPatch admin chat error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
 export const rate = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    const data = await chatService.getAdminChatRating(id, res.locals.accountAdmin.id);
+    const data = await chatService.getAdminChatRating(id, res.locals.accountAdmin);
 
     if (!data) {
       res.redirect(`/${pathAdmin}/dashboard`);
@@ -147,7 +145,7 @@ export const rate = async (req: Request, res: Response) => {
 export const suggestReply = async (req: Request, res: Response) => {
   try {
     const roomId = req.params.id;
-    const content = await chatService.suggestAdminReply(roomId);
+    const content = await chatService.suggestAdminReply(roomId, res.locals.accountAdmin);
 
     res.json({
       code: "success",
@@ -156,10 +154,7 @@ export const suggestReply = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("suggestReply error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -167,7 +162,7 @@ export const editReplyPost = async (req: Request, res: Response) => {
   try {
     const roomId = req.params.id;
     const { content: contentChat } = req.body;
-    const content = await chatService.editAdminReply(roomId, contentChat);
+    const content = await chatService.editAdminReply(roomId, res.locals.accountAdmin, contentChat);
 
     res.json({
       code: "success",
@@ -176,17 +171,14 @@ export const editReplyPost = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("editReplyPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
 export const summary = async (req: Request, res: Response) => {
   try {
     const roomId = req.params.id;
-    const content = await chatService.summarizeAdminChat(roomId);
+    const content = await chatService.summarizeAdminChat(roomId, res.locals.accountAdmin);
 
     res.json({
       code: "success",
@@ -195,17 +187,14 @@ export const summary = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("summary error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
 export const customerEmotions = async (req: Request, res: Response) => {
   try {
     const roomId = req.params.id;
-    const content = await chatService.analyzeAdminChatEmotions(roomId);
+    const content = await chatService.analyzeAdminChatEmotions(roomId, res.locals.accountAdmin);
 
     res.json({
       code: "success",
@@ -214,9 +203,6 @@ export const customerEmotions = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("customerEmotions error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

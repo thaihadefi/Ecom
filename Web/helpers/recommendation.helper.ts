@@ -85,7 +85,6 @@ export interface DiversityCandidate {
   categories: string[];
 }
 
-// Greedily fills topN slots while capping picks per category; deferred candidates backfill any slots diversity left empty.
 export const applyDiversityCap = (
   candidates: DiversityCandidate[],
   topN: number,

@@ -6,6 +6,8 @@ import RefreshToken from "../models/refresh-token.model";
 import { COOKIE_OPTS } from "../configs/cookie.config";
 
 export const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+export const ACCESS_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+const GRACE_PERIOD_MS = 15000;
 
 export const issueRefreshToken = async (userId: string, role: "user" | "admin"): Promise<string> => {
   const token = crypto.randomBytes(40).toString("hex");
@@ -17,14 +19,23 @@ export const issueRefreshToken = async (userId: string, role: "user" | "admin"):
   });
   return token;
 };
-const ACCESS_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
-const GRACE_PERIOD_MS = 15000;
+
+export const signAccessToken = (account: { id: string; email?: string | null }, expiresIn: "1d" | "7d" = "1d"): string =>
+  jwt.sign({ id: account.id, email: account.email }, `${process.env.JWT_SECRET}`, { expiresIn });
+
+export const isIssuedBeforePasswordChange = (issuedAtSec: number | undefined, passwordChangedAt?: Date | null): boolean => {
+  if (!passwordChangedAt || issuedAtSec === undefined) return false;
+  return issuedAtSec < Math.floor(new Date(passwordChangedAt).getTime() / 1000);
+};
+
+export const revokeRefreshTokens = async (userId: string, role: "user" | "admin"): Promise<void> => {
+  await RefreshToken.deleteMany({ userId, role });
+};
 
 interface StoredTokenDocument {
+  _id: mongoose.Types.ObjectId;
   used: boolean;
   rotatedAt?: Date | null;
-  expiresAt: Date;
-  save: (options?: { session?: mongoose.ClientSession }) => Promise<unknown>;
 }
 
 interface RotateOptions {
@@ -39,50 +50,50 @@ interface RotateOptions {
 export type RotateOutcome = "rotated" | "grace" | "revoked";
 
 export const rotateRefreshToken = async (opts: RotateOptions): Promise<RotateOutcome> => {
-  const { storedToken, account, role, accessTokenCookieName, refreshTokenCookieName, res } = opts;
+  const { account, role, accessTokenCookieName, refreshTokenCookieName, res } = opts;
+  let { storedToken } = opts;
 
-  const newAccessToken = jwt.sign(
-    { id: account.id, email: account.email },
-    `${process.env.JWT_SECRET}`,
-    { expiresIn: "1d" }
-  );
+  const newAccessToken = signAccessToken(account);
 
-  if (storedToken.used) {
-    const timePassed = Date.now() - new Date(storedToken.rotatedAt || 0).getTime();
+  if (!storedToken.used) {
+    const claimed = await RefreshToken.findOneAndUpdate(
+      { _id: storedToken._id, used: false },
+      { $set: { used: true, rotatedAt: new Date() } },
+    );
 
-    if (timePassed <= GRACE_PERIOD_MS) {
+    if (claimed) {
+      const newRefreshToken = crypto.randomBytes(40).toString("hex");
+      try {
+        await RefreshToken.create({
+          userId: account.id,
+          token: newRefreshToken,
+          role,
+          expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+        });
+      } catch (error) {
+        await RefreshToken.updateOne({ _id: storedToken._id }, { $set: { used: false }, $unset: { rotatedAt: 1 } });
+        throw error;
+      }
+
       res.cookie(accessTokenCookieName, newAccessToken, { ...COOKIE_OPTS, maxAge: ACCESS_TOKEN_TTL_MS });
-      return "grace";
+      res.cookie(refreshTokenCookieName, newRefreshToken, { ...COOKIE_OPTS, maxAge: REFRESH_TOKEN_TTL_MS });
+      return "rotated";
     }
 
-    await RefreshToken.deleteMany({ userId: account.id });
-    res.clearCookie(refreshTokenCookieName, COOKIE_OPTS);
-    res.clearCookie(accessTokenCookieName, COOKIE_OPTS);
-    return "revoked";
+    const fresh = await RefreshToken.findById(storedToken._id);
+    if (!fresh) return "revoked";
+    storedToken = fresh;
   }
 
-  const newRefreshToken = crypto.randomBytes(40).toString("hex");
-  const session = await mongoose.startSession();
-  try {
-    await session.withTransaction(async () => {
-      await RefreshToken.create([{
-        userId: account.id,
-        token: newRefreshToken,
-        role,
-        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-      }], { session });
+  const timePassed = Date.now() - new Date(storedToken.rotatedAt || 0).getTime();
 
-      storedToken.used = true;
-      storedToken.rotatedAt = new Date();
-      storedToken.expiresAt = new Date(Date.now() + 30000);
-      await storedToken.save({ session });
-    });
-  } finally {
-    session.endSession();
+  if (timePassed <= GRACE_PERIOD_MS) {
+    res.cookie(accessTokenCookieName, newAccessToken, { ...COOKIE_OPTS, maxAge: ACCESS_TOKEN_TTL_MS });
+    return "grace";
   }
 
-  res.cookie(accessTokenCookieName, newAccessToken, { ...COOKIE_OPTS, maxAge: ACCESS_TOKEN_TTL_MS });
-  res.cookie(refreshTokenCookieName, newRefreshToken, { ...COOKIE_OPTS, maxAge: REFRESH_TOKEN_TTL_MS });
-
-  return "rotated";
+  await RefreshToken.deleteMany({ userId: account.id, role });
+  res.clearCookie(refreshTokenCookieName, COOKIE_OPTS);
+  res.clearCookie(accessTokenCookieName, COOKIE_OPTS);
+  return "revoked";
 };

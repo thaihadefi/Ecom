@@ -15,7 +15,7 @@ block main
                 | Trash
               button.btn.btn-danger.me-1(
                 button-soft-delete-many
-                data-api=`/${pathAdmin}/contact-inquiry/delete-many`
+                data-api=`/${pathAdmin}/api/contact-inquiries/trash`
                 style="display:none"
               )
                 i.fa-solid.fa-trash.me-1
@@ -63,8 +63,8 @@ block main
                           a.tbl-action(
                             href="javascript:;"
                             button-api
-                            data-method="PATCH"
-                            data-api=`/${pathAdmin}/contact-inquiry/change-status/${item.id}/read`
+                            data-method="PUT"
+                            data-api=`/${pathAdmin}/api/contact-inquiries/${item.id}/status/read`
                             title="Mark as Read"
                             aria-label="Mark as Read"
                           )
@@ -73,8 +73,8 @@ block main
                           a.tbl-action.warning(
                             href="javascript:;"
                             button-api
-                            data-method="PATCH"
-                            data-api=`/${pathAdmin}/contact-inquiry/change-status/${item.id}/unread`
+                            data-method="PUT"
+                            data-api=`/${pathAdmin}/api/contact-inquiries/${item.id}/status/unread`
                             title="Mark as Unread"
                             aria-label="Mark as Unread"
                           )
@@ -82,8 +82,8 @@ block main
                         a.tbl-action.danger(
                           href="javascript:;"
                           button-api
-                          data-method="PATCH"
-                          data-api=`/${pathAdmin}/contact-inquiry/delete/${item.id}`
+                          data-method="DELETE"
+                          data-api=`/${pathAdmin}/api/contact-inquiries/${item.id}`
                           title="Move to trash"
                           aria-label="Move to trash"
                         )

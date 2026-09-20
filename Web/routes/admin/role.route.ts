@@ -1,49 +1,39 @@
 import { Router } from "express";
 import * as roleController from "../../controllers/admin/role.controller";
-import multer from "multer";
+import { textForm } from "../../helpers/upload.helper";
 import * as roleValidate from "../../validates/admin/role.validate";
+import { guardRolePermissions, guardRoleTargets } from "../../middlewares/admin/rbac-guard.middleware";
 import { checkPermission } from "../../middlewares/admin/auth.middleware";
 
+import { permanentOnly } from "../../helpers/rest.helper";
 const router = Router();
 
-const upload = multer();
+const upload = textForm;
 
-router.get('/create', roleController.create);
+router.get('/create', checkPermission("role-create"), roleController.create);
 
-router.post(
-  '/create',
-  upload.none(),
-  checkPermission("role-create"),
-  roleValidate.createPost,
-  roleController.createPost
-);
+router.get('/list', checkPermission("role-list"), roleController.list);
 
-router.get('/list', roleController.list);
+router.get('/trash', checkPermission("role-trash"), roleController.trash);
 
-router.get('/trash', roleController.trash);
-
-router.get('/edit/:id', roleController.edit);
-
-router.patch(
-  '/edit/:id',
-  upload.none(),
-  checkPermission("role-edit"),
-  roleValidate.createPost,
-  roleController.editPatch
-);
-
-router.patch('/delete/:id', checkPermission("role-delete"), roleController.deletePatch);
-
-router.patch('/delete-many', checkPermission("role-delete"), roleController.deleteManyPatch);
-
-router.patch('/undo/:id', checkPermission("role-edit"), roleController.undoPatch);
-
-router.patch('/change-multi', checkPermission("role-edit"), roleController.changeMultiPatch);
-
-router.patch('/undo-many', checkPermission("role-edit"), roleController.undoManyPatch);
-
-router.delete('/destroy/:id', checkPermission("role-delete"), roleController.destroyDelete);
-
-router.delete('/destroy-many', checkPermission("role-delete"), roleController.destroyManyDelete);
+router.get('/edit/:id', checkPermission("role-edit"), roleController.edit);
 
 export default router;
+
+export const api = Router();
+
+api.delete('/:id', permanentOnly, checkPermission("role-delete"), guardRoleTargets, roleController.destroyDelete);
+
+api.post('/', upload.none(), checkPermission("role-create"), roleValidate.createPost, guardRolePermissions, roleController.createPost);
+
+api.patch('/:id', upload.none(), checkPermission("role-edit"), roleValidate.createPost, guardRolePermissions, roleController.editPatch);
+
+api.post('/trash', checkPermission("role-delete"), guardRoleTargets, roleController.deleteManyPatch);
+
+api.post('/:id/restore', checkPermission("role-edit"), guardRoleTargets, roleController.undoPatch);
+
+api.post('/restore', checkPermission("role-edit"), guardRoleTargets, roleController.undoManyPatch);
+
+api.delete('/', checkPermission("role-delete"), guardRoleTargets, roleController.destroyManyDelete);
+
+api.delete('/:id', checkPermission("role-delete"), guardRoleTargets, roleController.deletePatch);

@@ -26,7 +26,7 @@ export const loginPost = (req: Request, res: Response, next: NextFunction) => {
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });

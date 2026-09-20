@@ -8,6 +8,8 @@ export interface IAccountUser extends Document {
   email?: string;
   phone?: string;
   password?: string;
+  emailVerified?: boolean;
+  passwordChangedAt?: Date;
   status?: "active" | "inactive";
   avatar?: string;
   totalPoint: number;

@@ -23,7 +23,7 @@ export const getAttributeProductList = async (rawKeyword?: unknown, rawPage?: un
   };
 };
 
-export const createAttributeProduct = async (data: IAttributeProductInput): Promise<{ success: boolean; message: string; attribute?: IAttributeProduct }> => {
+export const createAttributeProduct = async (data: IAttributeProductInput): Promise<{ success: boolean; status?: number; message: string; attribute?: IAttributeProduct }> => {
   if (typeof data.options === "string") {
     data.options = JSON.parse(data.options);
   }
@@ -40,7 +40,7 @@ export const getAttributeProductById = async (id: string) => {
   return AttributeProduct.findOne({ _id: id, deleted: false });
 };
 
-export const updateAttributeProduct = async (id: string, data: IAttributeProductInput): Promise<{ success: boolean; message: string }> => {
+export const updateAttributeProduct = async (id: string, data: IAttributeProductInput): Promise<{ success: boolean; status?: number; message: string }> => {
   if (typeof data.options === "string") {
     data.options = JSON.parse(data.options);
   }
@@ -71,4 +71,3 @@ export const permanentlyDeleteAttributeProduct = async (id: string) => {
   invalidateActiveAttributes();
   return { success: true, message: "Deleted permanently!" };
 };
-

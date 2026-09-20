@@ -1,6 +1,12 @@
+const escHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[char]));
+
 const initialTinyMCE = () => {
   tinymce.init({
     selector: '[textarea-mce]',
+    license_key: 'gpl',
+    promotion: false,
     height: 500,
     plugins: [
       'accordion', 'anchor', 'autolink', 'autoresize',
@@ -173,7 +179,7 @@ if(articleCreateCategoryForm) {
       formData.append("avatar", avatar);
       formData.append("description", description);
 
-      fetch(`/${pathAdmin}/article/category/create`, {
+      fetch(`/${pathAdmin}/api/article-categories`, {
         method: "POST",
         body: formData
       })
@@ -225,7 +231,7 @@ if(articleEditCategoryForm) {
       formData.append("avatar", avatar);
       formData.append("description", description);
 
-      fetch(`/${pathAdmin}/article/category/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/article-categories/${id}`, {
         method: "PATCH",
         body: formData
       })
@@ -255,7 +261,7 @@ if(buttonGenerateSlug) {
       modalName: modalName
     };
 
-    fetch(`/${pathAdmin}/helper/generate-slug`, {
+    fetch(`/${pathAdmin}/api/slugs`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -360,7 +366,7 @@ if(listButtonSelectFile.length > 0) {
   listButtonSelectFile.forEach(button => {
     button.addEventListener("click", () => {
       const content = button.getAttribute("data-content");
-      window.parent.postMessage({ fileLink: content }, "*");
+      window.parent.postMessage({ fileLink: content }, window.location.origin);
     })
   })
 }
@@ -400,26 +406,26 @@ if(modalPreviewFile) {
 
     if(mimetype.includes("image")) {
       innerPreview.innerHTML = `
-        <img src="${file}" width="100%" />
+        <img src="${escHtml(file)}" width="100%" />
       `;
     }
     else if(mimetype.includes("audio")) {
       innerPreview.innerHTML = `
         <audio controls>
-          <source src="${file}" />
+          <source src="${escHtml(file)}" />
         </audio>
       `;
     }
     else if(mimetype.includes("video")) {
       innerPreview.innerHTML = `
         <video controls width="100%">
-          <source src="${file}" />
+          <source src="${escHtml(file)}" />
         </video>
       `;
     }
     else if(mimetype.includes("application/pdf")) {
       innerPreview.innerHTML = `
-        <iframe src="${file}" width="100%" height="600px"></iframe>
+        <iframe src="${escHtml(file)}" width="100%" height="600px"></iframe>
       `;
     }
   })
@@ -454,7 +460,7 @@ if(modalChangeFileName) {
       formData.append("oldFileName", oldFileName);
       formData.append("newFileName", newFileName);
 
-      fetch(`/${pathAdmin}/file-manager/change-file-name`, {
+      fetch(`/${pathAdmin}/api/files/name`, {
         method: "PATCH",
         body: formData
       })
@@ -501,7 +507,7 @@ if(listButtonDeleteFile.length > 0) {
         title: "Delete File",
         message: `Delete "${fileName}"? This action cannot be undone.`,
         onOk: () => {
-          fetch(`/${pathAdmin}/file-manager/delete-file?folder=${encodeURIComponent(folder)}&fileName=${encodeURIComponent(fileName)}`, {
+          fetch(`/${pathAdmin}/api/files?folder=${encodeURIComponent(folder)}&fileName=${encodeURIComponent(fileName)}`, {
             method: "DELETE"
           })
             .then(res => res.json())
@@ -535,7 +541,7 @@ if(formCreateFolder) {
       const folderPath = urlParams.get("folderPath");
       if(folderPath) formData.append("folderPath", folderPath);
 
-      fetch(`/${pathAdmin}/file-manager/folder/create`, {
+      fetch(`/${pathAdmin}/api/folders`, {
         method: "POST",
         body: formData
       })
@@ -592,8 +598,8 @@ if(breadcumbFolder) {
       <li class="list-group-item bg-white ${isLast ? "fw-semibold" : ""}">
         <i class="la la-angle-right text-muted me-1"></i>
         ${isLast
-          ? `<span class="text-dark">${item}</span>`
-          : `<a href="/${pathAdmin}/file-manager?folderPath=${encodeURIComponent(path)}">${item}</a>`
+          ? `<span class="text-dark">${escHtml(item)}</span>`
+          : `<a href="/${pathAdmin}/file-manager?folderPath=${encodeURIComponent(path)}">${escHtml(item)}</a>`
         }
       </li>
     `;
@@ -619,7 +625,7 @@ if(listButtonDeleteFolder.length > 0) {
         title: "Delete Folder",
         message: `Delete folder "${folderName}" and all its contents?`,
         onOk: () => {
-          fetch(`/${pathAdmin}/file-manager/folder/delete?folderPath=${folderFinal}`, {
+          fetch(`/${pathAdmin}/api/folders?folderPath=${folderFinal}`, {
             method: "DELETE"
           })
             .then(res => res.json())
@@ -669,7 +675,7 @@ if (modalRenameFolder && formRenameFolder) {
       formData.append("folderPath", folderPath);
       formData.append("newFolderName", newFolderName);
 
-      fetch(`/${pathAdmin}/file-manager/folder/rename`, {
+      fetch(`/${pathAdmin}/api/folders/name`, {
         method: "PATCH",
         body: formData
       })
@@ -781,7 +787,7 @@ if (pasteContainer) {
         formData.append("folderPath", cutFolderPath);
         formData.append("targetFolder", targetFolderFull);
 
-        fetch(`/${pathAdmin}/file-manager/folder/move`, {
+        fetch(`/${pathAdmin}/api/folders/location`, {
           method: "PATCH",
           body: formData
         })
@@ -805,7 +811,7 @@ if (pasteContainer) {
       formData.append("fileName", fileName);
       formData.append("targetFolder", targetFolder);
 
-      fetch(`/${pathAdmin}/file-manager/move-file`, {
+      fetch(`/${pathAdmin}/api/files/location`, {
         method: "PATCH",
         body: formData
       })
@@ -865,7 +871,8 @@ if(listFormMultiFile.length > 0) {
 }
 
 window.addEventListener("message", (event) => {
-  if(!event.data || !event.data.fileLink) return;
+  if(event.origin !== window.location.origin) return;
+  if(!event.data || typeof event.data.fileLink !== "string" || !event.data.fileLink) return;
 
   const closeModal = () => {
     const modal = document.querySelector("#modalFileManager");
@@ -889,7 +896,7 @@ window.addEventListener("message", (event) => {
     const link = event.data.fileLink;
     activeMultiFileList.insertAdjacentHTML("beforeend", `
       <div class="inner-image">
-        <img src="${domainCDN}${link}" alt="" src-relative="${link}">
+        <img src="${escHtml(domainCDN + link)}" alt="" src-relative="${escHtml(link)}">
         <span class="inner-remove">x</span>
       </div>
     `);
@@ -977,7 +984,7 @@ if(articleCreateForm) {
       formData.append("description", description);
       formData.append("content", content);
 
-      fetch(`/${pathAdmin}/article/create`, {
+      fetch(`/${pathAdmin}/api/articles`, {
         method: "POST",
         body: formData
       })
@@ -1032,7 +1039,7 @@ if(articleEditForm) {
       formData.append("description", description);
       formData.append("content", content);
 
-      fetch(`/${pathAdmin}/article/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/articles/${id}`, {
         method: "PATCH",
         body: formData
       })
@@ -1073,7 +1080,7 @@ if(roleCreateForm) {
       formData.append("permissions", JSON.stringify(permissions));
       formData.append("status", status);
 
-      fetch(`/${pathAdmin}/role/create`, {
+      fetch(`/${pathAdmin}/api/roles`, {
         method: "POST",
         body: formData
       })
@@ -1116,7 +1123,7 @@ if(roleEditForm) {
       formData.append("permissions", JSON.stringify(permissions));
       formData.append("status", status);
 
-      fetch(`/${pathAdmin}/role/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/roles/${id}`, {
         method: "PATCH",
         body: formData
       })
@@ -1207,7 +1214,7 @@ if(accountAdminCreateForm) {
       formData.append("avatar", avatar);
       formData.append("roles", JSON.stringify(roles));
 
-      fetch(`/${pathAdmin}/account-admin/create`, {
+      fetch(`/${pathAdmin}/api/admin-accounts`, {
         method: "POST",
         body: formData
       })
@@ -1272,7 +1279,7 @@ if(accountAdminEditForm) {
       formData.append("avatar", avatar);
       formData.append("roles", JSON.stringify(roles));
 
-      fetch(`/${pathAdmin}/account-admin/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/admin-accounts/${id}`, {
         method: "PATCH",
         body: formData
       })
@@ -1328,8 +1335,8 @@ if(accountAdminChangePasswordForm) {
       const formData = new FormData();
       formData.append("password", password);
 
-      fetch(`/${pathAdmin}/account-admin/change-password/${id}`, {
-        method: "PATCH",
+      fetch(`/${pathAdmin}/api/admin-accounts/${id}/password`, {
+        method: "PUT",
         body: formData
       })
         .then(res => res.json())
@@ -1377,7 +1384,7 @@ if(accountLoginForm) {
       formData.append("password", password);
       formData.append("rememberPassword", rememberPassword);
 
-      fetch(`/${pathAdmin}/account/login`, {
+      fetch(`/${pathAdmin}/api/sessions`, {
         method: "POST",
         body: formData
       })
@@ -1429,7 +1436,7 @@ if(productCreateCategoryForm) {
       formData.append("avatar", avatar);
       formData.append("description", description);
 
-      fetch(`/${pathAdmin}/product/category/create`, {
+      fetch(`/${pathAdmin}/api/product-categories`, {
         method: "POST",
         body: formData
       })
@@ -1482,7 +1489,7 @@ if(productEditCategoryForm) {
       formData.append("avatar", avatar);
       formData.append("description", description);
 
-      fetch(`/${pathAdmin}/product/category/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/product-categories/${id}`, {
         method: "PATCH",
         body: formData
       })
@@ -1583,7 +1590,7 @@ if(productCreateForm) {
       formData.append("tags", JSON.stringify(tags));
       formData.append("boughtTogether", JSON.stringify(boughtTogether));
 
-      fetch(`/${pathAdmin}/product/create`, {
+      fetch(`/${pathAdmin}/api/products`, {
         method: "POST",
         body: formData
       })
@@ -1687,7 +1694,7 @@ if(productEditForm) {
       formData.append("tags", JSON.stringify(tags));
       formData.append("boughtTogether", JSON.stringify(boughtTogether));
 
-      fetch(`/${pathAdmin}/product/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/products/${id}`, {
         method: "PATCH",
         body: formData
       })
@@ -1735,25 +1742,23 @@ if(listCheckboxInput.length > 0) {
   });
 }
 
-const bulkFetch = (button, method, confirmTitle, confirmMsg, okText = "Delete", okClass = "btn-danger") => {
+const bulkFetch = (button, method, suffix, confirmTitle, confirmMsg, okText = "Delete", okClass = "btn-danger") => {
   if(!button) return;
   button.addEventListener("click", () => {
     const checkedInputs = document.querySelectorAll(".checkbox-input:checked");
     if(checkedInputs.length === 0) return;
     const ids = Array.from(checkedInputs).map(input => input.value);
-    const api = button.getAttribute("data-api");
-    const dataValue = button.getAttribute("data-value");
+    const api = button.getAttribute("data-api") + suffix;
     showConfirm({
       title: confirmTitle,
       message: confirmMsg.replace("{n}", ids.length),
       okText: okText,
       okClass: okClass,
       onOk: () => {
-        const body = dataValue ? { value: dataValue, ids } : { ids };
         fetch(api, {
-          method: dataValue ? "PATCH" : method,
+          method,
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
+          body: JSON.stringify({ ids })
         })
           .then(res => res.json())
           .then(data => {
@@ -1768,6 +1773,7 @@ const bulkFetch = (button, method, confirmTitle, confirmMsg, okText = "Delete", 
 bulkFetch(
   document.querySelector("[button-delete-many]"),
   "DELETE",
+  "",
   "Delete Permanently",
   "Permanently delete {n} item(s)? This cannot be undone.",
   "Delete",
@@ -1776,7 +1782,8 @@ bulkFetch(
 
 bulkFetch(
   document.querySelector("[button-soft-delete-many]"),
-  "PATCH",
+  "POST",
+  "",
   "Move to Trash",
   "Move {n} item(s) to trash?",
   "Move to Trash",
@@ -1785,7 +1792,8 @@ bulkFetch(
 
 bulkFetch(
   document.querySelector("[button-restore-many]"),
-  "PATCH",
+  "POST",
+  "/restore",
   "Restore",
   "Restore {n} item(s)?",
   "Restore",
@@ -1812,11 +1820,17 @@ if(listButtonPaste) {
 
     buttonPaste.addEventListener("click", async () => {
       const listLinkJson = await navigator.clipboard.readText();
-      const listLink = JSON.parse(listLinkJson);
-      for (const link of listLink) {
+      let listLink;
+      try {
+        listLink = JSON.parse(listLinkJson);
+      } catch {
+        return;
+      }
+      if (!Array.isArray(listLink)) return;
+      for (const link of listLink.filter((item) => typeof item === "string")) {
         elementListImage.insertAdjacentHTML("beforeend", `
           <div class="inner-image">
-            <img src="${domainCDN}${link}" alt="" src-relative="${link}">
+            <img src="${escHtml(domainCDN + link)}" alt="" src-relative="${escHtml(link)}">
             <span class="inner-remove">x</span>
           </div>
         `);
@@ -1898,7 +1912,7 @@ if(productCreateAttributeForm) {
       formData.append("type", type);
       formData.append("options", JSON.stringify(options));
 
-      fetch(`/${pathAdmin}/product/attribute/create`, {
+      fetch(`/${pathAdmin}/api/product-attributes`, {
         method: "POST",
         body: formData
       })
@@ -1939,7 +1953,7 @@ if(productEditAttributeForm) {
       formData.append("type", type);
       formData.append("options", JSON.stringify(options));
 
-      fetch(`/${pathAdmin}/product/attribute/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/product-attributes/${id}`, {
         method: "PATCH",
         body: formData
       })
@@ -2016,7 +2030,7 @@ if(buttonRenderVariant) {
       `;
       variant.forEach(item => {
         tr += `
-          <td>${item.label}</td>
+          <td>${escHtml(item.label)}</td>
         `;
       })
       tr += `
@@ -2158,7 +2172,7 @@ if(couponCreateForm) {
       formData.append("endDate", endDate);
       formData.append("description", description);
 
-      fetch(`/${pathAdmin}/coupon/create`, {
+      fetch(`/${pathAdmin}/api/coupons`, {
         method: "POST",
         body: formData
       })
@@ -2223,7 +2237,7 @@ if(couponEditForm) {
       formData.append("endDate", endDate);
       formData.append("description", description);
 
-      fetch(`/${pathAdmin}/coupon/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/coupons/${id}`, {
         method: "PATCH",
         body: formData
       })
@@ -2266,7 +2280,7 @@ if(settingApiShippingForm) {
         tokenGoShip: tokenGoShip
       };
 
-      fetch(`/${pathAdmin}/setting/api-shipping`, {
+      fetch(`/${pathAdmin}/api/settings/shipping`, {
         method: "PATCH",
         headers: {
           'Content-Type': 'application/json'
@@ -2311,7 +2325,7 @@ if(settingApiPaymentForm) {
         vnPayURL: vnPayURL,
       };
 
-      fetch(`/${pathAdmin}/setting/api-payment`, {
+      fetch(`/${pathAdmin}/api/settings/payment`, {
         method: "PATCH",
         headers: {
           'Content-Type': 'application/json'
@@ -2354,7 +2368,7 @@ if(settingApiLoginSocialForm) {
         facebookCallbackUrl: facebookCallbackUrl,
       };
 
-      fetch(`/${pathAdmin}/setting/api-login-social`, {
+      fetch(`/${pathAdmin}/api/settings/social-login`, {
         method: "PATCH",
         headers: {
           'Content-Type': 'application/json'
@@ -2389,7 +2403,7 @@ if(settingApiAppPasswordForm) {
         gmailPassword: gmailPassword,
       };
 
-      fetch(`/${pathAdmin}/setting/api-app-password`, {
+      fetch(`/${pathAdmin}/api/settings/email`, {
         method: "PATCH",
         headers: {
           'Content-Type': 'application/json'
@@ -2419,14 +2433,26 @@ if(settingGeneralForm) {
       const domainWebsite = event.target.domainWebsite.value;
       const logo = event.target.logo.value;
       const favicon = event.target.favicon.value;
+      const websiteName = event.target.websiteName.value;
+      const shopSenderName = event.target.shopSenderName.value;
+      const shopSenderPhone = event.target.shopSenderPhone.value;
+      const shopSenderAddress = event.target.shopSenderAddress.value;
+      const shopLat = event.target.shopLat.value;
+      const shopLng = event.target.shopLng.value;
 
       const dataFinal = {
+        websiteName: websiteName,
+        shopSenderName: shopSenderName,
+        shopSenderPhone: shopSenderPhone,
+        shopSenderAddress: shopSenderAddress,
+        shopLat: shopLat,
+        shopLng: shopLng,
         domainWebsite: domainWebsite,
         logo: logo,
         favicon: favicon,
       };
 
-      fetch(`/${pathAdmin}/setting/general`, {
+      fetch(`/${pathAdmin}/api/settings/general`, {
         method: "PATCH",
         headers: {
           'Content-Type': 'application/json'
@@ -2464,7 +2490,7 @@ if (orderEditForm) {
         note: note
       };
 
-      fetch(`/${pathAdmin}/order/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/orders/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"
@@ -2487,9 +2513,9 @@ if (orderEditForm) {
     });
 }
 
-const productEditSeoForm = document.querySelector("#productEditSeoForm");
-if (productEditSeoForm) {
-  const validation = new JustValidate("#productEditSeoForm");
+[["#productEditSeoForm", "product"], ["#articleEditSeoForm", "article"]].forEach(([selector, entity]) => {
+  if (!document.querySelector(selector)) return;
+  const validation = new JustValidate(selector);
 
   validation
     .addField("#seoTitle", [
@@ -2544,7 +2570,7 @@ if (productEditSeoForm) {
       formData.append("seoOgImage", seoOgImage);
       formData.append("seoOgDescription", seoOgDescription);
 
-      fetch(`/${pathAdmin}/product/edit-seo/${id}`, {
+      fetch(`/${pathAdmin}/api/${entity}s/${id}/seo`, {
         method: "PATCH",
         body: formData,
       })
@@ -2562,8 +2588,7 @@ if (productEditSeoForm) {
         .catch(() => {
           notyf.error("An error occurred, please try again!");
         });
-    });
-}
+    });});
 
 const blockCreateForm = document.querySelector("#blockCreateForm");
 if(blockCreateForm) {
@@ -2602,7 +2627,7 @@ if(blockCreateForm) {
         data: dataObject
       };
 
-      fetch(`/${pathAdmin}/block/create`, {
+      fetch(`/${pathAdmin}/api/blocks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2662,7 +2687,7 @@ if(blockEditForm) {
         data: dataObject
       };
 
-      fetch(`/${pathAdmin}/block/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/blocks/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"
@@ -2757,7 +2782,7 @@ if(templateCreateForm) {
         status: status
       };
 
-      fetch(`/${pathAdmin}/template/create`, {
+      fetch(`/${pathAdmin}/api/templates`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2819,7 +2844,7 @@ if(templateEditForm) {
         status: status
       };
 
-      fetch(`/${pathAdmin}/template/edit/${id}`, {
+      fetch(`/${pathAdmin}/api/templates/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"
@@ -2870,42 +2895,11 @@ if(checkAllEl) {
   });
 }
 
-const changeMultiEl = document.querySelector("[change-multi]");
-if(changeMultiEl) {
-  const select = changeMultiEl.querySelector("select");
-  const button = changeMultiEl.querySelector("button");
-  const dataApi = changeMultiEl.getAttribute("data-api");
-
-  button.addEventListener("click", () => {
-    const value = select.value;
-    const ids = Array.from(document.querySelectorAll("[check-item]:checked"))
-      .map(input => input.getAttribute("check-item"));
-
-    if(!value || ids.length === 0) return;
-
-    const confirmTitle = value === "destroy" ? "Delete Permanently" : "Restore";
-    const confirmMsg = value === "destroy"
-      ? `Permanently delete ${ids.length} item(s)? This cannot be undone.`
-      : `Restore ${ids.length} item(s)?`;
-
-    const isDestroy = value === "destroy";
-    showConfirm({
-      title: confirmTitle,
-      message: confirmMsg,
-      okText: isDestroy ? "Delete" : "Restore",
-      okClass: isDestroy ? "btn-danger" : "btn-success",
-      onOk: () => {
-        fetch(dataApi, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ value, ids })
-        })
-          .then(res => res.json())
-          .then(data => {
-            if(data.code == "error") notyf.error(data.message);
-            if(data.code == "success") { drawNotify("success", data.message); location.reload(); }
-          });
-      }
-    });
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("[data-logout-admin]");
+  if (!link) return;
+  event.preventDefault();
+  fetch(`/${pathAdmin}/api/sessions/current`, { method: "DELETE" }).finally(() => {
+    window.location.href = `/${pathAdmin}/account/login`;
   });
-}
+});

@@ -53,8 +53,8 @@ block main
                         a.tbl-action.danger(
                           href="javascript:;"
                           button-api
-                          data-method="PATCH"
-                          data-api=`/${pathAdmin}/product/attribute/delete/${item.id}`
+                          data-method="DELETE"
+                          data-api=`/${pathAdmin}/api/product-attributes/${item.id}`
                           title="Move to trash"
                           aria-label="Move to trash"
                         )

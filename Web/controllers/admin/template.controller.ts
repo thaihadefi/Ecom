@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { pathAdmin } from "../../configs/variable.config";
 import * as templateService from "../../services/admin/template.service";
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const list = async (req: Request, res: Response) => {
   const data = await templateService.getTemplateList(req.query.keyword, req.query.page);
@@ -22,18 +23,15 @@ export const create = async (_req: Request, res: Response) => {
 
 export const createPost = async (req: Request, res: Response) => {
   try {
-    await templateService.createTemplate(req.body);
+    const result = await templateService.createTemplate(req.body);
 
-    res.json({
-      code: "success",
-      message: "Template created successfully!"
+    res.status(resultStatus(result)).json({
+      code: result.success ? "success" : "error",
+      message: result.message
     });
   } catch (error) {
     console.error("createPost template error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -62,16 +60,13 @@ export const editPatch = async (req: Request, res: Response) => {
     const id = req.params.id;
     const result = await templateService.updateTemplate(id, req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("editPatch template error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -81,6 +76,6 @@ export const deletePatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("deletePatch template error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };

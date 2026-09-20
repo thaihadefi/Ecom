@@ -3,6 +3,7 @@ import path from "path";
 import pug from "pug";
 import { mediaBase, flashSaleConfig } from "../configs/variable.config";
 import { formatDateTime, formatVND } from "./format.helper";
+import { safeHtml, safeUrl, safeColor } from "./html-sanitize.helper";
 import Template from "../models/template.model";
 import Block from "../models/block.model";
 import { getBlogByCategory, getProductByCategory } from "./product.helper";
@@ -21,7 +22,9 @@ export const renderHTML = async (_req: Request, res: Response, blockList: Array<
 
   const blocksPromises = blockList.map(async (block) => {
     if (!block || !block.fileName) return null;
-    const blockPath = path.join(process.cwd(), "views", "client", "blocks", `${block.fileName}`);
+    const blocksDir = path.join(process.cwd(), "views", "client", "blocks");
+    const blockPath = path.join(blocksDir, path.basename(`${block.fileName}`));
+    if (!blockPath.endsWith(".pug")) return null;
     const blockData = block.data as BlockDataWithCategory | undefined;
     try {
       let productListPromise = Promise.resolve([] as unknown[]);
@@ -66,6 +69,9 @@ export const renderHTML = async (_req: Request, res: Response, blockList: Array<
         domainCDN: mediaBase,
         formatDateTime,
         formatVND,
+        safeHtml,
+        safeUrl,
+        safeColor,
         getFullUrl: (url: string) => {
           if (!url) return "";
           if (url.startsWith("http://") || url.startsWith("https://")) return url;

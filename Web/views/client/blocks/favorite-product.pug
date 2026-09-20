@@ -11,7 +11,7 @@ if blockData && blockProductList && blockProductList.length
               span #{blockData.title && blockData.title.highlight}
         .col-xl-6.col-sm-3
           div(class="view_all_btn_area")
-            a(href=((blockData.linkViewAll && blockData.linkViewAll !== "#") ? blockData.linkViewAll : "/product") class="view_all_btn") #{blockData.viewAll || "View all"}
+            a(href=safeUrl((blockData.linkViewAll && blockData.linkViewAll !== "#") ? blockData.linkViewAll : "/product") class="view_all_btn") #{blockData.viewAll || "View all"}
       .row(class="mt_40 favourite_product_slider")
         each item in blockProductList
           .col-xl-1-5.col-6.col-md-4.wow.fadeInUp

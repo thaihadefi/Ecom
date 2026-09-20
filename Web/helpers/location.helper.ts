@@ -69,7 +69,9 @@ const normalizeAddress = async (city: string, district: string, ward: string) =>
     ward: wardInfo?.id || ""
   };
 
-  metadataCache.set(normKey, dataFinal, 86400);
+  if (dataFinal.city && dataFinal.district && dataFinal.ward) {
+    metadataCache.set(normKey, dataFinal, 86400);
+  }
   return dataFinal;
 };
 
@@ -78,7 +80,9 @@ export const getInfoAddress = async (latitude: number, longitude: number) => {
   const cachedGeo = metadataCache.get<{ city: string; district: string; ward: string }>(geoKey);
   if (cachedGeo) return cachedGeo;
 
-  const geoRes = await axios.get(`https://mapapis.openmap.vn/v1/geocode/reverse?latlng=${latitude},${longitude}&apikey=${process.env.OPENMAP_API_KEY}`);
+  const geoRes = await axios.get("https://mapapis.openmap.vn/v1/geocode/reverse", {
+    params: { latlng: `${Number(latitude)},${Number(longitude)}`, apikey: process.env.OPENMAP_API_KEY }
+  });
 
   let city = "";
   let district = "";
@@ -107,6 +111,8 @@ export const getInfoAddress = async (latitude: number, longitude: number) => {
   }
 
   const result = await normalizeAddress(city, district, ward);
-  metadataCache.set(geoKey, result, 86400);
+  if (result.city && result.district && result.ward) {
+    metadataCache.set(geoKey, result, 86400);
+  }
   return result;
 };

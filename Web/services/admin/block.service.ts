@@ -33,10 +33,10 @@ export const getBlockById = async (id: string) => {
   return Block.findOne({ _id: id, deleted: false });
 };
 
-export const updateBlock = async (id: string, data: IBlockInput): Promise<{ success: boolean; message: string }> => {
+export const updateBlock = async (id: string, data: IBlockInput): Promise<{ success: boolean; status?: number; message: string }> => {
   const blockDetail = await Block.findOne({ _id: id, deleted: false });
   if (!blockDetail) {
-    return { success: false, message: "Block does not exist!" };
+    return { success: false, status: 404, message: "Block does not exist!" };
   }
 
   data.search = toSearchText(`${data.name} ${data.fileName}`);

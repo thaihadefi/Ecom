@@ -4,17 +4,17 @@ import path from "path";
 import { getGeneral, getAssetVersion } from "../../configs/setting.config";
 
 const computeAssetBuildId = (): string => {
-  const root = path.join(process.cwd(), "public", "client", "assets");
   let latestMtime = 0;
-  try {
-    const entries = fs.readdirSync(root, { recursive: true }) as string[];
-    for (const entry of entries) {
-      const full = path.join(root, entry);
-      const stat = fs.statSync(full);
-      if (stat.isFile() && stat.mtimeMs > latestMtime) latestMtime = stat.mtimeMs;
+  for (const area of ["client", "admin"]) {
+    const root = path.join(process.cwd(), "public", area, "assets");
+    try {
+      const entries = fs.readdirSync(root, { recursive: true }) as string[];
+      for (const entry of entries) {
+        const stat = fs.statSync(path.join(root, entry));
+        if (stat.isFile() && stat.mtimeMs > latestMtime) latestMtime = stat.mtimeMs;
+      }
+    } catch {
     }
-  } catch {
-    
   }
   return String(Math.round(latestMtime) || Date.now());
 };

@@ -3,6 +3,7 @@ import { pathAdmin, permissionList } from "../../configs/variable.config";
 import jwt from "jsonwebtoken";
 import * as adminAuthService from "../../services/admin/auth.service";
 import { RequestAccount } from "../../interfaces/request.interface";
+import { bearerTokenOf, isApiRequest, usesAuthorizationHeader } from "../../helpers/access-token.helper";
 
 interface AdminAccountForLocals {
   id?: string;
@@ -31,14 +32,42 @@ const loadAdminIntoLocals = async (res: Response, req: RequestAccount, existAcco
   }
 };
 
+const rejectUnauthenticated = (req: Request, res: Response) => {
+  if (req.method === "GET" && !isApiRequest(req)) {
+    res.redirect(`/${pathAdmin}/account/login`);
+  } else {
+    res.status(401).json({ code: "error", message: "Please log in!" });
+  }
+};
+
 export const verifyToken = async (req: RequestAccount, res: Response, next: NextFunction) => {
   try {
+    if (usesAuthorizationHeader(req)) {
+      const bearer = bearerTokenOf(req);
+      let existAccount = null;
+      if (bearer) {
+        try {
+          const decoded = jwt.verify(bearer, `${process.env.JWT_SECRET}`) as jwt.JwtPayload;
+          existAccount = await adminAuthService.getAdminAccountForAuth(decoded.id, decoded.email, decoded.iat);
+        } catch {
+          existAccount = null;
+        }
+      }
+      if (!existAccount) {
+        rejectUnauthenticated(req, res);
+        return;
+      }
+      await loadAdminIntoLocals(res, req, existAccount);
+      next();
+      return;
+    }
+
     const token = req.cookies.tokenAdmin;
 
     if (token) {
       try {
         const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as jwt.JwtPayload;
-        const existAccount = await adminAuthService.getAdminAccountForAuth(decoded.id, decoded.email);
+        const existAccount = await adminAuthService.getAdminAccountForAuth(decoded.id, decoded.email, decoded.iat);
 
         if (existAccount) {
           await loadAdminIntoLocals(res, req, existAccount);
@@ -47,7 +76,7 @@ export const verifyToken = async (req: RequestAccount, res: Response, next: Next
       } catch (err: unknown) {
         const errorName = err instanceof Error ? err.name : "";
         if (errorName !== "TokenExpiredError") {
-          res.redirect(`/${pathAdmin}/account/login`);
+          rejectUnauthenticated(req, res);
           return;
         }
       }
@@ -55,13 +84,13 @@ export const verifyToken = async (req: RequestAccount, res: Response, next: Next
 
     const refreshTokenValue = req.cookies.refreshTokenAdmin;
     if (!refreshTokenValue) {
-      res.redirect(`/${pathAdmin}/account/login`);
+      rejectUnauthenticated(req, res);
       return;
     }
 
     const existAccount = await adminAuthService.handleAdminRefreshTokenRotation(refreshTokenValue, res);
     if (!existAccount) {
-      res.redirect(`/${pathAdmin}/account/login`);
+      rejectUnauthenticated(req, res);
       return;
     }
 
@@ -69,18 +98,32 @@ export const verifyToken = async (req: RequestAccount, res: Response, next: Next
     next();
   } catch (error) {
     console.error("[Admin Auth]", error);
-    res.redirect(`/${pathAdmin}/account/login`);
+    if (req.method === "GET" && !isApiRequest(req)) {
+      res.redirect(`/${pathAdmin}/account/login`);
+    } else {
+      res.status(500).json({ code: "error", message: "An error occurred, please try again!" });
+    }
   }
 };
 
-export const checkPermission = (permission: string) => {
+const denyPermission = (req: Request, res: Response) => {
+  if (req.method === "GET" && !isApiRequest(req)) {
+    res.status(403).render("admin/pages/403", { pageTitle: "403 | Access denied" });
+  } else {
+    res.status(403).json({ code: "error", message: "Insufficient permissions!" });
+  }
+};
+
+export const checkAnyPermission = (...permissions: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (res.locals.accountAdmin?.isSuperAdmin || res.locals.permissions?.includes(permission)) {
+    const held: string[] = res.locals.permissions || [];
+    if (res.locals.accountAdmin?.isSuperAdmin || permissions.some((permission) => held.includes(permission))) {
       next();
-    } else if (req.method === "GET") {
-      res.redirect(`/${pathAdmin}/dashboard`);
     } else {
-      res.json({ code: "error", message: "Insufficient permissions!" });
+      denyPermission(req, res);
     }
   };
 };
+
+export const checkPermission = (permission: string) => checkAnyPermission(permission);
+

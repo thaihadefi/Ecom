@@ -8,7 +8,7 @@ block main
         .card-header
           +trash-header(`/${pathAdmin}/role/list`)
         .card-body.pt-0
-          +trash-buttons(`/${pathAdmin}/role/change-multi`)
+          +trash-buttons(`/${pathAdmin}/api/roles`)
           .table-responsive
             table.table.table-striped.mb-0
               thead.table-light
@@ -35,6 +35,6 @@ block main
                         small #{formatDateTime(item.deletedAt)}
                       td.text-end
                         +trash-action-buttons(
-                          `/${pathAdmin}/role/undo/${item.id}`,
-                          `/${pathAdmin}/role/destroy/${item.id}`
+                          `/${pathAdmin}/api/roles/${item.id}/restore`,
+                          `/${pathAdmin}/api/roles/${item.id}?permanent=true`
                         )

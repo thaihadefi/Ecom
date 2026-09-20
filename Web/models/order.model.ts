@@ -114,7 +114,6 @@ schema.index({ createdAt: -1 });
 schema.index({ paymentStatus: 1, orderStatus: 1, deleted: 1 });
 schema.index({ userId: 1, createdAt: -1 });
 schema.index({ deleted: 1, createdAt: -1 });
-// Matches getFlaggedOrders' filter+sort shape.
 schema.index({ isAnomalous: 1, deleted: 1, anomalyScore: -1, createdAt: -1 });
 schema.index({ phone: 1, createdAt: -1 });
 schema.index({ coupon: 1, createdAt: -1 });

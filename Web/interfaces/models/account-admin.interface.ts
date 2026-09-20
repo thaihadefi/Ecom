@@ -5,6 +5,7 @@ export interface IAccountAdmin extends Document {
   fullName?: string;
   email?: string;
   password?: string;
+  passwordChangedAt?: Date;
   roles: string[];
   rolesName?: string[];
   status?: "initial" | "active" | "inactive";

@@ -1,17 +1,19 @@
 import { Router } from "express";
 import * as reviewController from "../../controllers/admin/review.controller";
-import { checkPermission } from "../../middlewares/admin/auth.middleware";
+import { checkAnyPermission, checkPermission } from "../../middlewares/admin/auth.middleware";
 
 const router = Router();
 
-router.get('/list', reviewController.list);
-
-router.patch('/change-status/:id/:status', checkPermission("review-edit"), reviewController.changeStatusPatch);
-
-router.patch('/clear-reports/:id', checkPermission("review-edit"), reviewController.clearReportsPatch);
-
-router.delete('/delete/:id', checkPermission("review-delete"), reviewController.deletePatch);
-
-router.delete('/destroy-many', checkPermission("review-delete"), reviewController.destroyManyDelete);
+router.get('/list', checkAnyPermission("review-edit", "review-delete"), reviewController.list);
 
 export default router;
+
+export const api = Router();
+
+api.delete('/:id', checkPermission("review-delete"), reviewController.deletePatch);
+
+api.delete('/', checkPermission("review-delete"), reviewController.destroyManyDelete);
+
+api.put('/:id/status/:status', checkPermission("review-edit"), reviewController.changeStatusPatch);
+
+api.delete('/:id/reports', checkPermission("review-edit"), reviewController.clearReportsPatch);

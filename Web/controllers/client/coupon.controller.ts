@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as couponService from "../../services/client/coupon.service";
+import { sendCaughtError } from "../../helpers/http-response.helper";
 
 export const checkPost = async (req: Request, res: Response) => {
   try {
@@ -9,7 +10,7 @@ export const checkPost = async (req: Request, res: Response) => {
     const result = await couponService.checkCouponValidity(coupon || "", userId);
 
     if (!result.valid) {
-      res.json({
+      res.status(couponService.couponRejectStatus(result.reason)).json({
         code: "error",
         message: result.message
       });
@@ -19,13 +20,17 @@ export const checkPost = async (req: Request, res: Response) => {
     res.json({
       code: "success",
       message: result.message,
-      couponDetail: result.couponDetail
+      couponDetail: {
+        code: result.couponDetail?.code,
+        name: result.couponDetail?.name,
+        typeDiscount: result.couponDetail?.typeDiscount,
+        value: result.couponDetail?.value,
+        minOrderValue: result.couponDetail?.minOrderValue,
+        maxDiscountValue: result.couponDetail?.maxDiscountValue
+      }
     });
   } catch (error) {
     console.error("coupon check error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid coupon!"
-    });
+    sendCaughtError(res, error, "Invalid coupon!", "Invalid coupon!");
   }
 };

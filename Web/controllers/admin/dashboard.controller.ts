@@ -13,13 +13,13 @@ export const dashboard = async (_req: Request, res: Response) => {
 export const revenueByTimeData = async (req: Request, res: Response) => {
   const { from, to } = req.query;
   if (!from || !to) {
-    res.json({ code: 'error' });
+    res.status(400).json({ code: "error", message: "Please provide the date range!" });
     return;
   }
 
   const result = await dashboardService.buildRevenueRangeData(from as string, to as string);
   if (!result) {
-    res.json({ code: 'error' });
+    res.status(400).json({ code: "error", message: "Invalid date range!" });
     return;
   }
 
@@ -38,13 +38,13 @@ export const revenueByTime = async (_req: Request, res: Response) => {
 export const orderStatisticData = async (req: Request, res: Response) => {
   const { from, to } = req.query;
   if (!from || !to) {
-    res.json({ code: 'error' });
+    res.status(400).json({ code: "error", message: "Please provide the date range!" });
     return;
   }
 
   const result = await dashboardService.getCustomOrderStatistic(from as string, to as string);
   if (!result) {
-    res.json({ code: 'error' });
+    res.status(400).json({ code: "error", message: "Invalid date range!" });
     return;
   }
 

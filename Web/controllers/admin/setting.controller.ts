@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { RequestAccount } from '../../interfaces/request.interface';
 import { logAdminAction } from '../../helpers/log.helper';
+import passport from 'passport';
+import { configureGooglePassport } from '../../configs/googleOauth.config';
+import { configureFacebookPassport } from '../../configs/facebookOauth.config';
 import * as settingService from '../../services/admin/setting.service';
 
 export const apiShipping = async (_req: Request, res: Response) => {
@@ -62,6 +65,9 @@ export const apiLoginSocial = async (_req: Request, res: Response) => {
 export const apiLoginSocialPatch = async (req: RequestAccount, res: Response) => {
   const key = "apiLoginSocial";
   await settingService.updateSettingByKey(key, req.body, req.adminId);
+
+  await configureGooglePassport(passport);
+  await configureFacebookPassport(passport);
 
   res.json({
     code: "success",

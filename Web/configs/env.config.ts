@@ -1,4 +1,4 @@
-const REQUIRED_ENV_KEYS = ["DATABASE", "JWT_SECRET", "SESSION_SECRET", "FILE_MANAGER_SECRET"] as const;
+const REQUIRED_ENV_KEYS = ["DATABASE", "JWT_SECRET", "FILE_MANAGER_SECRET"] as const;
 
 export const validateEnv = (): void => {
   const missing = REQUIRED_ENV_KEYS.filter((key) => {

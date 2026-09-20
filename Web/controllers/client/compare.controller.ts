@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as compareService from '../../services/client/compare.service';
+import { sendCaughtError } from "../../helpers/http-response.helper";
 
 export const compare = (_req: Request, res: Response) => {
   res.render("client/pages/compare", {
@@ -19,9 +20,6 @@ export const list = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("compare list error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

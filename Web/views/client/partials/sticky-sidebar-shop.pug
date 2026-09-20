@@ -38,7 +38,7 @@ div(id="sticky_sidebar")
               .form-check
                 - var filterId = `filter-${attribute.type}-${attribute.id}-${optIdx}`
                 input.form-check-input(
-                  style=`${attribute.type == "color" ? `background-color: ${option.value}` : ""}`
+                  style=`${attribute.type == "color" ? `background-color: ${safeColor(option.value)}` : ""}`
                   id=filterId
                   value=option.value
                   type="checkbox"

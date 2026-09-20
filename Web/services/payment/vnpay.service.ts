@@ -3,10 +3,7 @@ import querystring from 'qs';
 import moment from 'moment';
 import Order from '../../models/order.model';
 import { getApiPayment, getGeneral } from '../../configs/setting.config';
-import { addPointAfterPayment } from '../../helpers/point.helper';
-import { invalidateAdminDashboardCaches } from '../admin/dashboard.service';
-import { invalidateUserAuthCache } from '../client/auth.service';
-import { invalidateUserDashboardCache } from '../client/dashboard.service';
+import { applyGatewayPayment } from './payment-order.helper';
 
 export const createVNPayPaymentUrl = async (
   orderCode: string,
@@ -16,6 +13,7 @@ export const createVNPayPaymentUrl = async (
   const orderDetail = await Order.findOne({
     code: orderCode,
     phone: phone,
+    orderStatus: { $nin: ["cancelled", "returned"] },
     deleted: false
   });
 
@@ -66,48 +64,60 @@ export const createVNPayPaymentUrl = async (
   return { paymentUrl: vnpUrl };
 };
 
-export const handleVNPayResult = async (queryParams: Record<string, unknown>) => {
+const verifyVNPaySignature = async (queryParams: Record<string, unknown>): Promise<boolean> => {
   const vnp_Params = { ...queryParams };
   const secureHash = vnp_Params['vnp_SecureHash'];
 
   delete vnp_Params['vnp_SecureHash'];
   delete vnp_Params['vnp_SecureHashType'];
 
-  const sortedParams = sortObject(vnp_Params);
-
   const apiPayment = await getApiPayment();
-  const secretKey = `${apiPayment.vnPayHashSecret}`;
+  const signData = querystring.stringify(sortObject(vnp_Params), { encode: false });
+  const signed = crypto.createHmac("sha512", `${apiPayment.vnPayHashSecret}`).update(Buffer.from(signData, 'utf-8')).digest("hex");
 
-  const signData = querystring.stringify(sortedParams, { encode: false });
-  const hmac = crypto.createHmac("sha512", secretKey);
-  const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+  if (typeof secureHash !== "string" || secureHash.length !== signed.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(secureHash.toLowerCase()), Buffer.from(signed));
+};
 
+const isSuccessfulTransaction = (params: Record<string, unknown>): boolean =>
+  params['vnp_ResponseCode'] === '00' &&
+  (params['vnp_TransactionStatus'] === undefined || params['vnp_TransactionStatus'] === '00');
+
+const splitTxnRef = (params: Record<string, unknown>): { phone: string; orderCode: string } | null => {
+  const [phone, orderCode] = String(params['vnp_TxnRef'] ?? '').split('-');
+  return phone && orderCode ? { phone, orderCode } : null;
+};
+
+export const handleVNPayResult = async (queryParams: Record<string, unknown>) => {
   const settingGeneral = await getGeneral();
   const domain = settingGeneral.domainWebsite;
 
-  if (secureHash === signed) {
-    const [phone, orderCode] = (vnp_Params['vnp_TxnRef'] as string).split('-');
-    if (vnp_Params['vnp_ResponseCode'] === '00') {
-      const order = await Order.findOneAndUpdate({
-        phone: phone,
-        code: orderCode,
-        paymentStatus: 'unpaid',
-        deleted: false
-      }, {
-        paymentStatus: 'paid'
-      });
-      if (order) {
-        await addPointAfterPayment(orderCode);
-        invalidateAdminDashboardCaches();
-        if (order.userId) {
-          invalidateUserAuthCache(order.userId);
-          invalidateUserDashboardCache(order.userId);
-        }
-      }
-    }
-    return `${domain}/order/success?orderCode=${orderCode}&phone=${phone}`;
+  if (!(await verifyVNPaySignature(queryParams))) return `${domain}/`;
+
+  const ref = splitTxnRef(queryParams);
+  if (!ref) return `${domain}/`;
+
+  if (isSuccessfulTransaction(queryParams)) {
+    await applyGatewayPayment(ref.phone, ref.orderCode, Number(queryParams['vnp_Amount']) / 100);
   }
-  return `${domain}/`;
+  return `${domain}/order/success?orderCode=${encodeURIComponent(ref.orderCode)}&phone=${encodeURIComponent(ref.phone)}`;
+};
+
+export const handleVNPayIpn = async (queryParams: Record<string, unknown>): Promise<{ RspCode: string; Message: string }> => {
+  if (!(await verifyVNPaySignature(queryParams))) return { RspCode: '97', Message: 'Invalid signature' };
+
+  const ref = splitTxnRef(queryParams);
+  if (!ref) return { RspCode: '01', Message: 'Order not found' };
+
+  if (!isSuccessfulTransaction(queryParams)) return { RspCode: '00', Message: 'Confirm Success' };
+
+  const outcome = await applyGatewayPayment(ref.phone, ref.orderCode, Number(queryParams['vnp_Amount']) / 100);
+  switch (outcome) {
+    case "not-found": return { RspCode: '01', Message: 'Order not found' };
+    case "amount-mismatch": return { RspCode: '04', Message: 'Invalid amount' };
+    case "already-paid": return { RspCode: '02', Message: 'Order already confirmed' };
+    default: return { RspCode: '00', Message: 'Confirm Success' };
+  }
 };
 
 function sortObject(obj: Record<string, unknown>): Record<string, string> {

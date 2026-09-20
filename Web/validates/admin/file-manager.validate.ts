@@ -24,7 +24,7 @@ export const changeFileNamePatch = (req: Request, res: Response, next: NextFunct
 
   const { error } = schema.validate(req.body);
   if (error) {
-    res.json({ code: "error", message: error.details[0].message });
+    res.status(400).json({ code: "error", message: error.details[0].message });
     return;
   }
   next();

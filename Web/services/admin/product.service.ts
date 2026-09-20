@@ -8,7 +8,6 @@ import { IProduct, IProductInput, IProductSeoInput, IProductVariant } from '../.
 import { buildCategoryTree } from '../../helpers/category.helper';
 import { toSearchText } from '../../helpers/slugify.helper';
 import { generateRandomString } from '../../helpers/generate.helper';
-import { pingGoogleSitemap } from '../../helpers/ping-google.helper';
 import { softDeleteMany, restoreMany, getTrash } from "../../helpers/admin-crud.helper";
 import { paginatedSearch } from "../../helpers/list-query.helper";
 import { buildSeoPayload } from "../../helpers/seo.helper";
@@ -39,13 +38,13 @@ export const getProductCreateContext = async () => {
   };
 };
 
-export const createProduct = async (data: IProductInput): Promise<{ success: boolean; message: string; product?: IProduct }> => {
+export const createProduct = async (data: IProductInput): Promise<{ success: boolean; status?: number; message: string; product?: IProduct }> => {
   const existSlug = await Product.findOne({
     slug: String(data.slug || "")
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Slug already exists!" };
+    return { success: false, status: 409, message: "Slug already exists!" };
   }
 
   if (data.position) {
@@ -124,8 +123,6 @@ export const createProduct = async (data: IProductInput): Promise<{ success: boo
   await newRecord.save();
   invalidateProductCaches(newRecord.slug);
 
-  await pingGoogleSitemap();
-
   return { success: true, message: "Product created successfully!", product: newRecord };
 };
 
@@ -166,10 +163,10 @@ export const getProductEditContext = async (id: string) => {
   };
 };
 
-export const updateProduct = async (id: string, data: IProductInput): Promise<{ success: boolean; message: string; product?: IProduct | null }> => {
+export const updateProduct = async (id: string, data: IProductInput): Promise<{ success: boolean; status?: number; message: string; product?: IProduct | null }> => {
   const productDetail = await Product.findOne({ _id: id, deleted: false });
   if (!productDetail) {
-    return { success: false, message: "Product does not exist!" };
+    return { success: false, status: 404, message: "Product does not exist!" };
   }
 
   const existSlug = await Product.findOne({
@@ -178,7 +175,7 @@ export const updateProduct = async (id: string, data: IProductInput): Promise<{ 
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Slug already exists!" };
+    return { success: false, status: 409, message: "Slug already exists!" };
   }
 
   if (data.position) {
@@ -248,16 +245,16 @@ export const updateProduct = async (id: string, data: IProductInput): Promise<{ 
   return { success: true, message: "Product updated successfully!", product: productDetail };
 };
 
-export const softDeleteProduct = async (id: string): Promise<{ success: boolean; message: string }> => {
+export const softDeleteProduct = async (id: string): Promise<{ success: boolean; status?: number; message: string }> => {
   await Product.updateOne({ _id: id }, { deleted: true, deletedAt: Date.now() });
   invalidateProductCaches();
   return { success: true, message: "Product deleted successfully!" };
 };
 
-export const updateProductSEO = async (id: string, body: IProductSeoInput): Promise<{ success: boolean; message: string }> => {
+export const updateProductSEO = async (id: string, body: IProductSeoInput): Promise<{ success: boolean; status?: number; message: string }> => {
   const productDetail = await Product.findOne({ _id: id, deleted: false });
   if (!productDetail) {
-    return { success: false, message: "Product does not exist!" };
+    return { success: false, status: 404, message: "Product does not exist!" };
   }
 
   const seo = buildSeoPayload(body, {
@@ -323,7 +320,12 @@ export const restoreManyProducts = (ids: string[]) => {
 export const getProductTrash = () => getTrash(Product, "_id name slug images status deletedAt");
 
 export const getProductsBatchForExport = async (skip: number, limit: number) => {
-  return Product.find({ deleted: false }).skip(skip).limit(limit);
+  return Product.find({ deleted: false }).sort({ _id: 1 }).skip(skip).limit(limit);
+};
+
+const nonNegativeInt = (value: unknown): number => {
+  const parsed = parseInt(String(value ?? ""), 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 };
 
 export const bulkImportProductsFromCsv = async (csvBufferString: string) => {
@@ -337,26 +339,26 @@ export const bulkImportProductsFromCsv = async (csvBufferString: string) => {
   const operations: AnyBulkWriteOperation<IProduct>[] = items
     .filter((item) => Boolean(item._id))
     .map((item) => {
-      const position = item.position ? parseInt(String(item.position)) : 0;
+      const position = nonNegativeInt(item.position);
       const category = item.category ? JSON.parse(String(item.category)) : [];
-      const priceOld = item.priceOld ? parseInt(String(item.priceOld)) : 0;
-      const priceNew = item.priceNew ? parseInt(String(item.priceNew)) : 0;
+      const priceOld = nonNegativeInt(item.priceOld);
+      const priceNew = nonNegativeInt(item.priceNew);
       const discount = (priceOld > 0 && priceNew > 0 && priceOld > priceNew)
         ? Number((((priceOld - priceNew) / priceOld) * 100).toFixed(2))
         : 0;
-      const stock = item.stock ? parseInt(String(item.stock)) : 0;
+      const stock = nonNegativeInt(item.stock);
       const attributes = item.attributes ? JSON.parse(String(item.attributes)) : [];
       const rawVariants = item.variants ? JSON.parse(String(item.variants)) : [];
       const variants = Array.isArray(rawVariants) ? rawVariants.map((v: Record<string, unknown>) => {
-        const pNew = v.priceNew !== undefined ? Number(v.priceNew) : (v.price !== undefined ? Number(v.price) : 0);
-        const pOld = v.priceOld !== undefined ? Number(v.priceOld) : pNew;
+        const pNew = v.priceNew !== undefined ? nonNegativeInt(v.priceNew) : nonNegativeInt(v.price);
+        const pOld = v.priceOld !== undefined ? nonNegativeInt(v.priceOld) : pNew;
         return {
           status: v.status !== undefined ? Boolean(v.status) : true,
           attributeValue: (Array.isArray(v.attributeValue) ? v.attributeValue : []) as IProductVariant["attributeValue"],
           price: pNew,
           priceNew: pNew,
           priceOld: pOld,
-          stock: v.stock !== undefined ? parseInt(String(v.stock)) : 0,
+          stock: nonNegativeInt(v.stock),
           image: v.image ? String(v.image) : undefined,
           sku: v.sku ? String(v.sku) : undefined
         };

@@ -1,4 +1,12 @@
+import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
+import { recordFailure, retryAfterSeconds } from "./auth-failure-limit.middleware";
+
+const safeEqual = (a: string, b: string): boolean => {
+  const left = crypto.createHash("sha256").update(a).digest();
+  const right = crypto.createHash("sha256").update(b).digest();
+  return crypto.timingSafeEqual(left, right);
+};
 
 export const verifySecret = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -12,7 +20,14 @@ export const verifySecret = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    if(!authHeader || authHeader !== `Bearer ${process.env.FILE_MANAGER_SECRET}`) {
+    if (!authHeader || !safeEqual(authHeader, `Bearer ${process.env.FILE_MANAGER_SECRET}`)) {
+      const retryAfter = retryAfterSeconds(req);
+      if (retryAfter > 0) {
+        res.setHeader("Retry-After", retryAfter);
+        res.status(429).json({ code: "error", message: "Too many failed attempts, try again later!" });
+        return;
+      }
+      recordFailure(req);
       res.status(401).json({
         code: "error",
         message: "Access denied!"

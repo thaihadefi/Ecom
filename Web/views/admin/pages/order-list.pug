@@ -15,7 +15,7 @@ block main
                 | Trash
               button.btn.btn-danger.me-1(
                 button-soft-delete-many
-                data-api=`/${pathAdmin}/order/delete-many`
+                data-api=`/${pathAdmin}/api/orders/trash`
                 style="display:none"
               )
                 i.fa-solid.fa-trash.me-1
@@ -25,7 +25,7 @@ block main
             .col-sm-6.mb-2
               +form-search()
             .col-lg-2.mb-2
-              a.btn.w-100.btn-info(href=`/${pathAdmin}/order/export/csv`)
+              a.btn.w-100.btn-info(href=`/${pathAdmin}/api/orders/csv`)
                 i.fa-solid.fa-download.me-1
                 | Export Excel
           .table-responsive
@@ -101,8 +101,8 @@ block main
                         a.tbl-action.danger(
                           href="javascript:;"
                           button-api
-                          data-method="PATCH"
-                          data-api=`/${pathAdmin}/order/delete/${item.id}`
+                          data-method="DELETE"
+                          data-api=`/${pathAdmin}/api/orders/${item.id}`
                           title="Move to trash"
                           aria-label="Move to trash"
                         )

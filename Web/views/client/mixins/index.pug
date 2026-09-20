@@ -114,7 +114,7 @@ mixin page-banner(data, link)
                     i.fas.fa-home(aria-hidden="true")
                     | Home
                 li
-                  a(href=link) #{data.name}
+                  a(href=safeUrl(link)) #{data.name}
 
 mixin product-item(item)
   -
@@ -183,7 +183,7 @@ mixin product-item(item)
       if (item.colorList && item.colorList.length > 0)
         ul.color
           each color in item.colorList
-            li(style=`background:${color}`)
+            li(style=`background:${safeColor(color)}`)
 
 mixin product-list-item(item)
   -
@@ -240,9 +240,9 @@ mixin product-list-item(item)
           if (item.colorList && item.colorList.length > 0)
             ul.color
               each color in item.colorList
-                li(style=`background:${color}`)
+                li(style=`background:${safeColor(color)}`)
           p(class="short_description")
-            | !{item.description}
+            | !{safeHtml(item.description)}
           a(
             href=`/product/detail/${item.slug}`
             class="common_btn"

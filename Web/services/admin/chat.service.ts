@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import ChatRoom from '../../models/chat-room.model';
 import AccountUser from '../../models/account-user.model';
 import ChatMessage from '../../models/chat-message.model';
@@ -7,13 +8,28 @@ import { aiGenerateAnswer } from '../../helpers/ai.helper';
 import { fmUpload } from '../../helpers/file-manager.client';
 import { invalidateRoomStatus } from '../../helpers/chat-cache.helper';
 import { getIO } from '../../sockets/index.socket';
+import { upstreamStatus } from "../../helpers/http-response.helper";
+
+export interface ChatActor {
+  id: string;
+  isSuperAdmin?: boolean;
+}
+
+const findAccessibleRoom = async (roomId: string, actor: ChatActor) => {
+  if (!mongoose.isValidObjectId(roomId)) return null;
+  const room = await ChatRoom.findOne({ _id: roomId });
+  if (!room) return null;
+  if (!actor.isSuperAdmin && room.adminId && room.adminId !== actor.id) return null;
+  return room;
+};
 
 export const getAdminChatList = async (adminId: string) => {
   return getChatRoomList(adminId);
 };
 
-export const getAdminChatDetail = async (roomId: string, adminId: string) => {
-  const chatRoomDetail = await ChatRoom.findOne({ _id: roomId });
+export const getAdminChatDetail = async (roomId: string, actor: ChatActor) => {
+  const adminId = actor.id;
+  const chatRoomDetail = await findAccessibleRoom(roomId, actor);
   if (!chatRoomDetail) {
     return null;
   }
@@ -26,10 +42,11 @@ export const getAdminChatDetail = async (roomId: string, adminId: string) => {
     return null;
   }
 
-  await ChatRoom.updateOne({ _id: roomId }, { "unreadCount.admin": 0 });
-  invalidateRoomList(adminId);
-
-  const chatRoomList = await getChatRoomList(adminId);
+  // The socket marks the room as read as soon as the admin connects to it (ADMIN_OPEN_CHAT); this page only has to show it as read.
+  type ListedRoom = { id?: string; unreadCount?: { admin?: number } };
+  const chatRoomList = ((await getChatRoomList(adminId)) as ListedRoom[]).map((room) =>
+    room.id === String(roomId) ? { ...room, unreadCount: { ...room.unreadCount, admin: 0 } } : room
+  );
 
   return {
     chatRoomList,
@@ -38,9 +55,9 @@ export const getAdminChatDetail = async (roomId: string, adminId: string) => {
   };
 };
 
-export const getAdminMessages = async (roomId: string, limit = 20, lastMessageId?: unknown) => {
+export const getAdminMessages = async (roomId: string, actor: ChatActor, limit = 20, lastMessageId?: unknown) => {
   const cappedLimit = Math.min(Math.max(limit || 20, 1), 100);
-  const chatRoom = await ChatRoom.findOne({ _id: roomId });
+  const chatRoom = await findAccessibleRoom(roomId, actor);
   if (!chatRoom) {
     return null;
   }
@@ -49,7 +66,7 @@ export const getAdminMessages = async (roomId: string, limit = 20, lastMessageId
     roomId: chatRoom.id
   };
 
-  if (lastMessageId) {
+  if (lastMessageId && mongoose.isValidObjectId(lastMessageId)) {
     find._id = {
       $lt: lastMessageId
     };
@@ -70,15 +87,15 @@ export const getAdminMessages = async (roomId: string, limit = 20, lastMessageId
   };
 };
 
-export const uploadAdminChatFiles = async (roomId: string, files: Express.Multer.File[]) => {
-  const chatRoomDetail = await ChatRoom.findOne({ _id: roomId });
+export const uploadAdminChatFiles = async (roomId: string, actor: ChatActor, files: Express.Multer.File[]) => {
+  const chatRoomDetail = await findAccessibleRoom(roomId, actor);
   if (!chatRoomDetail) {
-    return { success: false, message: "Chat room not found!" };
+    return { success: false, status: 404, message: "Chat room not found!" };
   }
 
   const upload = await fmUpload(files, `chats/${chatRoomDetail.userId}`);
   if (!upload.success) {
-    return { success: false, message: "Upload error!" };
+    return { success: false, status: upstreamStatus(upload.status), message: upload.message || "Upload error!" };
   }
 
   return {
@@ -88,10 +105,13 @@ export const uploadAdminChatFiles = async (roomId: string, files: Express.Multer
   };
 };
 
-export const changeChatRoomStatus = async (roomId: string, status: string) => {
-  const chatRoomDetail = await ChatRoom.findOne({ _id: roomId });
+export const changeChatRoomStatus = async (roomId: string, actor: ChatActor, status: string) => {
+  if (status !== "open" && status !== "locked") {
+    return { success: false, status: 400, message: "Invalid status!" };
+  }
+  const chatRoomDetail = await findAccessibleRoom(roomId, actor);
   if (!chatRoomDetail) {
-    return { success: false, message: "Chat room not found!" };
+    return { success: false, status: 404, message: "Chat room not found!" };
   }
 
   await ChatRoom.updateOne({ _id: roomId }, { status });
@@ -106,8 +126,9 @@ export const changeChatRoomStatus = async (roomId: string, status: string) => {
   return { success: true, message: "Status changed successfully!" };
 };
 
-export const getAdminChatRating = async (roomId: string, adminId: string) => {
-  const chatRoomDetail = await ChatRoom.findOne({ _id: roomId });
+export const getAdminChatRating = async (roomId: string, actor: ChatActor) => {
+  const adminId = actor.id;
+  const chatRoomDetail = await findAccessibleRoom(roomId, actor);
   if (!chatRoomDetail) {
     return null;
   }
@@ -122,7 +143,9 @@ export const getAdminChatRating = async (roomId: string, adminId: string) => {
   };
 };
 
-const getRecentConversationText = async (roomId: string, limit = 10) => {
+const getRecentConversationText = async (roomId: string, actor: ChatActor, limit = 10) => {
+  const room = await findAccessibleRoom(roomId, actor);
+  if (!room) throw new Error("Chat room not found!");
   const messages = await ChatMessage.find({ roomId })
     .sort({ createdAt: "desc" })
     .limit(limit);
@@ -133,8 +156,8 @@ const getRecentConversationText = async (roomId: string, limit = 10) => {
     .join("\n");
 };
 
-export const suggestAdminReply = async (roomId: string) => {
-  const conversation = await getRecentConversationText(roomId, 10);
+export const suggestAdminReply = async (roomId: string, actor: ChatActor) => {
+  const conversation = await getRecentConversationText(roomId, actor, 10);
   const prompt = `
     You are a customer service assistant.
 
@@ -149,8 +172,9 @@ export const suggestAdminReply = async (roomId: string) => {
   return aiGenerateAnswer(prompt);
 };
 
-export const editAdminReply = async (roomId: string, draftContent: string) => {
-  const conversation = await getRecentConversationText(roomId, 10);
+export const editAdminReply = async (roomId: string, actor: ChatActor, rawDraft: unknown) => {
+  const draftContent = String(rawDraft ?? "").slice(0, 2000);
+  const conversation = await getRecentConversationText(roomId, actor, 10);
   const prompt = `
     You are a customer service assistant.
 
@@ -167,8 +191,8 @@ export const editAdminReply = async (roomId: string, draftContent: string) => {
   return aiGenerateAnswer(prompt);
 };
 
-export const summarizeAdminChat = async (roomId: string) => {
-  const conversation = await getRecentConversationText(roomId, 10);
+export const summarizeAdminChat = async (roomId: string, actor: ChatActor) => {
+  const conversation = await getRecentConversationText(roomId, actor, 10);
   const prompt = `
     You are a customer service assistant.
 
@@ -182,8 +206,8 @@ export const summarizeAdminChat = async (roomId: string) => {
   return aiGenerateAnswer(prompt);
 };
 
-export const analyzeAdminChatEmotions = async (roomId: string) => {
-  const conversation = await getRecentConversationText(roomId, 20);
+export const analyzeAdminChatEmotions = async (roomId: string, actor: ChatActor) => {
+  const conversation = await getRecentConversationText(roomId, actor, 20);
   const prompt = `
     You are a customer service assistant.
 

@@ -38,6 +38,10 @@ const drawNotify = (type, message) => {
   }));
 }
 
+const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[char]));
+
 const lockSubmit = (trigger) => {
   if(!trigger) return () => {};
   const originalHtml = trigger.innerHTML;
@@ -357,16 +361,16 @@ if(formSearch) {
     timeout = setTimeout(() => {
       const keyword = input.value;
       if(keyword) {
-        fetch(`/product/suggest?keyword=${keyword}`)
+        fetch(`/api/product-suggestions?keyword=${encodeURIComponent(keyword)}`)
           .then(res => res.json())
           .then(data => {
             if(data.code == "success") {
               const htmlArray = data.list.map(item => {
                 return `
-                  <a class="inner-item" href="/product/detail/${item.slug}">
-                    <img class="inner-image" src="${domainCDN}${item.images[0]}">
+                  <a class="inner-item" href="/product/detail/${esc(item.slug)}">
+                    <img class="inner-image" src="${domainCDN}${esc(item.images[0])}">
                     <div class="inner-info">
-                      <div class="inner-name">${item.name}</div>
+                      <div class="inner-name">${esc(item.name)}</div>
                       <div class="inner-prices">
                         <div class="inner-price-new">
                           ${(item.priceNew || 0).toLocaleString('vi-VN')} ₫
@@ -845,7 +849,7 @@ const drawCart = () => {
   const userAddress = getUserAddress();
 
   if(cart.length > 0) {
-    fetch(`/cart/list`, {
+    fetch(`/api/cart/quote`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -886,12 +890,12 @@ const drawCart = () => {
                   const label = variant.label || variant.value || "";
                   htmlVariant += `
                     <span>
-                      <b>${attr.name}:</b> ${label}
+                      <b>${esc(attr.name)}:</b> ${esc(label)}
                     </span>
                   `;
 
                   htmlVariantSummary += `
-                    <p>${attr.name}: ${label}</p>
+                    <p>${esc(attr.name)}: ${esc(label)}</p>
                   `;
                 }
               })
@@ -904,15 +908,15 @@ const drawCart = () => {
             htmlMiniCart += `
               <li
                 cart-item
-                product-id=${item.productId}
+                product-id="${esc(item.productId)}"
                 ${item.variant ? `variant="${encodeURIComponent(JSON.stringify(item.variant))}"` : ''}
               >
-                <a class="cart_img" href="/product/detail/${detail.slug}">
-                  <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}">
+                <a class="cart_img" href="/product/detail/${esc(detail.slug)}">
+                  <img class="img-fluid w-100" alt="${esc(detail.name)}" src="${domainCDN}${esc(itemImage)}">
                 </a>
                 <div class="cart_text">
-                  <a class="cart_title" href="/product/detail/${detail.slug}">
-                    ${detail.name}
+                  <a class="cart_title" href="/product/detail/${esc(detail.slug)}">
+                    ${esc(detail.name)}
                   </a>
                   <p>
                     ${priceNew.toLocaleString('vi-VN')} ₫
@@ -932,7 +936,7 @@ const drawCart = () => {
             htmlCartTable += `
               <tr
                 cart-item
-                product-id=${item.productId}
+                product-id="${esc(item.productId)}"
                 ${item.variant ? `variant="${encodeURIComponent(JSON.stringify(item.variant))}"` : ''}
               >
                 <td class="cart_page_checkbox">
@@ -942,11 +946,11 @@ const drawCart = () => {
                 </td>
                 <td class="cart_page_img">
                   <div class="img">
-                    <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}" />
+                    <img class="img-fluid w-100" alt="${esc(detail.name)}" src="${domainCDN}${esc(itemImage)}" />
                   </div>
                 </td>
                 <td class="cart_page_details">
-                  <a class="title" href="/product/detail/${detail.slug}">${detail.name}</a>
+                  <a class="title" href="/product/detail/${esc(detail.slug)}">${esc(detail.name)}</a>
                   <p>
                     ${priceNew.toLocaleString('vi-VN')} ₫
                     <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
@@ -987,12 +991,12 @@ const drawCart = () => {
             if(item.checked) {
               htmlCartSummary += `
                 <li>
-                  <a class="img" href="/product/detail/${detail.slug}">
-                    <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}">
+                  <a class="img" href="/product/detail/${esc(detail.slug)}">
+                    <img class="img-fluid w-100" alt="${esc(detail.name)}" src="${domainCDN}${esc(itemImage)}">
                   </a>
                   <div class="text">
-                    <a class="title" href="/product/detail/${detail.slug}">
-                      ${detail.name}
+                    <a class="title" href="/product/detail/${esc(detail.slug)}">
+                      ${esc(detail.name)}
                     </a>
                     <p>${priceNew.toLocaleString('vi-VN')} ₫ × ${item.quantity}</p>
                     ${htmlVariantSummary}
@@ -1020,10 +1024,10 @@ const drawCart = () => {
                     id="shippingMethod${index}"
                     name="shippingMethod"
                     type="radio"
-                    value="${item.id}"
+                    value="${esc(item.id)}"
                   >
                   <label class="form-check-label" for="shippingMethod${index}">
-                    <small>${item.carrier_name} (${item.service} - ${item.expected}):</small>
+                    <small>${esc(item.carrier_name)} (${esc(item.service)} - ${esc(item.expected)}):</small>
                     <span>
                       <span>(+) </span>
                       <span>${item.total_fee.toLocaleString('vi-VN')} ₫</span>
@@ -1059,7 +1063,7 @@ const drawCart = () => {
               if(elementViewCoupon) {
                 const elementCoupon = elementViewCoupon.querySelector(".inner-coupon");
                 elementViewCoupon.style.display = "flex";
-                elementCoupon.innerHTML = couponDetail.code;
+                elementCoupon.textContent = couponDetail.code;
               }
             } else {
               notyf.error(`Order has not reached minimum value: ${(couponDetail.minOrderValue || 0).toLocaleString('vi-VN')} ₫`);
@@ -1302,7 +1306,6 @@ if(shopDetailsText) {
 
           inputQuantity.max = variantMatched.stock;
 
-          // Sync product gallery slide if variant has specific image
           if (variantMatched.image && typeof window !== "undefined" && window.jQuery) {
             const $thumb = window.jQuery('.details_slider_thumb');
             if ($thumb.length && typeof $thumb.slick === "function") {
@@ -1329,7 +1332,6 @@ if(shopDetailsText) {
     })
   })
 
-  // Auto-select first in-stock variant on page load
   if (typeof productVariants !== "undefined" && productVariants && productVariants.length > 0) {
     const firstActive = productVariants.find(v => v.status && v.stock > 0) || productVariants.find(v => v.status) || productVariants[0];
     if (firstActive && firstActive.attributeValue) {
@@ -1653,7 +1655,7 @@ const eventRemoveItemInCompare = () => {
 const drawComparePage = () => {
   const compareList = JSON.parse(localStorage.getItem("compare"));
   if(compareList.length > 0) {
-    fetch(`/compare/list`, {
+    fetch(`/api/compare/lookup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -1688,7 +1690,7 @@ const drawComparePage = () => {
                 if (variant) {
                   const label = variant.label || variant.value || "";
                   htmlVariant += `
-                    <p>${attr.name}: ${label}</p>
+                    <p>${esc(attr.name)}: ${esc(label)}</p>
                   `;
                 }
               })
@@ -1696,8 +1698,8 @@ const drawComparePage = () => {
 
             html1 += `
               <td>
-                <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}">
-                <a class="title" href="/product/detail/${detail.slug}">${detail.name}</a>
+                <img class="img-fluid w-100" alt="${esc(detail.name)}" src="${domainCDN}${esc(itemImage)}">
+                <a class="title" href="/product/detail/${esc(detail.slug)}">${esc(detail.name)}</a>
               </td>
             `;
 
@@ -1933,7 +1935,7 @@ const eventRemoveItemInWishlist = () => {
 const drawWishlistPage = () => {
   const wishlist = JSON.parse(localStorage.getItem("wishlist"));
   if(wishlist.length > 0) {
-    fetch(`/wishlist/list`, {
+    fetch(`/api/wishlist/lookup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -1964,7 +1966,7 @@ const drawWishlistPage = () => {
                   const label = variant.label || variant.value || "";
                   htmlVariant += `
                     <span>
-                      <b>${attr.name}:</b> ${label}
+                      <b>${esc(attr.name)}:</b> ${esc(label)}
                     </span>
                   `;
                 }
@@ -1979,11 +1981,11 @@ const drawWishlistPage = () => {
               >
                 <td class="cart_page_img">
                   <div class="img">
-                    <img class="img-fluid w-100" alt="${detail.name}" src="${domainCDN}${itemImage}">
+                    <img class="img-fluid w-100" alt="${esc(detail.name)}" src="${domainCDN}${esc(itemImage)}">
                   </div>
                 </td>
                 <td class="cart_page_details">
-                  <a class="title" href="/product/detail/${detail.slug}">${detail.name}</a>
+                  <a class="title" href="/product/detail/${esc(detail.slug)}">${esc(detail.name)}</a>
                   <p>
                     ${priceNew.toLocaleString('vi-VN')} ₫
                     <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
@@ -2148,7 +2150,7 @@ if(registerForm) {
 
       const unlock = lockSubmit(event.target.querySelector('button[type="submit"]'));
 
-      fetch(`/auth/register`, {
+      fetch(`/api/customers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2209,7 +2211,7 @@ if(loginForm) {
 
       const unlock = lockSubmit(event.target.querySelector('button[type="submit"]'));
 
-      fetch(`/auth/login`, {
+      fetch(`/api/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2258,7 +2260,7 @@ if(forgotPasswordForm) {
         email: email
       };
 
-      fetch(`/auth/forgot-password`, {
+      fetch(`/api/password-resets`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2273,7 +2275,7 @@ if(forgotPasswordForm) {
 
           if(data.code == "success") {
             drawNotify(data.code, data.message);
-            window.location.href = `/auth/otp-password?email=${email}`;
+            window.location.href = `/auth/otp-password?email=${encodeURIComponent(email)}`;
           }
         })
     })
@@ -2300,7 +2302,7 @@ if(otpPasswordForm) {
         otp: otp
       };
 
-      fetch(`/auth/otp-password`, {
+      fetch(`/api/password-resets/verification`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2378,8 +2380,8 @@ if(resetPasswordForm) {
         password: password,
       };
 
-      fetch(`/auth/reset-password`, {
-        method: "POST",
+      fetch(`/api/customers/me/password`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
@@ -2422,16 +2424,6 @@ if(dashboardProfileEditForm) {
         errorMessage: 'Full name cannot exceed 50 characters!',
       },
     ])
-    .addField('#email', [
-      {
-        rule: 'required',
-        errorMessage: 'Please enter your email!',
-      },
-      {
-        rule: 'email',
-        errorMessage: 'Invalid email address format!',
-      },
-    ])
     .addField('#phone', [
       {
         rule: 'customRegexp',
@@ -2441,16 +2433,14 @@ if(dashboardProfileEditForm) {
     ])
     .onSuccess((event) => {
       const fullName = event.target.fullName.value;
-      const email = event.target.email.value;
       const phone = event.target.phone.value;
 
       const dataFinal = {
         fullName: fullName,
-        email: email,
         phone: phone,
       };
 
-      fetch(`/dashboard/profile/edit`, {
+      fetch(`/api/customers/me`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"
@@ -2538,7 +2528,7 @@ if(dashboardAddressCreateForm) {
         isDefault: isDefault,
       };
 
-      fetch(`/dashboard/address/create`, {
+      fetch(`/api/customers/me/addresses`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2798,7 +2788,7 @@ if(dashboardAddressEditForm) {
         isDefault: isDefault,
       };
 
-      fetch(`/dashboard/address/edit/${id}`, {
+      fetch(`/api/customers/me/addresses/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"
@@ -2827,8 +2817,8 @@ if(profilePhoto) {
       const formData = new FormData();
       formData.append("avatar", avatar);
 
-      fetch(`/dashboard/profile/change-avatar`, {
-        method: "PATCH",
+      fetch(`/api/customers/me/avatar`, {
+        method: "PUT",
         body: formData
       })
         .then(res => res.json())
@@ -2857,7 +2847,7 @@ function checkCoupon(coupon) {
     coupon: coupon,
   };
 
-  fetch(`/coupon/check`, {
+  fetch(`/api/coupon-checks`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -2875,7 +2865,7 @@ function checkCoupon(coupon) {
       if(data.code == "success") {
         notyf.success(data.message);
         elementViewCoupon.style.display = "flex";
-        elementCoupon.innerHTML = coupon;
+        elementCoupon.textContent = coupon;
         sessionStorage.setItem("couponDetail", JSON.stringify(data.couponDetail));
       }
 
@@ -2999,7 +2989,7 @@ if(buttonOrder) {
 
     const unlock = lockSubmit(buttonOrder);
 
-    fetch(`/order/create`, {
+    fetch(`/api/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -3065,7 +3055,7 @@ if(listButtonReview.length > 0) {
       variant = variant ? `(${variant})` : "";
 
       const modalTitle = modalReview.querySelector("[product-name]");
-      modalTitle.innerHTML = `${productName} ${variant}`;
+      modalTitle.innerHTML = `${esc(productName)} ${esc(variant)}`;
 
       formReview.orderItemId.value = orderItemId;
 
@@ -3122,7 +3112,7 @@ if(listButtonReview.length > 0) {
       formData.append(`images`, image);
     });
 
-    fetch(`/dashboard/order/review`, {
+    fetch(`/api/reviews`, {
       method: "POST",
       body: formData
     })
@@ -3162,7 +3152,7 @@ if (modalReportReview && btnConfirmReport) {
     btnConfirmReport.disabled = true;
 
     try {
-      const res = await fetch(`/product/review/report/${reviewId}`, { method: "POST" });
+      const res = await fetch(`/api/reviews/${reviewId}/reports`, { method: "POST" });
       const data = await res.json();
       if (data.code === "success") {
         if (btn) btn.outerHTML = `<span class="review-report-done"><i class="fas fa-flag"></i> Reported</span>`;
@@ -3466,7 +3456,7 @@ if (contactForm) {
       if (btn) btn.disabled = true;
 
       try {
-        const res = await fetch('/contact', {
+        const res = await fetch('/api/contact-inquiries', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -3489,3 +3479,24 @@ if (contactForm) {
       }
     });
 }
+
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("[data-logout]");
+  if (!link) return;
+  event.preventDefault();
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage("clear-pages");
+  }
+  fetch("/api/sessions/current", { method: "DELETE" }).finally(() => {
+    sessionStorage.removeItem("couponDetail");
+    window.location.href = "/auth/login";
+  });
+});
+
+(() => {
+  const match = window.location.pathname.match(/^\/(product|article)\/(detail|category)\/([^/]+)\/?$/);
+  if (!match) return;
+  const [, kind, page, slug] = match;
+  const collection = page === "detail" ? `${kind}s` : `${kind}-categories`;
+  fetch(`/api/${collection}/${slug}/views`, { method: "POST", credentials: "same-origin", keepalive: true }).catch(() => {});
+})();

@@ -12,8 +12,8 @@ block main
               p.text-muted.mb-0 #{pagination.totalRecord} flagged order(s) in review queue (advisory only).
             .col-auto
               button#retrain-btn.btn.btn-outline-primary(
-                data-retrain-api=`/${pathAdmin}/order/flagged/retrain`
-                data-status-api=`/${pathAdmin}/order/flagged/retrain/status`
+                data-retrain-api=`/${pathAdmin}/api/flagged-orders/retraining`
+                data-status-api=`/${pathAdmin}/api/flagged-orders/retraining`
                 title="Retrain the anomaly model now from the latest order history"
               )
                 i.fa-solid.fa-wand-magic-sparkles.me-1
@@ -65,8 +65,8 @@ block main
                         a.tbl-action(
                           href="javascript:;"
                           button-api
-                          data-method="PATCH"
-                          data-api=`/${pathAdmin}/order/flagged/dismiss/${item.id}`
+                          data-method="DELETE"
+                          data-api=`/${pathAdmin}/api/flagged-orders/${item.id}`
                           title="Dismiss - not a bot, remove from this queue"
                           aria-label="Dismiss flag"
                         )

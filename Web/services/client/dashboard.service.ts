@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import AccountUser from '../../models/account-user.model';
 import VerifyOTP from '../../models/verify-otp.model';
+import { consumeOtp } from '../../helpers/otp.helper';
 import { toSearchText } from '../../helpers/slugify.helper';
 import UserAddress from '../../models/user-address.model';
 import { fmUpload, fmDeleteByLink } from '../../helpers/file-manager.client';
@@ -15,6 +16,7 @@ import { IOrder, IOrderItem } from '../../interfaces/models/order.interface';
 import { IUserAddressInput } from '../../interfaces/models/user-address.interface';
 import { invalidateUserAuthCache } from './auth.service';
 import { metadataCache, invalidateProductCaches } from '../../helpers/metadata-cache.helper';
+import { upstreamStatus } from "../../helpers/http-response.helper";
 
 export const invalidateUserDashboardCache = (userId: string) => {
   metadataCache.del(`user:dashboard:${userId}`);
@@ -35,16 +37,17 @@ export const getDashboardOverview = async (userId: string) => {
     Order.countDocuments({ userId, orderStatus: "completed", deleted: false }),
     Review.countDocuments({ userId }),
     Order.find({ userId, deleted: false })
-      .select("_id code total orderStatus paymentStatus createdAt")
+      .select("_id code total orderStatus paymentStatus paymentMethod createdAt")
       .sort({ createdAt: "desc" })
       .limit(5)
+      .lean()
   ]);
 
   const result = {
     totalOrders,
     totalCompletedOrders,
     totalReviews,
-    orderList
+    orderList: orderList.map((order) => ({ ...order, id: String(order._id) }))
   };
 
   metadataCache.set(cacheKey, result, 60);
@@ -64,7 +67,7 @@ export const updateProfile = async (
       deleted: false
     }).select("_id");
     if (existPhone) {
-      return { success: false, message: "Phone number already exists!" };
+      return { success: false, status: 409, message: "Phone number already exists!" };
     }
   }
 
@@ -87,8 +90,8 @@ export const requestChangeEmail = async (
   oldEmail: string,
   newEmail: string
 ) => {
-  if (newEmail === oldEmail) {
-    return { success: false, message: "New email must be different from your current email!" };
+  if (newEmail.trim().toLowerCase() === oldEmail.trim().toLowerCase()) {
+    return { success: false, status: 400, message: "New email must be different from your current email!" };
   }
 
   const emailTaken = await AccountUser.findOne({
@@ -98,14 +101,14 @@ export const requestChangeEmail = async (
   }).select("_id");
 
   if (emailTaken) {
-    return { success: false, message: "This email is already in use by another account!" };
+    return { success: false, status: 409, message: "This email is already in use by another account!" };
   }
 
   const otp = generateRandomNumber(6);
 
   await VerifyOTP.findOneAndUpdate(
     { userId, type: "otp-email-change" },
-    { $set: { email: newEmail, otp, newEmail, expireAt: new Date(Date.now() + 10 * 60 * 1000) } },
+    { $set: { email: newEmail, otp, newEmail, attempts: 0, expireAt: new Date(Date.now() + 10 * 60 * 1000) } },
     { upsert: true }
   );
 
@@ -115,7 +118,7 @@ export const requestChangeEmail = async (
   } catch (mailErr) {
     console.error("[changeEmail] sendMail failed, rolling back OTP:", mailErr);
     await VerifyOTP.deleteOne({ userId, type: "otp-email-change" });
-    return { success: false, message: "Failed to send verification email. Please try again." };
+    return { success: false, status: 502, message: "Failed to send verification email. Please try again." };
   }
 
   void emailTemplates.emailChangeSecurityAlert(newEmail)
@@ -129,15 +132,10 @@ export const requestChangeEmail = async (
 };
 
 export const verifyChangeEmail = async (userId: string, fullName: string, phone: string | undefined, otp: string) => {
-  const record = await VerifyOTP.findOneAndDelete({
-    userId,
-    otp: `${otp}`,
-    type: "otp-email-change",
-    expireAt: { $gt: new Date() }
-  });
+  const record = await consumeOtp({ userId, type: "otp-email-change" }, otp);
 
   if (!record) {
-    return { success: false, message: "Invalid or expired OTP code!" };
+    return { success: false, status: 400, message: "Invalid or expired OTP code!" };
   }
 
   const newEmail = record.newEmail as string;
@@ -146,6 +144,7 @@ export const verifyChangeEmail = async (userId: string, fullName: string, phone:
     { _id: userId },
     {
       email: newEmail,
+      emailVerified: true,
       search: toSearchText(`${fullName} ${newEmail} ${phone || ''}`)
     }
   );
@@ -157,12 +156,13 @@ export const verifyChangeEmail = async (userId: string, fullName: string, phone:
 
 export const getUserAddresses = async (userId: string) => {
   return UserAddress.find({ userId })
-    .select("_id name phone address province district ward type isDefault")
+    .select("_id fullName phone address longitude latitude isDefault")
     .sort({ createdAt: "desc" });
 };
 
-export const createUserAddress = async (userId: string, addressData: IUserAddressInput): Promise<{ success: boolean; message: string }> => {
+export const createUserAddress = async (userId: string, addressData: IUserAddressInput): Promise<{ success: boolean; status?: number; message: string; addressId?: string }> => {
   addressData.userId = userId;
+  let addressId: string | undefined;
 
   const session = await mongoose.startSession();
   try {
@@ -177,6 +177,7 @@ export const createUserAddress = async (userId: string, addressData: IUserAddres
 
       const newRecord = new UserAddress(addressData);
       await newRecord.save({ session });
+      addressId = String(newRecord._id);
     });
   } finally {
     session.endSession();
@@ -184,7 +185,7 @@ export const createUserAddress = async (userId: string, addressData: IUserAddres
 
   invalidateUserAuthCache(userId);
 
-  return { success: true, message: "Address added successfully!" };
+  return { success: true, message: "Address added successfully!", addressId };
 };
 
 
@@ -223,10 +224,10 @@ export const getUserAddressDetail = async (userId: string, addressId: string) =>
   return UserAddress.findOne({ _id: addressId, userId });
 };
 
-export const updateUserAddress = async (userId: string, addressId: string, addressData: IUserAddressInput): Promise<{ success: boolean; message: string }> => {
+export const updateUserAddress = async (userId: string, addressId: string, addressData: IUserAddressInput): Promise<{ success: boolean; status?: number; message: string }> => {
   const existAddress = await UserAddress.findOne({ _id: addressId, userId }).select("_id");
   if (!existAddress) {
-    return { success: false, message: "Address does not exist!" };
+    return { success: false, status: 404, message: "Address does not exist!" };
   }
 
   const session = await mongoose.startSession();
@@ -255,7 +256,7 @@ export const updateUserAddress = async (userId: string, addressId: string, addre
 export const updateAvatar = async (userId: string, file: Express.Multer.File, oldAvatar?: string) => {
   const upload = await fmUpload([file], `users/${userId}`);
   if (!upload.success || upload.fileUrls.length === 0) {
-    return { success: false, message: "Upload error!" };
+    return { success: false, status: upstreamStatus(upload.status), message: upload.message || "Upload error!" };
   }
 
   const linkAvatar = upload.fileUrls[0];
@@ -327,16 +328,16 @@ export const submitOrderReview = async (
   });
 
   if (!orderDetail) {
-    return { success: false, message: "Invalid data!" };
+    return { success: false, status: 400, message: "Invalid data!" };
   }
 
   if (orderDetail.orderStatus !== "completed") {
-    return { success: false, message: "You can only review products from completed orders!" };
+    return { success: false, status: 409, message: "You can only review products from completed orders!" };
   }
 
   const orderItem = orderDetail.items.find((item: IOrderItem) => item.id === orderItemId);
   if (!orderItem) {
-    return { success: false, message: "Invalid data!" };
+    return { success: false, status: 400, message: "Invalid data!" };
   }
 
   const productId = orderItem.productId;
@@ -348,19 +349,19 @@ export const submitOrderReview = async (
   }).select("_id");
 
   if (existReview) {
-    return { success: false, message: "You have already reviewed this product!" };
+    return { success: false, status: 409, message: "You have already reviewed this product!" };
   }
 
   const maxImages = 5;
   if (files && files.length > maxImages) {
-    return { success: false, message: `You can only upload up to ${maxImages} images!` };
+    return { success: false, status: 400, message: `You can only upload up to ${maxImages} images!` };
   }
 
   const maxSizePerImage = 5 * 1024 * 1024;
   if (files) {
     for (const file of files) {
       if (file.size > maxSizePerImage) {
-        return { success: false, message: `Each image must not exceed ${maxSizePerImage / (1024 * 1024)} MB!` };
+        return { success: false, status: 400, message: `Each image must not exceed ${maxSizePerImage / (1024 * 1024)} MB!` };
       }
     }
   }
@@ -369,6 +370,10 @@ export const submitOrderReview = async (
   if (files && files.length > 0) {
     
     const uploads = await Promise.all(files.map((file) => fmUpload([file], `reviews/${userId}`)));
+    const rejected = uploads.find((u) => !u.success);
+    if (rejected) {
+      return { success: false, status: upstreamStatus(rejected.status), message: rejected.message || "Upload error!" };
+    }
     imageLinks = uploads.flatMap((u) => u.fileUrls);
   }
 

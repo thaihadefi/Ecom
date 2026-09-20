@@ -27,7 +27,7 @@ div(class="shop_details_des_area")
       role="tabpanel"
       )
       div(class="shop_details_description")
-        | !{productDetail.content}
+        | !{safeHtml(productDetail.content)}
     #description4.tab-pane.fade(
       tabindex="0"
       aria-labelledby="description-tab4"

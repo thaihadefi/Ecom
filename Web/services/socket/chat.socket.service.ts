@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import ChatRoom from '../../models/chat-room.model';
 import ChatMessage from '../../models/chat-message.model';
 import AccountAdmin from '../../models/account-admin.model';
+import { filterAdminIdsWithPermission } from '../admin/auth.service';
 import { IChatRoom } from '../../interfaces/models/chat-room.interface';
 import { IChatMessage } from '../../interfaces/models/chat-message.interface';
 import {
@@ -46,7 +47,7 @@ async function runAtomically(
       session.endSession();
     }
   }
-  await work(); // standalone mongod: transactions unavailable
+  await work();
 }
 
 export async function initChatRoom(
@@ -59,8 +60,8 @@ export async function initChatRoom(
   return null;
 }
 
-const isAssignableAdmin = (adminId: string): Promise<boolean> =>
-  AccountAdmin.exists({ _id: adminId, deleted: false, status: 'active' }).then(Boolean);
+const isAssignableAdmin = async (adminId: string): Promise<boolean> =>
+  (await filterAdminIdsWithPermission([adminId], 'chat-reply')).length > 0;
 
 async function initUserRoom(
   userId: string,
@@ -89,9 +90,7 @@ async function assignAdminToRoom(
   let selectedAdminId = '';
 
   
-  const activeOnline = (
-    await AccountAdmin.find({ _id: { $in: listIdAdminOnline }, deleted: false, status: 'active' }).select('_id')
-  ).map(a => String(a._id));
+  const activeOnline = await filterAdminIdsWithPermission(listIdAdminOnline, 'chat-reply');
 
   if (activeOnline.length > 0) {
     const roomCounts = await ChatRoom.aggregate([
@@ -105,8 +104,9 @@ async function assignAdminToRoom(
       return curCount < minCount ? curId : minId;
     }, activeOnline[0]);
   } else {
-    const fallbackAdmin = await AccountAdmin.findOne({ deleted: false, status: 'active' }).select('_id');
-    if (fallbackAdmin) selectedAdminId = fallbackAdmin.id;
+    const candidates = (await AccountAdmin.find({ deleted: false, status: 'active' }).select('_id').limit(50)).map(a => String(a._id));
+    const [fallbackAdminId] = await filterAdminIdsWithPermission(candidates, 'chat-reply');
+    if (fallbackAdminId) selectedAdminId = fallbackAdminId;
   }
 
   if (!selectedAdminId) return chatRoom;
@@ -118,7 +118,7 @@ async function assignAdminToRoom(
     { adminId: selectedAdminId },
     { new: true },
   );
-  if (!updated) return ChatRoom.findById(chatRoom._id); // another connection already assigned
+  if (!updated) return ChatRoom.findById(chatRoom._id);
   invalidateRoomList(selectedAdminId);
   if (previousAdminId) {
     invalidateRoomList(previousAdminId);

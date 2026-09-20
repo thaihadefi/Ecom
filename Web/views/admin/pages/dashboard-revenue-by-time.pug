@@ -63,15 +63,15 @@ block main
               canvas#revenueChartMonth
 
 block script
-  script(src="https://cdn.jsdelivr.net/npm/chart.js")
+  script(src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous")
   script.
-    const labelsHour = !{JSON.stringify(labelsHour)};
-    const todayData = !{JSON.stringify(todayData)};
-    const yesterdayData = !{JSON.stringify(yesterdayData)};
-    const labelsDay = !{JSON.stringify(labelsDay)};
-    const thisMonthData = !{JSON.stringify(thisMonthData)};
-    const lastMonthData = !{JSON.stringify(lastMonthData)};
-    const labelsMonth = !{JSON.stringify(labelsMonth)};
-    const thisYearData = !{JSON.stringify(thisYearData)};
-    const lastYearData = !{JSON.stringify(lastYearData)};
+    const labelsHour = !{safeJson(labelsHour)};
+    const todayData = !{safeJson(todayData)};
+    const yesterdayData = !{safeJson(yesterdayData)};
+    const labelsDay = !{safeJson(labelsDay)};
+    const thisMonthData = !{safeJson(thisMonthData)};
+    const lastMonthData = !{safeJson(lastMonthData)};
+    const labelsMonth = !{safeJson(labelsMonth)};
+    const thisYearData = !{safeJson(thisYearData)};
+    const lastYearData = !{safeJson(lastYearData)};
   script(src="/admin/assets/js/my-chart.js")

@@ -42,6 +42,7 @@ const schema = new mongoose.Schema(
 );
 
 schema.index({ code: 1, deleted: 1, status: 1 });
+schema.index({ code: 1 }, { unique: true, partialFilterExpression: { deleted: false }, name: "code_active" });
 schema.index({ deleted: 1 });
 schema.index({ endDate: 1 });
 schema.index({ deletedAt: -1 }, { partialFilterExpression: { deleted: true } });

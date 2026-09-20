@@ -1,3 +1,4 @@
+import { safeCsvOptions } from "../../helpers/csv.helper";
 import { Request, Response } from 'express';
 import { pathAdmin } from '../../configs/variable.config';
 import { Parser } from 'json2csv';
@@ -6,6 +7,7 @@ import * as categoryProductService from '../../services/admin/category-product.s
 import * as attributeProductService from '../../services/admin/attribute-product.service';
 import * as productService from '../../services/admin/product.service';
 import * as recommendationService from '../../services/admin/recommendation.service';
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const category = async (req: Request, res: Response) => {
   const data = await categoryProductService.getCategoryProductList(req.query.keyword, req.query.page);
@@ -29,16 +31,13 @@ export const createCategoryPost = async (req: Request, res: Response) => {
   try {
     const result = await categoryProductService.createCategoryProduct(req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("createCategoryPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -69,16 +68,13 @@ export const editCategoryPatch = async (req: Request, res: Response) => {
     const id = req.params.id;
     const result = await categoryProductService.updateCategoryProduct(id, req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("editCategoryPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -93,10 +89,7 @@ export const deleteCategoryPatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("deleteCategoryPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -115,7 +108,7 @@ export const undoCategoryPatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoCategoryPatch error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -125,34 +118,7 @@ export const destroyCategoryDelete = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyCategoryDelete error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
-  }
-};
-
-export const changeMultiCategoryPatch = async (req: Request, res: Response) => {
-  try {
-    const { value, ids } = req.body;
-    if (!value || !ids || !ids.length) {
-      res.json({ code: "error", message: "Invalid data!" });
-      return;
-    }
-    switch (value) {
-      case "undo": {
-        const result = await categoryProductService.restoreManyCategoryProducts(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      case "destroy": {
-        const result = await categoryProductService.permanentlyDeleteManyCategoryProducts(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      default:
-        res.json({ code: "error", message: "Invalid action!" });
-    }
-  } catch (error) {
-    console.error("changeMultiCategoryPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -160,14 +126,14 @@ export const deleteManyCategory = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await categoryProductService.softDeleteManyCategoryProducts(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("deleteManyCategory error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -175,14 +141,14 @@ export const undoManyCategoryPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await categoryProductService.restoreManyCategoryProducts(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoManyCategoryPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -190,14 +156,14 @@ export const destroyManyCategoryDelete = async (req: Request, res: Response) => 
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await categoryProductService.permanentlyDeleteManyCategoryProducts(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyManyCategoryDelete error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -226,10 +192,7 @@ export const createAttributePost = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("createAttributePost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -264,10 +227,7 @@ export const editAttributePatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("editAttributePatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -282,10 +242,7 @@ export const deleteAttributePatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("deleteAttributePatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -304,7 +261,7 @@ export const undoAttributePatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoAttributePatch error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -314,7 +271,7 @@ export const destroyAttributeDelete = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyAttributeDelete error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -332,7 +289,7 @@ export const createPost = async (req: Request, res: Response) => {
     const result = await productService.createProduct(req.body);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -347,10 +304,7 @@ export const createPost = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("createPost product error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -389,7 +343,7 @@ export const editPatch = async (req: Request, res: Response) => {
     const result = await productService.updateProduct(id, req.body);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -404,10 +358,7 @@ export const editPatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("editPatch product error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -422,10 +373,7 @@ export const deletePatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("deletePatch product error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -438,7 +386,7 @@ export const exportCSV = async (_req: Request, res: Response) => {
     const BATCH = 500;
     let skip = 0;
     let headerWritten = false;
-    const parser = new Parser({ header: true });
+    const parser = new Parser({ header: true, ...safeCsvOptions });
 
     while (true) {
       const batch = await productService.getProductsBatchForExport(skip, BATCH);
@@ -457,13 +405,18 @@ export const exportCSV = async (_req: Request, res: Response) => {
     res.end();
   } catch (error) {
     console.error("exportCSV error:", error);
+    if (res.headersSent) {
+      res.end();
+    } else {
+      res.status(500).json({ code: "error", message: "Export failed!" });
+    }
   }
 };
 
 export const importCSVPost = async (req: Request, res: Response) => {
   try {
     if (!req.file?.buffer) {
-      res.json({ code: "error", message: "No file uploaded!" });
+      res.status(400).json({ code: "error", message: "No file uploaded!" });
       return;
     }
 
@@ -475,10 +428,7 @@ export const importCSVPost = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("importCSVPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -507,16 +457,13 @@ export const editSEOPatch = async (req: Request, res: Response) => {
     const id = req.params.id;
     const result = await productService.updateProductSEO(id, req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("editSEOPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -524,7 +471,7 @@ export const destroyManyDelete = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
 
@@ -532,7 +479,7 @@ export const destroyManyDelete = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyManyDelete error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -547,7 +494,7 @@ export const undoPatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoPatch error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -557,7 +504,7 @@ export const destroyDelete = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyDelete error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -565,7 +512,7 @@ export const deleteManyPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
 
@@ -573,7 +520,7 @@ export const deleteManyPatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("deleteManyPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -581,7 +528,7 @@ export const undoManyPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
 
@@ -589,16 +536,10 @@ export const undoManyPatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoManyPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
-// Kicks off the recompute in the background instead of awaiting it in the
-// request - same reasoning as anomaly-detection's retrain endpoint: a full
-// order-history scan + Product.bulkWrite can run past a browser/proxy HTTP
-// timeout at real order volumes. The admin UI polls
-// recomputeRecommendationsStatus for progress/result instead of waiting on
-// this response.
 export const recomputeRecommendationsPost = async (req: Request, res: Response) => {
   const wasRunning = recommendationService.getManualRecomputeStatus().status === "running";
   const status = recommendationService.triggerManualRecompute();
@@ -612,31 +553,4 @@ export const recomputeRecommendationsPost = async (req: Request, res: Response) 
 
 export const recomputeRecommendationsStatus = async (_req: Request, res: Response) => {
   res.json({ code: "success", status: recommendationService.getManualRecomputeStatus() });
-};
-
-export const changeMultiPatch = async (req: Request, res: Response) => {
-  try {
-    const { value, ids } = req.body;
-    if (!value || !ids || !ids.length) {
-      res.json({ code: "error", message: "Invalid data!" });
-      return;
-    }
-    switch (value) {
-      case "undo": {
-        const result = await productService.restoreManyProducts(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      case "destroy": {
-        const result = await productService.permanentlyDeleteManyProducts(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      default:
-        res.json({ code: "error", message: "Invalid action!" });
-    }
-  } catch (error) {
-    console.error("changeMultiPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
-  }
 };

@@ -32,7 +32,6 @@ const {
 
 let forest = new IsolationForest(NUM_TREES, SAMPLE_SIZE);
 
-// Dedupes concurrent training runs (e.g. a checkout burst before the model is ever trained).
 let inFlightTraining: ReturnType<typeof runTraining> | null = null;
 
 export const trainAnomalyModel = (): ReturnType<typeof runTraining> => {
@@ -47,7 +46,6 @@ export const trainAnomalyModel = (): ReturnType<typeof runTraining> => {
 const runTraining = async () => {
   const since = new Date(Date.now() - TRAINING_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
 
-  // Unfiltered by status (matches live scoring); only the rows fit into the forest below are restricted to settled orders.
   const contextOrders = await Order.find({ deleted: false, createdAt: { $gte: since } })
     .select("userId phone ip coupon discount subTotal orderStatus createdAt")
     .sort({ createdAt: 1 });
@@ -118,9 +116,7 @@ export const scoreOrderForAnomaly = async (orderId: string) => {
 
   const createdAt = order.createdAt;
   const windowStart = new Date(createdAt.getTime() - RECENT_WINDOW_MINUTES * 60000);
-  // Bounded to match training's context, not unbounded all-time history.
   const reuseWindowStart = new Date(createdAt.getTime() - TRAINING_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
-  // Guests scoped to userId: "" to match identityOf()'s "guest:<phone>" bucket, separate from an account sharing the same phone.
   const identityFilter = order.userId
     ? { userId: order.userId }
     : order.phone
@@ -194,7 +190,6 @@ export const scoreOrderForAnomaly = async (orderId: string) => {
   );
 };
 
-// Scores orders whose fire-and-forget scoring call never completed (e.g. a mid-checkout restart). Safe to run repeatedly.
 export const backfillMissedScoring = async () => {
   const since = new Date(Date.now() - BACKFILL_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
   const missed = await Order.find({
@@ -212,7 +207,6 @@ export const backfillMissedScoring = async () => {
 };
 
 export const getFlaggedOrders = async (rawPage?: unknown) => {
-  // Dismissed flags stay on the order for the audit trail, just drop out of the active queue.
   const filter = { isAnomalous: true, deleted: false, anomalyDismissedAt: { $exists: false } };
 
   const totalRecord = await Order.countDocuments(filter);
@@ -242,7 +236,6 @@ export interface ManualRetrainStatus {
   lastError: string | null;
 }
 
-// Lightweight async-job substitute: route returns immediately, UI polls getManualRetrainStatus() instead of holding the connection open.
 let manualRetrainStatus: ManualRetrainStatus = {
   status: "idle",
   lastRunAt: null,

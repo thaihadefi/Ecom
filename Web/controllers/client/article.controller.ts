@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import * as articleService from '../../services/client/article.service';
+import { alreadyViewed, claimView } from '../../helpers/view-counter.helper';
+import { sendCaughtError } from '../../helpers/http-response.helper';
 
 export const articleByCategory = async (req: Request, res: Response) => {
   try {
@@ -11,15 +13,7 @@ export const articleByCategory = async (req: Request, res: Response) => {
 
     const { categoryDetail, articleList, pagination } = data;
 
-    const viewed = `viewed_article_category_${categoryDetail.id}`;
-    res.cookie(viewed, "true", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 30 * 60 * 1000
-    });
-    if (!req.cookies[viewed]) {
-      void articleService.incrementCategoryView(categoryDetail.id).catch((err) => console.error("incrementCategoryView error:", err));
+    if (!alreadyViewed(req, `article_category_${categoryDetail.id}`)) {
       categoryDetail.view = (categoryDetail.view || 0) + 1;
     }
 
@@ -59,15 +53,7 @@ export const detail = async (req: Request, res: Response) => {
       return;
     }
 
-    const viewed = `viewed_${articleDetail.id}`;
-    res.cookie(viewed, "true", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 30 * 60 * 1000
-    });
-    if (!req.cookies[viewed]) {
-      void articleService.incrementArticleView(req.params.slug).catch((err) => console.error("incrementArticleView error:", err));
+    if (!alreadyViewed(req, `article_${articleDetail.id}`)) {
       articleDetail.view = (articleDetail.view || 0) + 1;
     }
 
@@ -78,5 +64,35 @@ export const detail = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("article detail error:", error);
     res.redirect("/");
+  }
+};
+
+export const categoryView = async (req: Request, res: Response) => {
+  try {
+    const id = await articleService.getCategoryIdBySlug(req.params.slug);
+    if (!id) {
+      res.status(404).json({ code: "error", message: "Category does not exist!" });
+      return;
+    }
+    if (claimView(req, res, `article_category_${id}`)) await articleService.incrementCategoryView(id);
+    res.json({ code: "success", message: "Success!" });
+  } catch (error) {
+    console.error("article category view error:", error);
+    sendCaughtError(res, error, "Invalid data!");
+  }
+};
+
+export const detailView = async (req: Request, res: Response) => {
+  try {
+    const id = await articleService.getArticleIdBySlug(req.params.slug);
+    if (!id) {
+      res.status(404).json({ code: "error", message: "Article does not exist!" });
+      return;
+    }
+    if (claimView(req, res, `article_${id}`)) await articleService.incrementArticleView(req.params.slug);
+    res.json({ code: "success", message: "Success!" });
+  } catch (error) {
+    console.error("article view error:", error);
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

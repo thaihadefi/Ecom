@@ -15,7 +15,7 @@ block main
                 | Trash
               button.btn.btn-danger.me-1(
                 button-soft-delete-many
-                data-api=`/${pathAdmin}/coupon/delete-many`
+                data-api=`/${pathAdmin}/api/coupons/trash`
                 style="display:none"
               )
                 i.fa-solid.fa-trash.me-1
@@ -92,8 +92,8 @@ block main
                         a.tbl-action.danger(
                           href="javascript:;"
                           button-api
-                          data-method="PATCH"
-                          data-api=`/${pathAdmin}/coupon/delete/${item.id}`
+                          data-method="DELETE"
+                          data-api=`/${pathAdmin}/api/coupons/${item.id}`
                           title="Move to trash"
                           aria-label="Move to trash"
                         )

@@ -7,19 +7,25 @@ import { escapeRegex } from '../../helpers/generate.helper';
 import { formatFileSize } from '../../helpers/format.helper';
 import { getPagination } from '../../helpers/pagination.helper';
 import { propagateMediaRename, propagateMediaDelete } from '../../helpers/media-propagate.helper';
+import { upstreamStatus } from "../../helpers/http-response.helper";
 
 const FM_HEADERS = () => ({
   Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`
 });
 
-type FmResponse = { code?: string; message?: string; [key: string]: unknown };
+type FmResponse = { code?: string; message?: string; httpStatus: number; [key: string]: unknown };
 
 const fmSend = async (
-  method: "post" | "patch",
+  method: "post" | "patch" | "delete",
   path: string,
   fields: Record<string, string>,
   files?: Express.Multer.File[],
 ): Promise<FmResponse> => {
+  if (method === "delete") {
+    const response = await axios.delete(`${domainCDN}/${path}`, { params: fields, headers: FM_HEADERS(), validateStatus: () => true });
+    return { ...response.data, httpStatus: response.status } as FmResponse;
+  }
+
   const formData = new FormData();
   for (const [key, value] of Object.entries(fields)) {
     formData.append(key, value);
@@ -28,13 +34,11 @@ const fmSend = async (
     formData.append("files", file.buffer, { filename: file.originalname, contentType: file.mimetype });
   }
 
-  const url = `${domainCDN}/file-manager/${path}`;
-  const config = { headers: { ...formData.getHeaders(), ...FM_HEADERS() } };
-  const response = method === "post"
-    ? await axios.post(url, formData, config)
-    : await axios.patch(url, formData, config);
+  const url = `${domainCDN}/${path}`;
+  const config = { headers: { ...formData.getHeaders(), ...FM_HEADERS() }, validateStatus: () => true };
+  const response = await axios.request({ method, url, data: formData, ...config });
 
-  return response.data as FmResponse;
+  return { ...response.data, httpStatus: response.status } as FmResponse;
 };
 
 export const getFilesAndFolders = async (folderPath: string, rawKeyword?: unknown, rawPage?: unknown) => {
@@ -86,8 +90,8 @@ export const getFilesAndFolders = async (folderPath: string, rawKeyword?: unknow
   let folderList: Array<Record<string, unknown>> = [];
   try {
     const folderRes = await axios.get(
-      `${domainCDN}/file-manager/folder/list?folderPath=${folderPath}`,
-      { headers: FM_HEADERS() }
+      `${domainCDN}/folders`,
+      { headers: FM_HEADERS(), params: { folderPath } }
     );
     if (folderRes.data.code === "success") {
       folderList = (folderRes.data.folderList || []).map((item: { createdAt: string | Date }) => ({
@@ -108,10 +112,10 @@ export const getFilesAndFolders = async (folderPath: string, rawKeyword?: unknow
 };
 
 export const uploadFilesToCDN = async (files: Express.Multer.File[], folderPath?: string) => {
-  const data = await fmSend("post", "upload", folderPath ? { folderPath } : {}, files);
+  const data = await fmSend("post", "files", folderPath ? { folderPath } : {}, files);
 
   if (data.code !== "success") {
-    return { success: false, message: "Upload error!" };
+    return { success: false, status: upstreamStatus(data.httpStatus), message: data.message || "Upload error!" };
   }
 
   const saveLinks: { folder: string; filename: string; mimetype: string; size: number }[] =
@@ -124,10 +128,10 @@ export const uploadFilesToCDN = async (files: Express.Multer.File[], folderPath?
 };
 
 export const renameFile = async (folder: string, oldFileName: string, newFileName: string) => {
-  const data = await fmSend("patch", "change-file-name", { folder, oldFileName, newFileName });
+  const data = await fmSend("patch", "files/name", { folder, oldFileName, newFileName });
 
   if (data.code === "error") {
-    return { success: false, message: data.message };
+    return { success: false, status: upstreamStatus(data.httpStatus), message: data.message };
   }
 
   await Media.updateOne({ folder, filename: oldFileName }, { filename: newFileName });
@@ -137,10 +141,10 @@ export const renameFile = async (folder: string, oldFileName: string, newFileNam
 };
 
 export const deleteFile = async (folder: string, fileName: string) => {
-  const data = await fmSend("patch", "delete-file", { folder, fileName });
+  const data = await fmSend("delete", "files", { folder, fileName });
 
   if (data.code === "error") {
-    return { success: false, message: data.message };
+    return { success: false, status: upstreamStatus(data.httpStatus), message: data.message };
   }
 
   await Media.deleteOne({ folder, filename: fileName });
@@ -152,10 +156,10 @@ export const deleteFile = async (folder: string, fileName: string) => {
 export const createFolder = async (folderName: string, folderPath?: string) => {
   const fields: Record<string, string> = { folderName };
   if (folderPath) fields.folderPath = folderPath;
-  const data = await fmSend("post", "folder/create", fields);
+  const data = await fmSend("post", "folders", fields);
 
   if (data.code === "error") {
-    return { success: false, message: data.message };
+    return { success: false, status: upstreamStatus(data.httpStatus), message: data.message };
   }
 
   return { success: true, message: "Folder created successfully!" };
@@ -168,10 +172,10 @@ export const deleteFolder = async (folderPath: string) => {
     folder: { $regex: `^${escapeRegex(normalizedFolder)}(/|$)` }
   }).select("folder filename");
 
-  const data = await fmSend("patch", "folder/delete", { folderPath });
+  const data = await fmSend("delete", "folders", { folderPath });
 
   if (data.code === "error") {
-    return { success: false, message: data.message };
+    return { success: false, status: upstreamStatus(data.httpStatus), message: data.message };
   }
 
   await Promise.all(
@@ -184,10 +188,10 @@ export const deleteFolder = async (folderPath: string) => {
 };
 
 export const renameFolder = async (folderPath: string, newFolderName: string) => {
-  const data = await fmSend("patch", "folder/rename", { folderPath, newFolderName });
+  const data = await fmSend("patch", "folders/name", { folderPath, newFolderName });
 
   if (data.code === "error") {
-    return { success: false, message: data.message };
+    return { success: false, status: upstreamStatus(data.httpStatus), message: data.message };
   }
 
   const normalizedOld = folderPath.startsWith("/") ? folderPath : `/${folderPath}`;
@@ -223,16 +227,16 @@ export const moveFolder = async (folderPath: string, targetFolder?: string) => {
   const normalizedNew = `${normalizedTarget}/${folderName}`;
 
   if (normalizedNew === normalizedSource) {
-    return { success: false, message: "Folder is already in that location!" };
+    return { success: false, status: 409, message: "Folder is already in that location!" };
   }
 
-  const data = await fmSend("patch", "folder/move", {
+  const data = await fmSend("patch", "folders/location", {
     folderPath: normalizedSource,
     targetFolder: normalizedTarget,
   });
 
   if (data.code === "error") {
-    return { success: false, message: data.message };
+    return { success: false, status: upstreamStatus(data.httpStatus), message: data.message };
   }
 
   const affectedMedia = await Media.find({
@@ -259,13 +263,13 @@ export const moveFile = async (folder: string, fileName: string, targetFolder?: 
   const targetFolderFull = "/media" + (targetFolder ? `/${targetFolder}` : "");
 
   if (folder === targetFolderFull) {
-    return { success: false, message: "File is already in the target folder!" };
+    return { success: false, status: 409, message: "File is already in the target folder!" };
   }
 
-  const data = await fmSend("patch", "move-file", { folder, fileName, targetFolder: targetFolderFull });
+  const data = await fmSend("patch", "files/location", { folder, fileName, targetFolder: targetFolderFull });
 
   if (data.code === "error") {
-    return { success: false, message: data.message };
+    return { success: false, status: upstreamStatus(data.httpStatus), message: data.message };
   }
 
   await Media.updateOne({ folder, filename: fileName }, { folder: targetFolderFull });

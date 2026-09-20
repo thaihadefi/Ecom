@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { pathAdmin } from "../../configs/variable.config";
 import * as blockService from "../../services/admin/block.service";
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const list = async (req: Request, res: Response) => {
   const data = await blockService.getBlockList(req.query.keyword, req.query.page);
@@ -30,10 +31,7 @@ export const createPost = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("createPost block error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -63,16 +61,13 @@ export const editPatch = async (req: Request, res: Response) => {
     const id = req.params.id;
     const result = await blockService.updateBlock(id, req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("editPatch block error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -82,6 +77,6 @@ export const deletePatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("deletePatch block error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };

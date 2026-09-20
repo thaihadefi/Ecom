@@ -1,41 +1,36 @@
 import { Router } from "express";
 import * as couponController from "../../controllers/admin/coupon.controller";
-import multer from "multer";
+import { textForm } from "../../helpers/upload.helper";
 import * as couponValidate from "../../validates/admin/coupon.validate";
-import { checkPermission } from "../../middlewares/admin/auth.middleware";
+import { checkAnyPermission, checkPermission } from "../../middlewares/admin/auth.middleware";
 
+import { permanentOnly } from "../../helpers/rest.helper";
 const router = Router();
 
-const upload = multer();
+const upload = textForm;
 
-router.get('/create', couponController.create);
+router.get('/create', checkAnyPermission("coupon-create", "coupon-edit", "coupon-delete"), couponController.create);
 
-router.post(
-  '/create',
-  upload.none(),
-  checkPermission("coupon-create"),
-  couponValidate.createPost,
-  couponController.createPost
-);
-
-router.get('/list', couponController.list);
-router.get('/trash', couponController.trash);
-router.get('/edit/:id', couponController.edit);
-
-router.patch(
-  '/edit/:id',
-  upload.none(),
-  checkPermission("coupon-edit"),
-  couponValidate.createPost,
-  couponController.editPatch
-);
-
-router.patch('/delete/:id', checkPermission("coupon-delete"), couponController.deletePatch);
-router.patch('/delete-many', checkPermission("coupon-delete"), couponController.deleteManyPatch);
-router.patch('/undo/:id', checkPermission("coupon-edit"), couponController.undoPatch);
-router.patch('/change-multi', checkPermission("coupon-edit"), couponController.changeMultiPatch);
-router.patch('/undo-many', checkPermission("coupon-edit"), couponController.undoManyPatch);
-router.delete('/destroy/:id', checkPermission("coupon-delete"), couponController.destroyDelete);
-router.delete('/destroy-many', checkPermission("coupon-delete"), couponController.destroyManyDelete);
+router.get('/list', checkAnyPermission("coupon-create", "coupon-edit", "coupon-delete"), couponController.list);
+router.get('/trash', checkAnyPermission("coupon-create", "coupon-edit", "coupon-delete"), couponController.trash);
+router.get('/edit/:id', checkAnyPermission("coupon-create", "coupon-edit", "coupon-delete"), couponController.edit);
 
 export default router;
+
+export const api = Router();
+
+api.delete('/:id', permanentOnly, checkPermission("coupon-delete"), couponController.destroyDelete);
+
+api.post('/', upload.none(), checkPermission("coupon-create"), couponValidate.createPost, couponController.createPost);
+
+api.patch('/:id', upload.none(), checkPermission("coupon-edit"), couponValidate.createPost, couponController.editPatch);
+
+api.post('/trash', checkPermission("coupon-delete"), couponController.deleteManyPatch);
+
+api.post('/:id/restore', checkPermission("coupon-edit"), couponController.undoPatch);
+
+api.post('/restore', checkPermission("coupon-edit"), couponController.undoManyPatch);
+
+api.delete('/', checkPermission("coupon-delete"), couponController.destroyManyDelete);
+
+api.delete('/:id', checkPermission("coupon-delete"), couponController.deletePatch);

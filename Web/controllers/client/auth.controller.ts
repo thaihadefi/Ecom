@@ -3,6 +3,8 @@ import { COOKIE_OPTS } from '../../configs/cookie.config';
 import { REFRESH_TOKEN_TTL_MS } from "../../helpers/token-rotation.helper";
 import { IAccountUser } from "../../interfaces/models/account-user.interface";
 import * as authService from "../../services/client/auth.service";
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
+import { accessTokenBody } from "../../helpers/access-token.helper";
 
 export const register = async (_req: Request, res: Response) => {
   res.render("client/pages/register", {
@@ -15,7 +17,7 @@ export const registerPost = async (req: Request, res: Response) => {
     const result = await authService.registerUser(req.body);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -35,16 +37,13 @@ export const registerPost = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("registerPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
 export const login = async (req: Request, res: Response) => {
   const oauthError = req.query.oauthError === "email"
-    ? "Your social account did not provide an email address. Please use another account or sign up with email/password."
+    ? "We could not sign you in with that social account. It needs a verified email address and must not be a deactivated account. Please use another account or sign in with email/password."
     : "";
 
   res.render("client/pages/login", {
@@ -60,7 +59,7 @@ export const loginPost = async (req: Request, res: Response) => {
     const result = await authService.loginUser(email, password, rememberPassword);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -83,14 +82,12 @@ export const loginPost = async (req: Request, res: Response) => {
 
     res.json({
       code: "success",
-      message: result.message
+      message: result.message,
+      ...(result.tokenUser ? accessTokenBody(result.tokenUser) : {})
     });
   } catch (error) {
     console.error("loginPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -98,7 +95,7 @@ export const logout = async (req: Request, res: Response) => {
   await authService.logoutUser(req.cookies.refreshToken);
   res.clearCookie("refreshToken", COOKIE_OPTS);
   res.clearCookie("tokenUser", COOKIE_OPTS);
-  res.redirect("/auth/login");
+  res.json({ code: "success", message: "Logged out!" });
 };
 
 export const callbackGoogle = async (req: Request, res: Response) => {
@@ -146,16 +143,13 @@ export const forgotPasswordPost = async (req: Request, res: Response) => {
     const { email } = req.body;
     const result = await authService.requestPasswordReset(email);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("forgotPasswordPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -174,7 +168,7 @@ export const otpPasswordPost = async (req: Request, res: Response) => {
     const result = await authService.verifyOtpAndLogin(email, otp);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -197,14 +191,12 @@ export const otpPasswordPost = async (req: Request, res: Response) => {
 
     res.json({
       code: "success",
-      message: result.message
+      message: result.message,
+      ...(result.tokenUser ? accessTokenBody(result.tokenUser) : {})
     });
   } catch (error) {
     console.error("otpPasswordPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -222,15 +214,18 @@ export const resetPasswordPost = async (req: Request, res: Response) => {
 
     const result = await authService.resetUserPassword(userId, userEmail, password);
 
-    res.json({
+    if (result.success && result.tokenUser && result.refreshToken) {
+      res.cookie("tokenUser", result.tokenUser, { ...COOKIE_OPTS, maxAge: 24 * 60 * 60 * 1000 });
+      res.cookie("refreshToken", result.refreshToken, { ...COOKIE_OPTS, maxAge: REFRESH_TOKEN_TTL_MS });
+    }
+
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
-      message: result.message
+      message: result.message,
+      ...(result.success && result.tokenUser ? accessTokenBody(result.tokenUser) : {})
     });
   } catch (error) {
     console.error("resetPasswordPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

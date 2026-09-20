@@ -11,9 +11,12 @@ const schema = new mongoose.Schema(
       default: ""
     },
     fullName: String,
-    email: String,
+    email: { type: String, lowercase: true, trim: true },
     phone: String,
     password: String,
+    emailVerified: Boolean,
+    passwordChangedAt: Date,
+    orderLock: { type: Number, default: 0 },
     status: {
       type: String,
       enum: ["active", "inactive"],

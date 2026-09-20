@@ -21,14 +21,14 @@ export const getActiveBlocksForTemplate = async () => {
     .sort({ name: "asc" });
 };
 
-export const createTemplate = async (data: ITemplateInput): Promise<{ success: boolean; message: string; template?: ITemplate }> => {
+export const createTemplate = async (data: ITemplateInput): Promise<{ success: boolean; status?: number; message: string; template?: ITemplate }> => {
   const existSlug = await Template.findOne({
     slug: String(data.slug || ""),
     deleted: false
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Template slug already exists!" };
+    return { success: false, status: 409, message: "Template slug already exists!" };
   }
 
   if (typeof data.blocks === "string") {
@@ -58,21 +58,13 @@ export const getTemplateDetailPopulated = async (id: string) => {
   const blockDetails = await Block.find({ _id: { $in: blockIds }, deleted: false }).select("_id name fileName");
   const blockDetailMap = new Map(blockDetails.map((b) => [String(b._id), b]));
 
-  const missingBlockIds: string[] = [];
+  // Blocks that no longer exist stay in the stored list until the template is saved again; opening it must not write.
   for (const block of templateDetail.blocks) {
     const blockDetail = blockDetailMap.get(String(block.blockId));
-    if (!blockDetail) {
-      if (block.blockId) missingBlockIds.push(String(block.blockId));
-    } else {
+    if (blockDetail) {
       block.name = blockDetail.name;
       block.fileName = blockDetail.fileName;
     }
-  }
-  if (missingBlockIds.length > 0) {
-    await Template.updateOne(
-      { _id: id, deleted: false },
-      { $pull: { blocks: { blockId: { $in: missingBlockIds } } } }
-    );
   }
 
   templateDetail.blocks.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
@@ -100,21 +92,13 @@ export const getTemplateDetailForEdit = async (id: string) => {
   ]);
   const blockDetailMap = new Map(blockDetails.map((b) => [String(b._id), b]));
 
-  const missingBlockIds: string[] = [];
+  // Blocks that no longer exist stay in the stored list until the template is saved again; opening it must not write.
   for (const block of templateDetail.blocks) {
     const blockDetail = blockDetailMap.get(String(block.blockId));
-    if (!blockDetail) {
-      if (block.blockId) missingBlockIds.push(String(block.blockId));
-    } else {
+    if (blockDetail) {
       block.name = blockDetail.name;
       block.fileName = blockDetail.fileName;
     }
-  }
-  if (missingBlockIds.length > 0) {
-    await Template.updateOne(
-      { _id: id, deleted: false },
-      { $pull: { blocks: { blockId: { $in: missingBlockIds } } } }
-    );
   }
 
   return {
@@ -123,7 +107,7 @@ export const getTemplateDetailForEdit = async (id: string) => {
   };
 };
 
-export const updateTemplate = async (id: string, data: ITemplateInput): Promise<{ success: boolean; message: string }> => {
+export const updateTemplate = async (id: string, data: ITemplateInput): Promise<{ success: boolean; status?: number; message: string }> => {
   const existSlug = await Template.findOne({
     _id: { $ne: id },
     slug: String(data.slug || ""),
@@ -131,7 +115,7 @@ export const updateTemplate = async (id: string, data: ITemplateInput): Promise<
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Template slug already exists!" };
+    return { success: false, status: 409, message: "Template slug already exists!" };
   }
 
   if (typeof data.blocks === "string") {

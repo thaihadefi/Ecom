@@ -8,9 +8,12 @@ export const getHomeBlocks = async () => {
   return getBlockListByTemplate("/");
 };
 
+const xmlEscape = (value: string): string =>
+  value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+
 export const generateSitemapXml = async (): Promise<string> => {
   const settingGeneral = await getGeneral();
-  const domain = settingGeneral.domainWebsite || "";
+  const domain = xmlEscape(settingGeneral.domainWebsite || "");
 
   const urls: string[] = [];
 
@@ -30,7 +33,7 @@ export const generateSitemapXml = async (): Promise<string> => {
   productList.forEach(item => {
     urls.push(`
       <url>
-        <loc>${domain}/product/detail/${item.slug}</loc>
+        <loc>${domain}/product/detail/${xmlEscape(encodeURIComponent(String(item.slug)))}</loc>
         <lastmod>${item.updatedAt.toISOString()}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
@@ -41,7 +44,7 @@ export const generateSitemapXml = async (): Promise<string> => {
   blogList.forEach(item => {
     urls.push(`
       <url>
-        <loc>${domain}/article/detail/${item.slug}</loc>
+        <loc>${domain}/article/detail/${xmlEscape(encodeURIComponent(String(item.slug)))}</loc>
         <lastmod>${item.updatedAt.toISOString()}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>

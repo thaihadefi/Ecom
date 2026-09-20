@@ -46,7 +46,6 @@ export const recomputeProductRecommendations = async () => {
     ])
   );
 
-  // Clears out recommendations for products that no longer have co-purchase support.
   const staleClearResult = await Product.updateMany(
     {
       cfRecommendations: { $exists: true, $ne: [] },
@@ -80,10 +79,6 @@ export interface ManualRecomputeStatus {
   lastError: string | null;
 }
 
-// Same pattern as anomaly-detection.service's manual retrain: route returns
-// immediately, UI polls getManualRecomputeStatus() instead of holding the
-// connection open (a full order-history scan + Product.bulkWrite can run
-// past a browser/proxy HTTP timeout at real order volumes).
 let manualRecomputeStatus: ManualRecomputeStatus = {
   status: "idle",
   lastRunAt: null,

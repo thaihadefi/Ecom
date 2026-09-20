@@ -3,6 +3,9 @@ import AccountUser from '../../models/account-user.model';
 import UserAddress from '../../models/user-address.model';
 import ChatRoom from '../../models/chat-room.model';
 import Review from '../../models/review.model';
+import ChatMessage from '../../models/chat-message.model';
+import RefreshToken from '../../models/refresh-token.model';
+import { fmDeleteFolder } from '../../helpers/file-manager.client';
 import { softDeleteMany, restoreMany, getTrash } from "../../helpers/admin-crud.helper";
 import { paginatedSearch } from "../../helpers/list-query.helper";
 import { invalidateUserAuthCache } from "../client/auth.service";
@@ -10,6 +13,12 @@ import { invalidateUserDashboardCache } from "../client/dashboard.service";
 import { invalidateProductCaches } from "../../helpers/metadata-cache.helper";
 import { invalidateAdminDashboardCaches } from "./dashboard.service";
 import { invalidateRoomList, invalidateUserRoom, invalidateUnread, invalidateRoomStatus } from "../../helpers/chat-cache.helper";
+
+const removeUserMedia = (userIds: string[]): void => {
+  userIds.forEach((userId) => {
+    ["users", "chats", "reviews"].forEach((area) => fmDeleteFolder(`/media/${area}/${userId}`));
+  });
+};
 
 export const getUserAccountList = async (rawKeyword?: unknown, rawPage?: unknown) => {
   const { recordList, pagination } = await paginatedSearch(AccountUser, rawKeyword, rawPage, { select: "-password -search" });
@@ -66,11 +75,15 @@ export const permanentlyDeleteUserAccount = async (id: string) => {
         UserAddress.deleteMany({ userId }, { session }),
         ChatRoom.deleteMany({ userId }, { session }),
         Review.deleteMany({ userId }, { session }),
+        ChatMessage.deleteMany({ roomId: { $in: rooms.map((room) => room._id.toString()) } }, { session }),
+        RefreshToken.deleteMany({ userId, role: "user" }, { session }),
       ]);
     });
   } finally {
     session.endSession();
   }
+
+  removeUserMedia([userId]);
 
   rooms.forEach((room) => {
     if (room.adminId) invalidateRoomList(room.adminId);
@@ -90,19 +103,25 @@ export const permanentlyDeleteManyUserAccounts = async (ids: string[]) => {
   const userIds = ids.map(String);
   const rooms = await ChatRoom.find({ userId: { $in: userIds } }).select("_id adminId userId");
 
+  let deletedCount = 0;
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      await Promise.all([
+      const [deleted] = await Promise.all([
         AccountUser.deleteMany({ _id: { $in: ids } }, { session }),
         UserAddress.deleteMany({ userId: { $in: userIds } }, { session }),
         ChatRoom.deleteMany({ userId: { $in: userIds } }, { session }),
         Review.deleteMany({ userId: { $in: userIds } }, { session }),
+        ChatMessage.deleteMany({ roomId: { $in: rooms.map((room) => room._id.toString()) } }, { session }),
+        RefreshToken.deleteMany({ userId: { $in: userIds }, role: "user" }, { session }),
       ]);
+      deletedCount = deleted.deletedCount;
     });
   } finally {
     session.endSession();
   }
+
+  removeUserMedia(userIds);
 
   rooms.forEach((room) => {
     if (room.adminId) invalidateRoomList(room.adminId);
@@ -117,7 +136,7 @@ export const permanentlyDeleteManyUserAccounts = async (ids: string[]) => {
   });
   invalidateProductCaches();
   invalidateAdminDashboardCaches();
-  return { success: true, message: `Deleted ${ids.length} user account(s) permanently!` };
+  return { success: true, message: `Deleted ${deletedCount} user account(s) permanently!` };
 };
 
 export const getUserAccountTrash = () => getTrash(AccountUser, "_id fullName email phone status deletedAt");

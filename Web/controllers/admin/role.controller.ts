@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { pathAdmin, permissionList } from '../../configs/variable.config';
 import { logAdminAction } from '../../helpers/log.helper';
 import * as roleService from '../../services/admin/role.service';
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const create = (_req: Request, res: Response) => {
   res.render("admin/pages/role-create", {
@@ -21,10 +22,7 @@ export const createPost = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("createPost role error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -64,7 +62,7 @@ export const editPatch = async (req: Request, res: Response) => {
     const result = await roleService.updateRole(id, req.body);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -79,10 +77,7 @@ export const editPatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("editPatch role error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -98,10 +93,7 @@ export const deletePatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("deletePatch role error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -109,14 +101,14 @@ export const destroyManyDelete = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await roleService.permanentlyDeleteManyRoles(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyManyDelete role error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -131,7 +123,7 @@ export const undoPatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoPatch role error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -141,7 +133,7 @@ export const destroyDelete = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyDelete role error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -149,14 +141,14 @@ export const deleteManyPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await roleService.softDeleteManyRoles(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("deleteManyPatch role error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -164,40 +156,13 @@ export const undoManyPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await roleService.restoreManyRoles(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoManyPatch role error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
-  }
-};
-
-export const changeMultiPatch = async (req: Request, res: Response) => {
-  try {
-    const { value, ids } = req.body;
-    if (!value || !ids || !ids.length) {
-      res.json({ code: "error", message: "Invalid data!" });
-      return;
-    }
-    switch (value) {
-      case "undo": {
-        const result = await roleService.restoreManyRoles(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      case "destroy": {
-        const result = await roleService.permanentlyDeleteManyRoles(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      default:
-        res.json({ code: "error", message: "Invalid action!" });
-    }
-  } catch (error) {
-    console.error("changeMultiPatch role error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

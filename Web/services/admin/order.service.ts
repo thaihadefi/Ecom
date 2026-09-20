@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { OrderStatus, OrderPaymentStatus } from '../../interfaces/models/order.interface';
+import { IOrder, OrderStatus, OrderPaymentStatus } from '../../interfaces/models/order.interface';
 import Order from '../../models/order.model';
 import AccountUser from '../../models/account-user.model';
 import { pointConfig } from '../../configs/variable.config';
@@ -49,47 +49,63 @@ export const getOrderDetailById = async (id: string) => {
   return Order.findOne({ _id: id, deleted: false });
 };
 
+const ORDER_STATUSES = ["pending", "confirmed", "shipping", "completed", "cancelled", "returned"];
+const PAYMENT_STATUSES = ["unpaid", "paid", "refunded"];
+const TERMINAL_STATUSES = ["cancelled", "returned"];
+const FINALIZED_STATUSES = ["completed", "cancelled", "returned"];
+
 export const updateOrderAdmin = async (
   id: string,
   orderStatus: string,
   paymentStatus: string,
   note?: string
 ) => {
-  const order = await Order.findOne({ _id: id, deleted: false });
-
-  if (!order) {
-    return { success: false, message: "Order does not exist!" };
+  if (!ORDER_STATUSES.includes(orderStatus) || !PAYMENT_STATUSES.includes(paymentStatus)) {
+    return { success: false, status: 400, message: "Invalid order or payment status!" };
   }
 
-  const FINALIZED = ["completed", "cancelled", "returned"];
-  if (FINALIZED.includes(order.orderStatus) && orderStatus !== order.orderStatus) {
-    return { success: false, message: "Cannot change the status of a finalized order!" };
-  }
-
-  if (order.paymentStatus === "paid" && paymentStatus === "unpaid") {
-    return { success: false, message: "Cannot change paid order status back to unpaid!" };
-  }
-
-  const TERMINAL = ["cancelled", "returned"];
-  const goingTerminal = TERMINAL.includes(orderStatus) && !TERMINAL.includes(order.orderStatus);
-  const wasUnpaid = order.paymentStatus !== "paid";
-  const statusChanged = order.orderStatus !== orderStatus;
+  const state: { failure?: { status: number; message: string }; goingTerminal: boolean; statusChanged: boolean; order: IOrder | null } = {
+    goingTerminal: false,
+    statusChanged: false,
+    order: null,
+  };
 
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
+      state.failure = undefined;
+      const order = await Order.findOne({ _id: id, deleted: false }).session(session);
+
+      if (!order) {
+        state.failure = { status: 404, message: "Order does not exist!" };
+        return;
+      }
+      if (FINALIZED_STATUSES.includes(order.orderStatus) && orderStatus !== order.orderStatus) {
+        state.failure = { status: 409, message: "Cannot change the status of a finalized order!" };
+        return;
+      }
+      if (order.paymentStatus === "paid" && paymentStatus === "unpaid") {
+        state.failure = { status: 409, message: "Cannot change paid order status back to unpaid!" };
+        return;
+      }
+
+      state.goingTerminal = TERMINAL_STATUSES.includes(orderStatus) && !TERMINAL_STATUSES.includes(order.orderStatus);
+      state.statusChanged = order.orderStatus !== orderStatus;
+      const wasUnpaid = order.paymentStatus !== "paid";
+
       order.orderStatus = orderStatus as OrderStatus;
       order.paymentStatus = paymentStatus as OrderPaymentStatus;
-      order.note = note;
+      if (note !== undefined) order.note = note;
       await order.save({ session });
 
-      if (goingTerminal) {
+      if (state.goingTerminal) {
         await releaseOrderResources(order, session);
         order.pointEarned = 0;
         await order.save({ session });
       }
 
-      if (wasUnpaid && paymentStatus === "paid" && order.userId && (!order.pointEarned || order.pointEarned === 0)) {
+      const earnsPoints = !TERMINAL_STATUSES.includes(orderStatus);
+      if (earnsPoints && wasUnpaid && paymentStatus === "paid" && order.userId && (!order.pointEarned || order.pointEarned === 0)) {
         const productValue = Math.max(0, (order.subTotal || 0) - (order.discount || 0) - (order.pointDiscount || 0));
         const pointEarned = Math.floor(productValue / pointConfig.MONEY_PER_POINT);
         if (pointEarned > 0) {
@@ -102,9 +118,16 @@ export const updateOrderAdmin = async (
           );
         }
       }
+
+      state.order = order;
     });
   } finally {
     session.endSession();
+  }
+
+  const order = state.order;
+  if (state.failure || !order) {
+    return { success: false, status: state.failure?.status ?? 404, message: state.failure?.message || "Order does not exist!" };
   }
 
   if (order.userId) {
@@ -114,11 +137,11 @@ export const updateOrderAdmin = async (
 
   invalidateAdminDashboardCaches();
 
-  if (goingTerminal) {
+  if (state.goingTerminal) {
     invalidateProductCaches();
   }
 
-  if (statusChanged) {
+  if (state.statusChanged) {
     notifyOrderStatusChange(order, orderStatus);
   }
 
@@ -134,7 +157,7 @@ export const softDeleteOrder = async (id: string) => {
   if (activeOrder) {
     return {
       success: false,
-      message: "Cannot delete an active order! Please change its status to Cancelled or Returned first."
+      status: 409, message: "Cannot delete an active order! Please change its status to Cancelled or Returned first."
     };
   }
 
@@ -156,7 +179,7 @@ export const softDeleteManyOrders = async (ids: string[]) => {
   if (activeOrdersCount > 0) {
     return {
       success: false,
-      message: "Cannot delete active orders! Please change their status to Cancelled or Returned first."
+      status: 409, message: "Cannot delete active orders! Please change their status to Cancelled or Returned first."
     };
   }
 
@@ -193,7 +216,7 @@ export const permanentlyDeleteOrder = async (id: string) => {
   if (activeOrder) {
     return {
       success: false,
-      message: "Cannot delete an active order! Please change its status to Cancelled or Returned first."
+      status: 409, message: "Cannot delete an active order! Please change its status to Cancelled or Returned first."
     };
   }
 
@@ -214,7 +237,7 @@ export const permanentlyDeleteManyOrders = async (ids: string[]) => {
   if (activeOrdersCount > 0) {
     return {
       success: false,
-      message: "Cannot delete active orders! Please change their status to Cancelled or Returned first."
+      status: 409, message: "Cannot delete active orders! Please change their status to Cancelled or Returned first."
     };
   }
 
@@ -228,5 +251,5 @@ export const permanentlyDeleteManyOrders = async (ids: string[]) => {
 export const getOrderTrash = () => getTrash(Order, "_id code fullName phone total orderStatus paymentStatus deletedAt");
 
 export const getOrdersBatchForExport = async (skip: number, limit: number) => {
-  return Order.find({ deleted: false }).skip(skip).limit(limit);
+  return Order.find({ deleted: false }).sort({ _id: 1 }).skip(skip).limit(limit);
 };

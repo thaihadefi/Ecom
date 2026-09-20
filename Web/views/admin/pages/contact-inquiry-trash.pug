@@ -8,7 +8,7 @@ block main
         .card-header
           +trash-header(`/${pathAdmin}/contact-inquiry/list`)
         .card-body.pt-0
-          +trash-buttons(`/${pathAdmin}/contact-inquiry/change-multi`)
+          +trash-buttons(`/${pathAdmin}/api/contact-inquiries`)
           .table-responsive
             table.table.table-striped.mb-0
               thead.table-light
@@ -38,6 +38,6 @@ block main
                         small #{formatDateTime(item.deletedAt)}
                       td.text-end
                         +trash-action-buttons(
-                          `/${pathAdmin}/contact-inquiry/undo/${item.id}`,
-                          `/${pathAdmin}/contact-inquiry/destroy/${item.id}`
+                          `/${pathAdmin}/api/contact-inquiries/${item.id}/restore`,
+                          `/${pathAdmin}/api/contact-inquiries/${item.id}?permanent=true`
                         )

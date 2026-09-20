@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as reviewService from '../../services/admin/review.service';
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const list = async (req: Request, res: Response) => {
   const filterTab = (req.query.filter as string) || "all";
@@ -14,13 +15,13 @@ export const list = async (req: Request, res: Response) => {
 export const deletePatch = async (req: Request, res: Response) => {
   try {
     const result = await reviewService.deleteReviewById(req.params.id);
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("review deletePatch error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -31,16 +32,13 @@ export const changeStatusPatch = async (req: Request, res: Response) => {
 
     const result = await reviewService.changeReviewStatus(id, status);
 
-    res.json({
-      code: "success",
+    res.status(resultStatus(result)).json({
+      code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("review changeStatusPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -50,7 +48,7 @@ export const clearReportsPatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("review clearReportsPatch error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -58,7 +56,7 @@ export const destroyManyDelete = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
 
@@ -66,6 +64,6 @@ export const destroyManyDelete = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("review destroyManyDelete error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

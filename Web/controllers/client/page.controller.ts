@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as contactInquiryService from "../../services/admin/contact-inquiry.service";
+import { sendCaughtError } from "../../helpers/http-response.helper";
 
 export const about = (_req: Request, res: Response) => {
   res.render("client/pages/about", { pageTitle: "About Us" });
@@ -32,6 +33,6 @@ export const contactPost = async (req: Request, res: Response) => {
     res.json({ code: "success", message: "Your message has been sent. We'll get back to you soon!" });
   } catch (error) {
     console.error("Error in contactPost:", error);
-    res.json({ code: "error", message: "An error occurred while saving your inquiry. Please try again." });
+    sendCaughtError(res, error, "An error occurred while saving your inquiry. Please try again.", "An error occurred while saving your inquiry. Please try again.");
   }
 };

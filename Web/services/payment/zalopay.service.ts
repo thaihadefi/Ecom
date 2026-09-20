@@ -3,15 +3,24 @@ import moment from 'moment';
 import hmacSHA256 from 'crypto-js/hmac-sha256';
 import Order from '../../models/order.model';
 import { getApiPayment, getGeneral } from '../../configs/setting.config';
-import { addPointAfterPayment } from '../../helpers/point.helper';
-import { invalidateAdminDashboardCaches } from '../admin/dashboard.service';
-import { invalidateUserAuthCache } from '../client/auth.service';
-import { invalidateUserDashboardCache } from '../client/dashboard.service';
+import crypto from 'crypto';
+import { applyGatewayPayment } from './payment-order.helper';
+
+const DEFAULT_CREATE_PATH = "/v2/create";
+
+export const resolveZaloPayEndpoint = (configured?: string): string => {
+  const raw = (configured || "").trim();
+  if (!raw) return `https://sb-openapi.zalopay.vn${DEFAULT_CREATE_PATH}`;
+  const url = new URL(raw);
+  if (url.pathname === "/" || url.pathname === "") url.pathname = DEFAULT_CREATE_PATH;
+  return url.toString();
+};
 
 export const createZaloPayPaymentUrl = async (orderCode: string, phone: string) => {
   const orderDetail = await Order.findOne({
     code: orderCode,
     phone: phone,
+    orderStatus: { $nin: ["cancelled", "returned"] },
     deleted: false
   });
 
@@ -30,7 +39,7 @@ export const createZaloPayPaymentUrl = async (orderCode: string, phone: string) 
     app_id: `${apiPayment.zaloPayAppId}`,
     key1: `${apiPayment.zaloPayKey1}`,
     key2: `${apiPayment.zaloPayKey2}`,
-    endpoint: `${apiPayment.zaloPayDomain || apiPayment.zaloPayEndpoint || "https://sb-openapi.zalopay.vn/v2/create"}`
+    endpoint: resolveZaloPayEndpoint(apiPayment.zaloPayEndpoint || apiPayment.zaloPayDomain)
   };
 
   const embed_data = {
@@ -61,32 +70,38 @@ export const createZaloPayPaymentUrl = async (orderCode: string, phone: string) 
   if (response.data.return_code === 1) {
     return { paymentUrl: response.data.order_url };
   }
+  console.error(`[ZaloPay] create order failed: code ${response.data.return_code}, ${response.data.return_message ?? "no message"} (${response.data.sub_return_message ?? "no detail"})`);
   return { paymentUrl: "/" };
 };
 
-export const handleZaloPayCallback = async (dataStr: string, reqMac: string) => {
-  const apiPayment = await getApiPayment();
-  const config = { key2: `${apiPayment.zaloPayKey2}` };
-  const mac = hmacSHA256(dataStr, config.key2).toString();
+export const handleZaloPayCallback = async (dataStr: unknown, reqMac: unknown) => {
+  if (typeof dataStr !== "string" || typeof reqMac !== "string") {
+    return { return_code: -1, return_message: "invalid request" };
+  }
 
-  if (reqMac !== mac) {
+  const apiPayment = await getApiPayment();
+  const mac = hmacSHA256(dataStr, `${apiPayment.zaloPayKey2}`).toString();
+
+  if (mac.length !== reqMac.length || !crypto.timingSafeEqual(Buffer.from(mac), Buffer.from(reqMac))) {
     return { return_code: -1, return_message: "mac not equal" };
   }
 
-  const dataJson = JSON.parse(dataStr);
-  const [phone, orderCode] = dataJson.app_user.split("-");
-  const order = await Order.findOneAndUpdate(
-    { phone, code: orderCode, paymentStatus: "unpaid", deleted: false },
-    { paymentStatus: "paid" }
-  );
+  let dataJson: { app_user?: string; amount?: number };
+  try {
+    dataJson = JSON.parse(dataStr);
+  } catch {
+    return { return_code: -1, return_message: "invalid data" };
+  }
 
-  if (order) {
-    await addPointAfterPayment(orderCode);
-    invalidateAdminDashboardCaches();
-    if (order.userId) {
-      invalidateUserAuthCache(order.userId);
-      invalidateUserDashboardCache(order.userId);
-    }
+  const [phone, orderCode] = String(dataJson.app_user ?? "").split("-");
+  if (!phone || !orderCode) {
+    return { return_code: -1, return_message: "order not found" };
+  }
+
+  const outcome = await applyGatewayPayment(phone, orderCode, Number(dataJson.amount));
+  if (outcome === "not-found" || outcome === "amount-mismatch") {
+    console.error(`[ZaloPay] callback rejected for order ${orderCode}: ${outcome}`);
+    return { return_code: 2, return_message: outcome };
   }
 
   return { return_code: 1, return_message: "success" };

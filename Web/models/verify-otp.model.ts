@@ -2,14 +2,15 @@ import mongoose from "mongoose";
 import { IVerifyOTP } from "../interfaces/models/verify-otp.interface";
 
 const schema = new mongoose.Schema({
-  email: String,
+  email: { type: String, lowercase: true, trim: true },
   otp: String,
   type: {
     type: String,
     enum: ["otp-password", "otp-register", "otp-email-change"],
   },
   userId: String,
-  newEmail: String,
+  newEmail: { type: String, lowercase: true, trim: true },
+  attempts: { type: Number, default: 0 },
   expireAt: {
     type: Date,
     expires: 0

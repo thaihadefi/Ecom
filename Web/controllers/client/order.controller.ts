@@ -2,13 +2,14 @@ import { Request, Response } from 'express';
 import * as orderService from '../../services/client/order.service';
 import * as zalopayService from '../../services/payment/zalopay.service';
 import * as vnpayService from '../../services/payment/vnpay.service';
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const createPost = async (req: Request, res: Response) => {
   try {
     const result = await orderService.createOrder(req.body, res.locals.accountUser, req.ip);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -25,10 +26,7 @@ export const createPost = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("order createPost error:", error);
-    res.json({
-      code: "error",
-      message: "An error occurred during checkout. Please try again."
-    });
+    sendCaughtError(res, error, "An error occurred during checkout. Please try again.", "An error occurred during checkout. Please try again.");
   }
 };
 
@@ -60,7 +58,7 @@ export const paymentZaloPay = async (req: Request, res: Response) => {
   }
 
   if (result.alreadyPaid) {
-    res.redirect(`/order/success?orderCode=${orderCode}&phone=${phone}`);
+    res.redirect(`/order/success?orderCode=${encodeURIComponent(String(orderCode))}&phone=${encodeURIComponent(String(phone))}`);
     return;
   }
 
@@ -79,8 +77,7 @@ export const paymentZalopayResult = async (req: Request, res: Response) => {
 
 export const paymentVNPay = async (req: Request, res: Response) => {
   const { orderCode, phone } = req.query;
-  const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  const ipAddr = Array.isArray(rawIp) ? rawIp[0] : (typeof rawIp === "string" ? rawIp.split(',')[0].trim() : undefined);
+  const ipAddr = req.ip || req.socket.remoteAddress;
 
   const result = await vnpayService.createVNPayPaymentUrl(String(orderCode), String(phone), ipAddr);
 
@@ -90,11 +87,20 @@ export const paymentVNPay = async (req: Request, res: Response) => {
   }
 
   if (result.alreadyPaid) {
-    res.redirect(`/order/success?orderCode=${orderCode}&phone=${phone}`);
+    res.redirect(`/order/success?orderCode=${encodeURIComponent(String(orderCode))}&phone=${encodeURIComponent(String(phone))}`);
     return;
   }
 
   res.redirect(result.paymentUrl || "/");
+};
+
+export const paymentVNPayIpn = async (req: Request, res: Response) => {
+  try {
+    res.json(await vnpayService.handleVNPayIpn(req.query as Record<string, unknown>));
+  } catch (error) {
+    console.error("paymentVNPayIpn error:", error);
+    res.json({ RspCode: '99', Message: 'Unknown error' });
+  }
 };
 
 export const paymentVNPayResult = async (req: Request, res: Response) => {

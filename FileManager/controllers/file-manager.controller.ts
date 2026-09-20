@@ -22,8 +22,9 @@ export const changeFileNamePatch = async (req: Request, res: Response) => {
   });
 };
 
-export const deleteFilePatch = async (req: Request, res: Response) => {
-  const { folder, fileName } = req.body;
+export const deleteFileDel = async (req: Request, res: Response) => {
+  const folder = req.query.folder as string;
+  const fileName = req.query.fileName as string;
   const result = await fileManagerService.deleteFile(folder, fileName);
 
   res.status(result.status).json({
@@ -72,8 +73,8 @@ export const renameFolderPatch = async (req: Request, res: Response) => {
   });
 };
 
-export const deleteFolderPatch = async (req: Request, res: Response) => {
-  const { folderPath } = req.body;
+export const deleteFolderDel = async (req: Request, res: Response) => {
+  const folderPath = req.query.folderPath as string;
   const result = await fileManagerService.deleteFolder(folderPath);
 
   res.status(result.status).json({

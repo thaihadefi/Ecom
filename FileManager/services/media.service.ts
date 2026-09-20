@@ -14,7 +14,7 @@ export const resolveMediaFilePath = async (
     (seg) => typeof seg === "string" && seg !== "" && seg !== ".." && seg !== "."
   );
 
-  if (cleanSegments.includes("temp")) {
+  if (cleanSegments.some((seg) => seg.toLowerCase() === "temp")) {
     return { status: 403, message: "Access denied." };
   }
 

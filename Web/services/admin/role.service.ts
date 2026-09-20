@@ -29,10 +29,10 @@ export const getRoleById = async (id: string) => {
   return Role.findOne({ _id: id, deleted: false });
 };
 
-export const updateRole = async (id: string, data: IRoleInput): Promise<{ success: boolean; message: string; role?: IRole }> => {
+export const updateRole = async (id: string, data: IRoleInput): Promise<{ success: boolean; status?: number; message: string; role?: IRole }> => {
   const roleDetail = await Role.findOne({ _id: id, deleted: false });
   if (!roleDetail) {
-    return { success: false, message: "Role does not exist!" };
+    return { success: false, status: 404, message: "Role does not exist!" };
   }
 
   if (typeof data.permissions === "string") {

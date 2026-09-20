@@ -1,9 +1,13 @@
-const CACHE_VERSION = 'ecom-v1';
+const CACHE_VERSION = 'ecom-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 
 const STATIC_EXTENSIONS = /\.(css|js|woff2?|ttf|eot|svg|png|jpe?g|webp|gif|ico)$/i;
 const OFFLINE_URL = '/offline.html';
+
+const SOCIAL_LOGIN_PATHS = /^\/auth\/(google|facebook)(\/|$)/;
+
+const PRIVATE_PATHS = /^\/(dashboard|checkout|order|auth|cart|wishlist|chat|compare)(\/|$)/;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -33,10 +37,18 @@ self.addEventListener('fetch', (event) => {
 
   if (
     url.pathname.startsWith('/admin') ||
+    url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/socket.io') ||
+    SOCIAL_LOGIN_PATHS.test(url.pathname) ||
     request.method !== 'GET'
   ) {
     return;
+  }
+
+  if (url.pathname === '/auth/login') {
+    event.waitUntil(
+      caches.delete(PAGES_CACHE).then(() => caches.open(PAGES_CACHE)).then((cache) => cache.add(OFFLINE_URL))
+    );
   }
 
   if (STATIC_EXTENSIONS.test(url.pathname)) {
@@ -59,7 +71,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          if (response.ok) {
+          if (response.ok && !PRIVATE_PATHS.test(url.pathname)) {
             const clone = response.clone();
             caches.open(PAGES_CACHE).then((cache) => cache.put(request, clone));
           }
@@ -70,5 +82,13 @@ self.addEventListener('fetch', (event) => {
         )
     );
     return;
+  }
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data === 'clear-pages') {
+    event.waitUntil(
+      caches.delete(PAGES_CACHE).then(() => caches.open(PAGES_CACHE)).then((cache) => cache.add(OFFLINE_URL))
+    );
   }
 });

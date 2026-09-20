@@ -7,13 +7,14 @@ export const getSettingByKey = async <T = Record<string, unknown>>(key: string):
 };
 
 export const updateSettingByKey = async <T = Record<string, unknown>>(key: string, data: T, adminId?: string): Promise<ISetting<T> | null> => {
+  const changes = Object.fromEntries(
+    Object.entries(data as Record<string, unknown>)
+      .filter(([, value]) => value !== undefined)
+      .map(([field, value]) => [`data.${field}`, value])
+  );
   const result = await Setting.findOneAndUpdate(
     { key },
-    {
-      key,
-      data,
-      updatedBy: adminId
-    },
+    { $set: { ...changes, updatedBy: adminId } },
     { upsert: true, new: true }
   ) as unknown as Promise<ISetting<T> | null>;
   invalidateSettingCache(key);

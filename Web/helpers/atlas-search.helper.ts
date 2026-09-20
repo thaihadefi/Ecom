@@ -64,7 +64,7 @@ export const searchAtlas = async <T>({
       const words = cleanKeyword.split(/\s+/).filter(Boolean);
       fallbackQuery = {
         $and: words.map(word => ({
-          search: new RegExp(word, "i")
+          search: new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")
         }))
       };
     } else {

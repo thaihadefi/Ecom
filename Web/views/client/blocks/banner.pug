@@ -31,7 +31,7 @@ section(class="banner_main")
                       p.banner_eyebrow #{slider.subtitle}
                       h2 #{slider.title}
                       a(
-                        href=slider.button.link
+                        href=safeUrl(slider.button.link)
                         class="common_btn"
                       )
                         | #{slider.button.text}
@@ -45,7 +45,7 @@ section(class="banner_main")
                       p.banner_eyebrow #{slider.subtitle}
                       h2 #{slider.title}
                       a(
-                        href=slider.button.link
+                        href=safeUrl(slider.button.link)
                         class="common_btn"
                       )
                         | #{slider.button.text}
@@ -70,7 +70,7 @@ section(class="banner_main")
                   p.banner_eyebrow #{blockData.sideBanner.subtitle}
                   h3 #{blockData.sideBanner.title}
                   a(
-                    href=blockData.sideBanner.button.link
+                    href=safeUrl(blockData.sideBanner.button.link)
                     class="common_btn"
                   )
                     | #{blockData.sideBanner.button.text}
@@ -84,7 +84,7 @@ section(class="banner_main")
                   p.banner_eyebrow #{blockData.sideBanner.subtitle}
                   h3 #{blockData.sideBanner.title}
                   a(
-                    href=blockData.sideBanner.button.link
+                    href=safeUrl(blockData.sideBanner.button.link)
                     class="common_btn"
                   )
                     | #{blockData.sideBanner.button.text}

@@ -45,7 +45,7 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
         "password.number": "Password must contain at least one number!",
         "password.special": "Password must contain at least one special character!",
       }),
-    status: Joi.string().allow(''),
+    status: Joi.string().valid('initial', 'active', 'inactive', ''),
     avatar: Joi.string().allow(''),
     roles: Joi.string().allow(''),
   });
@@ -55,7 +55,7 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });
@@ -83,7 +83,7 @@ export const editPatch = (req: Request, res: Response, next: NextFunction) => {
         "string.empty": "Please enter your email!",
         "string.email": "Invalid email format!"
       }),
-    status: Joi.string().allow(''),
+    status: Joi.string().valid('initial', 'active', 'inactive', ''),
     avatar: Joi.string().allow(''),
     roles: Joi.string().allow(''),
   });
@@ -93,7 +93,7 @@ export const editPatch = (req: Request, res: Response, next: NextFunction) => {
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });
@@ -138,7 +138,7 @@ export const changePasswordPatch = (req: Request, res: Response, next: NextFunct
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });

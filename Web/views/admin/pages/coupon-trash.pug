@@ -8,7 +8,7 @@ block main
         .card-header
           +trash-header(`/${pathAdmin}/coupon/list`)
         .card-body.pt-0
-          +trash-buttons(`/${pathAdmin}/coupon/change-multi`)
+          +trash-buttons(`/${pathAdmin}/api/coupons`)
           .table-responsive
             table.table.table-striped.mb-0
               thead.table-light
@@ -35,6 +35,6 @@ block main
                         small #{formatDateTime(item.deletedAt)}
                       td.text-end
                         +trash-action-buttons(
-                          `/${pathAdmin}/coupon/undo/${item.id}`,
-                          `/${pathAdmin}/coupon/destroy/${item.id}`
+                          `/${pathAdmin}/api/coupons/${item.id}/restore`,
+                          `/${pathAdmin}/api/coupons/${item.id}?permanent=true`
                         )

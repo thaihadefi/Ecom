@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as wishlistService from '../../services/client/wishlist.service';
+import { sendCaughtError } from "../../helpers/http-response.helper";
 
 export const wishlist = (_req: Request, res: Response) => {
   res.render("client/pages/wishlist", {
@@ -19,9 +20,6 @@ export const list = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("wishlist list error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

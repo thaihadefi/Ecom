@@ -102,14 +102,14 @@ if (chatButton) {
 
   socket.on("connect_error", async (err) => {
     console.error("[Chat] Socket error:", err.message);
-    if (!AUTH_ERRORS.includes(err.message)) return; // transient network error — let Socket.IO retry
+    if (!AUTH_ERRORS.includes(err.message)) return;
 
-    socket.disconnect(); // pointless to keep retrying a rejected handshake
+    socket.disconnect();
 
     if (!sessionRecoveryTried) {
       sessionRecoveryTried = true;
       try {
-        const res = await fetch("/chat/session", { credentials: "same-origin" });
+        const res = await fetch("/api/sessions/current", { credentials: "same-origin" });
         const data = await res.json().catch(() => ({}));
         if (data.ok) { socket.connect(); return; }
       } catch { /* fall through to the notice */ }
@@ -158,8 +158,8 @@ if (chatButton) {
   let adminUnreadCount = 0;
   let isAdminOnline = false;
 
-  let serverClockOffset = 0;   // serverNow - clientNow
-  let adminLastSeenAt   = null; // epoch ms, kept so the label can re-render live
+  let serverClockOffset = 0;
+  let adminLastSeenAt   = null;
   let lastSeenTimer     = null;
 
   const updateMessageStatuses = () => {
@@ -265,7 +265,7 @@ if (chatButton) {
     if (selectedFiles.length > 0) {
       const fd = new FormData();
       selectedFiles.forEach(f => fd.append("files", f));
-      const res  = await fetch("/chat/upload", { method: "POST", body: fd });
+      const res  = await fetch("/api/chat-rooms/current/attachments", { method: "POST", body: fd });
       const data = await res.json();
       if (data.code === "success") fileUrls = data.fileUrls;
     }
@@ -382,7 +382,7 @@ if (chatButton) {
 
   const loadInitialMessages = async () => {
     try {
-      const res  = await fetch("/chat/messages?limit=20");
+      const res  = await fetch("/api/chat-rooms/current/messages?limit=20");
       const data = await res.json();
       if (data.code === "success" && Array.isArray(data.messages)) {
         adminUnreadCount = data.adminUnreadCount ?? 0;
@@ -428,7 +428,7 @@ if (chatButton) {
     const firstId = first?.getAttribute("id");
     if (!firstId) { isLoading = false; return; }
     try {
-      const res  = await fetch(`/chat/messages?lastMessageId=${firstId}&limit=20`);
+      const res  = await fetch(`/api/chat-rooms/current/messages?lastMessageId=${firstId}&limit=20`);
       const data = await res.json();
       if (!data.messages?.length) { hasMore = false; }
       else {
@@ -556,8 +556,8 @@ if (buttonRate) {
   rateSubmit?.addEventListener("click", () => {
     const totalStar = document.querySelectorAll("#rate-stars .star.active").length;
     if (!totalStar) { notyf.error("Please select at least 1 star!"); return; }
-    fetch("/chat/rate", {
-      method: "POST",
+    fetch("/api/chat-rooms/current/rating", {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stars: totalStar, comment: rateContent?.value.trim() })
     })

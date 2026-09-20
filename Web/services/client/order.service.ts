@@ -4,6 +4,7 @@ import Order from '../../models/order.model';
 import Product from '../../models/product.model';
 import { getActiveAttributes } from '../admin/attribute-product.service';
 import Coupon from '../../models/coupon.model';
+import { checkCouponValidity, couponRejectStatus } from './coupon.service';
 import { getInfoAddress } from '../../helpers/location.helper';
 import axios from 'axios';
 import { pointConfig } from '../../configs/variable.config';
@@ -153,13 +154,13 @@ export const createOrder = async (
         if (!variantMatched) {
           return {
             success: false,
-            message: `Invalid variant selected for product: ${productDetail.name}!`
+            status: 400, message: `Invalid variant selected for product: ${productDetail.name}!`
           };
         }
         if ((variantMatched as { status?: boolean }).status === false) {
           return {
             success: false,
-            message: `Selected variant for ${productDetail.name} is currently unavailable!`
+            status: 409, message: `Selected variant for ${productDetail.name} is currently unavailable!`
           };
         }
         const variantStock = typeof (variantMatched as { stock?: number }).stock === "number"
@@ -171,7 +172,7 @@ export const createOrder = async (
         if (variantStock < currentVariantQty) {
           return {
             success: false,
-            message: `Selected variant for ${productDetail.name} does not have enough stock!`
+            status: 409, message: `Selected variant for ${productDetail.name} does not have enough stock!`
           };
         }
         requestedVariantStock.set(variantKey, currentVariantQty);
@@ -186,7 +187,7 @@ export const createOrder = async (
         if (productDetail.variants && productDetail.variants.length > 0) {
           return {
             success: false,
-            message: `Please select product options for: ${productDetail.name}!`
+            status: 400, message: `Please select product options for: ${productDetail.name}!`
           };
         }
         price = productDetail.priceNew || 0;
@@ -197,7 +198,7 @@ export const createOrder = async (
         if (productDetail.stock < currentProductQty) {
           return {
             success: false,
-            message: `Product ${productDetail.name} does not have enough stock!`
+            status: 409, message: `Product ${productDetail.name} does not have enough stock!`
           };
         }
         requestedProductStock.set(String(item.productId), currentProductQty);
@@ -217,10 +218,10 @@ export const createOrder = async (
 
   
   if (dataFinal.items.length === 0) {
-    return { success: false, message: "None of the products in your cart are available anymore." };
+    return { success: false, status: 409, message: "None of the products in your cart are available anymore." };
   }
   if (dataFinal.items.length < itemsInput.length) {
-    return { success: false, message: "Some items are no longer available. Please review your cart and try again." };
+    return { success: false, status: 409, message: "Some items are no longer available. Please review your cart and try again." };
   }
 
   dataFinal.subTotal = dataFinal.items.reduce((total: number, item) => total + (item.price * item.quantity), 0);
@@ -228,24 +229,17 @@ export const createOrder = async (
   dataFinal.discount = 0;
   let couponDetail: ICoupon | null = null;
   if (payload.coupon) {
-    couponDetail = await Coupon.findOne({
-      code: payload.coupon.trim(),
-      deleted: false,
-      status: "active"
-    });
-
-    if (!couponDetail) {
-      return { success: false, message: "Invalid coupon code!" };
+    const couponCheck = await checkCouponValidity(payload.coupon, accountUser?.id);
+    if (!couponCheck.valid || !couponCheck.couponDetail) {
+      return { success: false, status: couponRejectStatus(couponCheck.reason), message: couponCheck.message || "Invalid coupon code!" };
     }
-
-    if (couponDetail.usageLimit && couponDetail.usageLimit > 0 && couponDetail.usedCount >= couponDetail.usageLimit) {
-      return { success: false, message: "Coupon has reached its usage limit!" };
-    }
+    couponDetail = couponCheck.couponDetail;
+    dataFinal.coupon = couponDetail.code;
 
     if (couponDetail.minOrderValue && dataFinal.subTotal < couponDetail.minOrderValue) {
       return {
         success: false,
-        message: `Order must be at least ${couponDetail.minOrderValue.toLocaleString()}đ to use this coupon!`
+        status: 400, message: `Order must be at least ${couponDetail.minOrderValue.toLocaleString()}đ to use this coupon!`
       };
     }
 
@@ -342,12 +336,12 @@ export const createOrder = async (
     });
   } catch (error: unknown) {
     console.error("[Checkout] GoShip request failed:", error instanceof Error ? error.message : error);
-    return { success: false, message: "Unable to calculate the shipping fee. Please recheck your delivery address or try again later." };
+    return { success: false, status: 502, message: "Unable to calculate the shipping fee. Please recheck your delivery address or try again later." };
   }
 
   if (typeof goshipRes.data?.fee !== "number") {
     console.error("[Checkout] GoShip returned an unexpected payload:", goshipRes.data);
-    return { success: false, message: "The shipping service is temporarily unavailable. Please try again later." };
+    return { success: false, status: 502, message: "The shipping service is temporarily unavailable. Please try again later." };
   }
 
   dataFinal.shipping = {
@@ -367,6 +361,14 @@ export const createOrder = async (
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
+      if (accountUser?.id && couponDetail) {
+        await AccountUser.updateOne({ _id: accountUser.id }, { $inc: { orderLock: 1 } }, { session });
+        const recheck = await checkCouponValidity(couponDetail.code as string, accountUser.id, session);
+        if (!recheck.valid) {
+          throw Object.assign(new Error(recheck.message || "Invalid coupon code!"), { code: "coupon_invalid", status: couponRejectStatus(recheck.reason) });
+        }
+      }
+
       const productIds = [...new Set(dataFinal.items.map((i) => i.productId).filter(Boolean))];
       const productList = await Product.find({
         _id: { $in: productIds },
@@ -379,12 +381,12 @@ export const createOrder = async (
         const product = productMap.get(String(item.productId));
 
         if (!product) {
-          throw Object.assign(new Error("One or more items are out of stock!"), { code: "out_of_stock" });
+          throw Object.assign(new Error("One or more items are out of stock!"), { code: "out_of_stock", status: 409 });
         }
 
         if (typeof product.stock === "number") {
           if (product.stock < item.quantity) {
-            throw Object.assign(new Error(`Product ${product.name} is out of stock!`), { code: "out_of_stock" });
+            throw Object.assign(new Error(`Product ${product.name} is out of stock!`), { code: "out_of_stock", status: 409 });
           }
           product.stock = Math.max(0, product.stock - item.quantity);
         }
@@ -392,7 +394,7 @@ export const createOrder = async (
         const rawVariant = item.rawVariant;
         if (product.variants && product.variants.length > 0) {
           if (!rawVariant || rawVariant.length === 0) {
-            throw Object.assign(new Error(`Please select product options for ${product.name}!`), { code: "out_of_stock" });
+            throw Object.assign(new Error(`Please select product options for ${product.name}!`), { code: "out_of_stock", status: 400 });
           }
           const vMatched = product.variants.find((v) =>
             v.attributeValue &&
@@ -404,11 +406,11 @@ export const createOrder = async (
           );
 
           if (!vMatched) {
-            throw Object.assign(new Error(`Selected variant for ${product.name} is no longer available!`), { code: "out_of_stock" });
+            throw Object.assign(new Error(`Selected variant for ${product.name} is no longer available!`), { code: "out_of_stock", status: 409 });
           }
 
           if (vMatched.status === false) {
-            throw Object.assign(new Error(`Selected variant for ${product.name} is currently unavailable!`), { code: "out_of_stock" });
+            throw Object.assign(new Error(`Selected variant for ${product.name} is currently unavailable!`), { code: "out_of_stock", status: 409 });
           }
 
           const variantStock = typeof vMatched.stock === "number"
@@ -416,7 +418,7 @@ export const createOrder = async (
             : (typeof product.stock === "number" ? product.stock : 0);
 
           if (variantStock < item.quantity) {
-            throw Object.assign(new Error(`Selected variant for ${product.name} is out of stock!`), { code: "out_of_stock" });
+            throw Object.assign(new Error(`Selected variant for ${product.name} is out of stock!`), { code: "out_of_stock", status: 409 });
           }
 
           vMatched.stock = Math.max(0, variantStock - item.quantity);
@@ -433,7 +435,7 @@ export const createOrder = async (
         }
         const couponUpdate = await Coupon.updateOne(queryCond, { $inc: { usedCount: 1 } }, { session });
         if (couponUpdate.modifiedCount === 0) {
-          throw Object.assign(new Error("Coupon has reached its usage limit!"), { code: "coupon_limit" });
+          throw Object.assign(new Error("Coupon has reached its usage limit!"), { code: "coupon_limit", status: 409 });
         }
       }
 
@@ -442,22 +444,39 @@ export const createOrder = async (
       savedOrderId = String(newRecord._id);
 
       if (accountUser?.id && dataFinal.usedPoint > 0) {
-        await AccountUser.updateOne(
-          { _id: accountUser.id },
+        const pointUpdate = await AccountUser.updateOne(
+          {
+            _id: accountUser.id,
+            $expr: {
+              $gte: [
+                { $subtract: [{ $ifNull: ["$totalPoint", 0] }, { $ifNull: ["$usedPoint", 0] }] },
+                dataFinal.usedPoint
+              ]
+            }
+          },
           { $inc: { usedPoint: dataFinal.usedPoint } },
           { session }
         );
+        if (pointUpdate.modifiedCount === 0) {
+          throw Object.assign(new Error("Not enough loyalty points!"), { code: "points_insufficient", status: 409 });
+        }
       }
     });
   } catch (error: unknown) {
-    const customErr = error as { code?: string; message?: string };
+    const customErr = error as { code?: string; status?: number; message?: string };
     if (customErr?.code === "out_of_stock") {
-      return { success: false, message: customErr.message || "One or more items are out of stock!" };
+      return { success: false, status: customErr.status ?? 409, message: customErr.message || "One or more items are out of stock!" };
+    } else if (customErr?.code === "coupon_invalid") {
+      return { success: false, status: customErr.status ?? 400, message: customErr.message || "Invalid coupon code!" };
     } else if (customErr?.code === "coupon_limit") {
-      return { success: false, message: "Coupon has reached its usage limit!" };
+      return { success: false, status: 409, message: "Coupon has reached its usage limit!" };
+    } else if (customErr?.code === "points_insufficient") {
+      return { success: false, status: 409, message: "Not enough loyalty points!" };
+    } else if ((error as { code?: number })?.code === 11000) {
+      return { success: false, status: 409, message: "Your order could not be saved this time. Please press Place Order again." };
     } else {
       console.error("Checkout transaction error:", error);
-      return { success: false, message: "An error occurred during checkout. Please try again." };
+      return { success: false, status: 500, message: "An error occurred during checkout. Please try again." };
     }
   } finally {
     session.endSession();
@@ -471,7 +490,6 @@ export const createOrder = async (
   invalidateProductCaches();
 
   if (savedOrderId) {
-    // Advisory-only: never blocks checkout or changes order status.
     scoreOrderForAnomaly(savedOrderId).catch((error) => console.error("Anomaly scoring error:", error));
   }
 

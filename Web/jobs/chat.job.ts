@@ -2,9 +2,7 @@ import cron from "node-cron";
 import mongoose from "mongoose";
 import ChatMessage from "../models/chat-message.model";
 import ChatRoom from "../models/chat-room.model";
-import axios from "axios";
-import { domainCDN } from "../configs/variable.config";
-import FormData from 'form-data';
+import { fmDeleteFolder } from "../helpers/file-manager.client";
 import { invalidateRoomList, invalidateUserRoom, invalidateUnread, invalidateRoomStatus } from "../helpers/chat-cache.helper";
 
 export const autoDeleteChatRoom = () => {
@@ -24,13 +22,7 @@ export const autoDeleteChatRoom = () => {
 
     const rooms = await ChatRoom.find({ _id: { $in: roomIds } }).select("_id userId adminId");
 
-    await Promise.allSettled(rooms.map(room => {
-      const formData = new FormData();
-      formData.append("folderPath", `/media/chats/${room.userId}`);
-      return axios.patch(`${domainCDN}/file-manager/folder/delete`, formData, {
-        headers: { ...formData.getHeaders(), Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}` }
-      });
-    }));
+    rooms.forEach(room => fmDeleteFolder(`/media/chats/${room.userId}`));
 
     const session = await mongoose.startSession();
     try {

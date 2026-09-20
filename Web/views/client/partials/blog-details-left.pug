@@ -23,6 +23,6 @@ div(class="blog_details_left")
       | #{articleDetail.view || 0} Views
 
   div(class="blog_details_desc")
-    | !{articleDetail.description}
+    | !{safeHtml(articleDetail.description)}
   div(class="blog_details_content")
-    | !{articleDetail.content}
+    | !{safeHtml(articleDetail.content)}

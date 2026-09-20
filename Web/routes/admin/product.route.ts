@@ -1,120 +1,92 @@
 import { Router } from "express";
 import * as productController from "../../controllers/admin/product.controller";
-import multer from "multer";
+import { csvUpload, textForm } from "../../helpers/upload.helper";
 import * as productValidate from "../../validates/admin/product.validate";
-import { checkPermission } from "../../middlewares/admin/auth.middleware";
+import { checkAnyPermission, checkPermission } from "../../middlewares/admin/auth.middleware";
 
+import { permanentOnly } from "../../helpers/rest.helper";
 const router = Router();
 
-const upload = multer();
+const upload = textForm;
 
-router.get('/category', productController.category);
-router.get('/category/trash', productController.trashCategory);
-router.get('/category/create', productController.createCategory);
+router.get('/category', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.category);
+router.get('/category/trash', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.trashCategory);
+router.get('/category/create', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.createCategory);
 
-router.post(
-  '/category/create',
-  upload.none(),
-  checkPermission("product-create"),
-  productValidate.createCategoryPost,
-  productController.createCategoryPost
-);
+router.get('/category/edit/:id', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.editCategory);
 
-router.get('/category/edit/:id', productController.editCategory);
+router.get('/attribute', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.attribute);
+router.get('/attribute/create', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.createAttribute);
 
-router.patch(
-  '/category/edit/:id',
-  upload.none(),
-  checkPermission("product-edit"),
-  productValidate.createCategoryPost,
-  productController.editCategoryPatch
-);
+router.get('/attribute/edit/:id', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.editAttribute);
+router.get('/attribute/trash', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.trashAttribute);
 
-router.patch('/category/change-multi', checkPermission("product-edit"), productController.changeMultiCategoryPatch);
-router.patch('/category/delete-many', checkPermission("product-delete"), productController.deleteManyCategory);
-router.patch('/category/delete/:id', checkPermission("product-delete"), productController.deleteCategoryPatch);
-router.patch('/category/undo-many', checkPermission("product-edit"), productController.undoManyCategoryPatch);
-router.patch('/category/undo/:id', checkPermission("product-edit"), productController.undoCategoryPatch);
-router.delete('/category/destroy-many', checkPermission("product-delete"), productController.destroyManyCategoryDelete);
-router.delete('/category/destroy/:id', checkPermission("product-delete"), productController.destroyCategoryDelete);
+router.get('/create', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.create);
 
-router.get('/attribute', productController.attribute);
-router.get('/attribute/create', productController.createAttribute);
+router.get('/list', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.list);
+router.get('/trash', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.trash);
+router.get('/edit/:id', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.edit);
 
-router.post(
-  '/attribute/create',
-  upload.none(),
-  checkPermission("product-create"),
-  productValidate.createAttributePost,
-  productController.createAttributePost
-);
-
-router.get('/attribute/edit/:id', productController.editAttribute);
-
-router.patch(
-  '/attribute/edit/:id',
-  upload.none(),
-  checkPermission("product-edit"),
-  productValidate.createAttributePost,
-  productController.editAttributePatch
-);
-
-router.patch('/attribute/delete/:id', checkPermission("product-delete"), productController.deleteAttributePatch);
-router.get('/attribute/trash', productController.trashAttribute);
-router.patch('/attribute/undo/:id', checkPermission("product-edit"), productController.undoAttributePatch);
-router.delete('/attribute/destroy/:id', checkPermission("product-delete"), productController.destroyAttributeDelete);
-
-router.get('/create', productController.create);
-
-router.post(
-  '/create',
-  upload.none(),
-  checkPermission("product-create"),
-  productValidate.createPost,
-  productController.createPost
-);
-
-router.get('/list', productController.list);
-router.get('/trash', productController.trash);
-router.get('/edit/:id', productController.edit);
-
-router.patch(
-  '/edit/:id',
-  upload.none(),
-  checkPermission("product-edit"),
-  productValidate.createPost,
-  productController.editPatch
-);
-
-router.get('/edit-seo/:id', productController.editSEO);
-
-router.patch(
-  '/edit-seo/:id',
-  upload.none(),
-  checkPermission("product-edit"),
-  productValidate.editSEOPatch,
-  productController.editSEOPatch
-);
-
-router.patch('/delete/:id', checkPermission("product-delete"), productController.deletePatch);
-router.patch('/change-multi', checkPermission("product-edit"), productController.changeMultiPatch);
-router.patch('/delete-many', checkPermission("product-delete"), productController.deleteManyPatch);
-router.patch('/undo/:id', checkPermission("product-edit"), productController.undoPatch);
-router.patch('/undo-many', checkPermission("product-edit"), productController.undoManyPatch);
-router.delete('/destroy/:id', checkPermission("product-delete"), productController.destroyDelete);
-router.delete('/destroy-many', checkPermission("product-delete"), productController.destroyManyDelete);
-
-router.post('/recompute-recommendations', checkPermission("product-edit"), productController.recomputeRecommendationsPost);
-router.get('/recompute-recommendations/status', checkPermission("product-edit"), productController.recomputeRecommendationsStatus);
-
-router.get('/export/csv', productController.exportCSV);
-
-router.post(
-  '/import/csv',
-  upload.single("file"),
-  checkPermission("product-create"),
-  productValidate.importCSVPost,
-  productController.importCSVPost
-);
+router.get('/edit-seo/:id', checkAnyPermission("product-create", "product-edit", "product-delete"), productController.editSEO);
 
 export default router;
+
+export const api = Router();
+
+api.delete('/:id', permanentOnly, checkPermission("product-delete"), productController.destroyDelete);
+
+api.post('/', upload.none(), checkPermission("product-create"), productValidate.createPost, productController.createPost);
+
+api.patch('/:id', upload.none(), checkPermission("product-edit"), productValidate.createPost, productController.editPatch);
+
+api.post('/trash', checkPermission("product-delete"), productController.deleteManyPatch);
+
+api.post('/:id/restore', checkPermission("product-edit"), productController.undoPatch);
+
+api.post('/restore', checkPermission("product-edit"), productController.undoManyPatch);
+
+api.delete('/', checkPermission("product-delete"), productController.destroyManyDelete);
+
+api.delete('/:id', checkPermission("product-delete"), productController.deletePatch);
+
+export const categoryApi = Router();
+
+categoryApi.delete('/:id', permanentOnly, checkPermission("product-delete"), productController.destroyCategoryDelete);
+
+categoryApi.post('/', upload.none(), checkPermission("product-create"), productValidate.createCategoryPost, productController.createCategoryPost);
+
+categoryApi.patch('/:id', upload.none(), checkPermission("product-edit"), productValidate.createCategoryPost, productController.editCategoryPatch);
+
+categoryApi.post('/trash', checkPermission("product-delete"), productController.deleteManyCategory);
+
+categoryApi.post('/restore', checkPermission("product-edit"), productController.undoManyCategoryPatch);
+
+categoryApi.post('/:id/restore', checkPermission("product-edit"), productController.undoCategoryPatch);
+
+categoryApi.delete('/', checkPermission("product-delete"), productController.destroyManyCategoryDelete);
+
+categoryApi.delete('/:id', checkPermission("product-delete"), productController.deleteCategoryPatch);
+
+export const attributeApi = Router();
+
+attributeApi.delete('/:id', permanentOnly, checkPermission("product-delete"), productController.destroyAttributeDelete);
+
+attributeApi.post('/', upload.none(), checkPermission("product-create"), productValidate.createAttributePost, productController.createAttributePost);
+
+attributeApi.patch('/:id', upload.none(), checkPermission("product-edit"), productValidate.createAttributePost, productController.editAttributePatch);
+
+attributeApi.post('/:id/restore', checkPermission("product-edit"), productController.undoAttributePatch);
+
+attributeApi.delete('/:id', checkPermission("product-delete"), productController.deleteAttributePatch);
+
+api.patch('/:id/seo', upload.none(), checkPermission("product-edit"), productValidate.editSEOPatch, productController.editSEOPatch);
+
+api.get('/csv', checkPermission("product-edit"), productController.exportCSV);
+
+api.post('/csv', csvUpload.single("file"), checkPermission("product-create"), productValidate.importCSVPost, productController.importCSVPost);
+
+export const recommendationApi = Router();
+
+recommendationApi.post('/', checkPermission("product-edit"), productController.recomputeRecommendationsPost);
+
+recommendationApi.get('/latest', checkPermission("product-edit"), productController.recomputeRecommendationsStatus);

@@ -10,7 +10,6 @@ export const stdDev = (series: number[]): number => {
   return Math.sqrt(variance);
 };
 
-/** Nearest-rank percentile: series need not be pre-sorted. */
 export const percentile = (series: number[], p: number): number => {
   if (series.length === 0) return 0;
   const sorted = [...series].sort((a, b) => a - b);

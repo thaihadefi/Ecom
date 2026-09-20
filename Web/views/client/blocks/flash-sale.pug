@@ -15,7 +15,7 @@ if blockData && blockProductList && blockProductList.length
             if (blockData.linkViewAll)
               div(class="view_all_btn_area")
                 a(
-                  href=blockData.linkViewAll
+                  href=safeUrl(blockData.linkViewAll)
                   class="view_all_btn"
                   ) #{blockData.viewAll}
       .row(class="mt_25 flash_sell_slider")

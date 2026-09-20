@@ -1,3 +1,4 @@
+import { safeHtml } from '../../helpers/html-sanitize.helper';
 import Product from '../../models/product.model';
 import { getActiveAttributes } from '../admin/attribute-product.service';
 import { IProduct } from '../../interfaces/models/product.interface';
@@ -45,7 +46,7 @@ export const getCompareDetailList = async (compareList: ICompareItemInput[]): Pr
           images: productDetail.images,
           slug: productDetail.slug,
           name: productDetail.name,
-          description: productDetail.description,
+          description: safeHtml(productDetail.description),
           priceNew: productDetail.priceNew,
           priceOld: productDetail.priceOld,
           stock: productDetail.stock,

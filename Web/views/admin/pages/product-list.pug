@@ -15,14 +15,14 @@ block main
                 | Trash
               button.btn.btn-danger.me-1(
                 button-soft-delete-many
-                data-api=`/${pathAdmin}/product/delete-many`
+                data-api=`/${pathAdmin}/api/products/trash`
                 style="display:none"
               )
                 i.fa-solid.fa-trash.me-1
                 | Move to Trash
               button#recompute-recommendations-btn.btn.btn-outline-primary.me-1(
-                data-recompute-api=`/${pathAdmin}/product/recompute-recommendations`
-                data-status-api=`/${pathAdmin}/product/recompute-recommendations/status`
+                data-recompute-api=`/${pathAdmin}/api/recommendation-jobs`
+                data-status-api=`/${pathAdmin}/api/recommendation-jobs/latest`
                 title="Recompute item-based collaborative filtering recommendations from order history"
               )
                 i.fa-solid.fa-wand-magic-sparkles.me-1
@@ -37,13 +37,13 @@ block main
             .col-sm-6
               +form-search()
             .col-sm-3
-              a.btn.w-100.btn-info(href=`/${pathAdmin}/product/export/csv`)
+              a.btn.w-100.btn-info(href=`/${pathAdmin}/api/products/csv`)
                 i.fa-solid.fa-download.me-1
                 | Export Excel
             .col-lg-4
               form.input-group.mb-3(
                 id="formImportExcel"
-                data-api=`/${pathAdmin}/product/import/csv`
+                data-api=`/${pathAdmin}/api/products/csv`
               )
                 input(
                   class="form-control"
@@ -121,8 +121,8 @@ block main
                         a.tbl-action.danger(
                           href="javascript:;"
                           button-api
-                          data-method="PATCH"
-                          data-api=`/${pathAdmin}/product/delete/${item.id}`
+                          data-method="DELETE"
+                          data-api=`/${pathAdmin}/api/products/${item.id}`
                           title="Move to trash"
                           aria-label="Move to trash"
                         )

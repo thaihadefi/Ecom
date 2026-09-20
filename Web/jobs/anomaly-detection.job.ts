@@ -12,7 +12,6 @@ export const autoRetrainAnomalyModel = () => {
   });
 };
 
-// Offset from order.job.ts's own */15 cron (autoCancelUnpaidOrders) so the two don't fire at the exact same instant.
 export const autoBackfillMissedScoring = () => {
   cron.schedule("5,20,35,50 * * * *", async () => {
     try {

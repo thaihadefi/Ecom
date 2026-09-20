@@ -1,9 +1,8 @@
-import { toSearchText } from '../helpers/slugify.helper';
 import passport from "passport";
 import { Strategy as FacebookStrategy } from "passport-facebook";
-import AccountUser from "../models/account-user.model";
 import { getApiLoginSocial } from "./setting.config";
-import { invalidateAdminDashboardCaches } from "../services/admin/dashboard.service";
+import { CookieStateStore } from "./oauth-state.config";
+import { resolveOAuthUser } from "../services/client/oauth.service";
 
 export const configureFacebookPassport = async (passportInstance: typeof passport) => {
   const apiLoginSocial = await getApiLoginSocial();
@@ -18,53 +17,26 @@ export const configureFacebookPassport = async (passportInstance: typeof passpor
       clientSecret: `${facebookAppSecret}`,
       callbackURL: `${facebookCallbackUrl}`,
       profileFields: ["id", "displayName", "emails"],
+      store: new CookieStateStore(),
     },
     async (_accessToken, _refreshToken, profile, done) => {
       try {
-        const email = profile.emails?.[0]?.value;
-        if (!email) {
-          return done(new Error("Facebook account email is not available."), undefined);
-        }
-
-        const existingUser = await AccountUser.findOne({ email });
-        if (existingUser) {
-          if (!existingUser.status) {
-            existingUser.status = "active";
-            await existingUser.save();
-          }
-          return done(null, existingUser);
-        }
-
-  const fullName = profile.displayName;
-        const search = toSearchText(`${fullName} ${email}`)
-
-        const newUser = new AccountUser({
-          facebookId: profile.id,
-          fullName: fullName,
-          email: email,
-          search: search,
-          status: "active"
+        const result = await resolveOAuthUser({
+          provider: "facebook",
+          providerId: profile.id,
+          email: profile.emails?.[0]?.value,
+          emailVerified: true,
+          displayName: profile.displayName,
         });
-        await newUser.save();
-        invalidateAdminDashboardCaches();
 
-        done(null, newUser);
+        if (!result.user) {
+          done(null, false, { message: result.reason });
+          return;
+        }
+        done(null, result.user);
       } catch (error) {
         done(error, undefined);
       }
     }
   ));
-
-  passportInstance.serializeUser((user: { id?: string }, done) => {
-    done(null, user.id);
-  });
-
-  passportInstance.deserializeUser(async (id: string, done) => {
-    try {
-      const user = await AccountUser.findById(id).select("-password");
-      done(null, user);
-    } catch (error) {
-      done(error, null);
-    }
-  });
 };

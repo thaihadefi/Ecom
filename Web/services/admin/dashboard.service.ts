@@ -115,9 +115,13 @@ export const toVNDate = (y: number, m: number, d: number, endOfDay = false) =>
   tzDate(y, m - 1, d, endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0, endOfDay ? 999 : 0);
 
 export const parseCustomRange = (from: string, to: string) => {
+  const isoDate = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+  if (!isoDate.test(String(from)) || !isoDate.test(String(to))) return null;
   const [fy, fm, fd] = from.split('-').map(Number);
   const [ty, tm, td] = to.split('-').map(Number);
   if ([fy, fm, fd, ty, tm, td].some(isNaN)) return null;
+  const maxYear = new Date().getUTCFullYear() + 1;
+  if (fy < 2000 || ty < 2000 || fy > maxYear || ty > maxYear) return null;
 
   const fromDate = toVNDate(fy, fm, fd);
   const toDate = toVNDate(ty, tm, td, true);
@@ -845,7 +849,7 @@ export const getInventoryForecast = async (): Promise<InventoryForecastResult> =
 
   items.sort((a, b) => {
     if (a.needsReorder !== b.needsReorder) return a.needsReorder ? -1 : 1;
-    if (a.daysOfSupply === b.daysOfSupply) return 0; // avoids Infinity - Infinity = NaN
+    if (a.daysOfSupply === b.daysOfSupply) return 0;
     return a.daysOfSupply - b.daysOfSupply;
   });
 

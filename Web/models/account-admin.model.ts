@@ -3,8 +3,9 @@ import mongoose from "mongoose";
 const schema = new mongoose.Schema(
   {
     fullName: String,
-    email: String,
+    email: { type: String, lowercase: true, trim: true },
     password: String,
+    passwordChangedAt: Date,
     roles: [String],
     status: {
       type: String,

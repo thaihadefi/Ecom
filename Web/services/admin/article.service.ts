@@ -7,7 +7,6 @@ import { ICategoryBlog, ICategoryBlogInput } from '../../interfaces/models/categ
 import { IProductSeoInput } from '../../interfaces/models/product.interface';
 import { buildSeoPayload } from '../../helpers/seo.helper';
 import { buildCategoryTree } from '../../helpers/category.helper';
-import { pingGoogleSitemap } from '../../helpers/ping-google.helper';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
 import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
@@ -100,13 +99,13 @@ export const getCategoryBlogTree = async (filter: Record<string, unknown> = {}) 
   return tree;
 };
 
-export const createCategoryBlog = async (data: ICategoryBlogInput): Promise<{ success: boolean; message: string; category?: ICategoryBlog }> => {
+export const createCategoryBlog = async (data: ICategoryBlogInput): Promise<{ success: boolean; status?: number; message: string; category?: ICategoryBlog }> => {
   const existSlug = await CategoryBlog.findOne({
     slug: String(data.slug || "")
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Slug already exists!" };
+    return { success: false, status: 409, message: "Slug already exists!" };
   }
 
   data.search = toSearchText(`${data.name}`);
@@ -121,14 +120,14 @@ export const getCategoryBlogById = async (id: string) => {
   return CategoryBlog.findOne({ _id: id, deleted: false });
 };
 
-export const updateCategoryBlog = async (id: string, data: ICategoryBlogInput): Promise<{ success: boolean; message: string }> => {
+export const updateCategoryBlog = async (id: string, data: ICategoryBlogInput): Promise<{ success: boolean; status?: number; message: string }> => {
   const existSlug = await CategoryBlog.findOne({
     _id: { $ne: id },
     slug: String(data.slug || "")
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Slug already exists!" };
+    return { success: false, status: 409, message: "Slug already exists!" };
   }
 
   data.search = toSearchText(`${data.name}`);
@@ -206,13 +205,13 @@ export const getArticleList = async (rawKeyword?: unknown, rawPage?: unknown) =>
   };
 };
 
-export const createArticle = async (data: IArticleInput, adminId?: string): Promise<{ success: boolean; message: string; article?: IBlog }> => {
+export const createArticle = async (data: IArticleInput, adminId?: string): Promise<{ success: boolean; status?: number; message: string; article?: IBlog }> => {
   const existSlug = await Blog.findOne({
     slug: String(data.slug || "")
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Slug already exists!" };
+    return { success: false, status: 409, message: "Slug already exists!" };
   }
 
   if (typeof data.category === "string") {
@@ -234,8 +233,6 @@ export const createArticle = async (data: IArticleInput, adminId?: string): Prom
   await newRecord.save();
   invalidateArticleCaches(newRecord.slug);
 
-  await pingGoogleSitemap();
-
   return { success: true, message: "Article created successfully!", article: newRecord };
 };
 
@@ -243,10 +240,10 @@ export const getArticleById = async (id: string) => {
   return Blog.findOne({ _id: id, deleted: false });
 };
 
-export const updateArticle = async (id: string, data: IArticleInput, adminId?: string): Promise<{ success: boolean; message: string }> => {
+export const updateArticle = async (id: string, data: IArticleInput, adminId?: string): Promise<{ success: boolean; status?: number; message: string }> => {
   const articleDetail = await Blog.findOne({ _id: id, deleted: false });
   if (!articleDetail) {
-    return { success: false, message: "Article does not exist!" };
+    return { success: false, status: 404, message: "Article does not exist!" };
   }
 
   const existSlug = await Blog.findOne({
@@ -255,7 +252,7 @@ export const updateArticle = async (id: string, data: IArticleInput, adminId?: s
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Slug already exists!" };
+    return { success: false, status: 409, message: "Slug already exists!" };
   }
 
   if (typeof data.category === "string") {
@@ -268,7 +265,7 @@ export const updateArticle = async (id: string, data: IArticleInput, adminId?: s
   }
 
   data.search = toSearchText(`${data.name}`);
-  if (data.status === "published") {
+  if (data.status === "published" && !articleDetail.publishAt) {
     data.publishAt = new Date();
   }
 
@@ -282,10 +279,10 @@ export const updateArticle = async (id: string, data: IArticleInput, adminId?: s
   return { success: true, message: "Article updated successfully!" };
 };
 
-export const updateArticleSEO = async (id: string, body: IProductSeoInput): Promise<{ success: boolean; message: string }> => {
+export const updateArticleSEO = async (id: string, body: IProductSeoInput): Promise<{ success: boolean; status?: number; message: string }> => {
   const articleDetail = await Blog.findOne({ _id: id, deleted: false });
   if (!articleDetail) {
-    return { success: false, message: "Article does not exist!" };
+    return { success: false, status: 404, message: "Article does not exist!" };
   }
 
   const seo = buildSeoPayload(body, {

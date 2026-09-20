@@ -216,7 +216,7 @@ function reEnableSubmitButton() {
 }
 
 function drawRevenueChart(from, to) {
-  fetch('/admin/dashboard/revenue-by-time/data?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to))
+  fetch('/admin/api/statistics/revenue-by-time?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to))
     .then(function(r) { return r.json(); })
     .then(function(json) {
       reEnableSubmitButton();
@@ -286,7 +286,7 @@ if (btnRevenueReset) {
 var _orderCustomChart = null;
 
 function drawOrderChart(from, to) {
-  fetch('/admin/dashboard/order-statistic/data?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to))
+  fetch('/admin/api/statistics/orders?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to))
     .then(function(r) { return r.json(); })
     .then(function(json) {
       reEnableSubmitButton();

@@ -4,8 +4,11 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { ALLOWED_EXTENSIONS } from "../config/allowed-extensions";
 
-const router = Router();
+class UploadRejectedError extends Error {
+  name = "UploadRejectedError";
+}
 
 const mediaRoot = path.resolve(process.cwd(), "media");
 const tempDir = path.resolve(mediaRoot, "temp");
@@ -28,70 +31,77 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024
+    fileSize: 10 * 1024 * 1024,
+    files: 20,
+    fields: 20,
+    parts: 40
   },
   fileFilter: (_req, file, cb) => {
     file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+    if (!ALLOWED_EXTENSIONS.has(path.extname(file.originalname).toLowerCase())) {
+      cb(new UploadRejectedError("This file type is not allowed!"));
+      return;
+    }
     cb(null, true);
   }
 });
 
-router.post(
-  '/upload',
+export const fileApi = Router();
+
+fileApi.post(
+  '/',
   upload.array("files"),
   fileManagerController.upload
 );
 
-router.patch(
-  '/change-file-name',
+fileApi.get(
+  '/',
+  fileManagerController.listFiles
+);
+
+fileApi.patch(
+  '/name',
   upload.none(),
   fileManagerController.changeFileNamePatch
 );
 
-router.patch(
-  '/delete-file',
-  upload.none(),
-  fileManagerController.deleteFilePatch
-);
-
-router.patch(
-  '/move-file',
+fileApi.patch(
+  '/location',
   upload.none(),
   fileManagerController.moveFilePatch
 );
 
-router.post(
-  '/folder/create',
+fileApi.delete(
+  '/',
+  fileManagerController.deleteFileDel
+);
+
+export const folderApi = Router();
+
+folderApi.post(
+  '/',
   upload.none(),
   fileManagerController.createFolderPost
 );
 
-router.get(
-  '/folder/list',
+folderApi.get(
+  '/',
   fileManagerController.listFolder
 );
 
-router.get(
-  '/file/list',
-  fileManagerController.listFiles
-);
-
-router.patch(
-  '/folder/move',
-  upload.none(),
-  fileManagerController.moveFolderPatch
-);
-
-router.patch(
-  '/folder/rename',
+folderApi.patch(
+  '/name',
   upload.none(),
   fileManagerController.renameFolderPatch
 );
 
-router.patch(
-  '/folder/delete',
+folderApi.patch(
+  '/location',
   upload.none(),
-  fileManagerController.deleteFolderPatch
+  fileManagerController.moveFolderPatch
 );
 
-export default router;
+folderApi.delete(
+  '/',
+  fileManagerController.deleteFolderDel
+);

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as dashboardService from '../../services/client/dashboard.service';
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const dashboard = async (_req: Request, res: Response) => {
   const userId = res.locals.accountUser.id;
@@ -35,13 +36,13 @@ export const profileEditPatch = async (req: Request, res: Response) => {
       req.body.phone
     );
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("profileEditPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -53,13 +54,13 @@ export const changeEmailRequestPost = async (req: Request, res: Response) => {
 
     const result = await dashboardService.requestChangeEmail(userId, oldEmail, newEmail);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("changeEmailRequestPost error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -81,13 +82,13 @@ export const changeEmailVerifyPost = async (req: Request, res: Response) => {
       res.clearCookie("refreshToken", cookieOpts);
     }
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("changeEmailVerifyPost error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -116,16 +117,13 @@ export const addressCreatePost = async (req: Request, res: Response) => {
     const id = res.locals.accountUser.id;
     const result = await dashboardService.createUserAddress(id, req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("addressCreatePost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -136,16 +134,13 @@ export const addressChangeDefaultPatch = async (req: Request, res: Response) => 
 
     const result = await dashboardService.setDefaultUserAddress(userId, addressId);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("addressChangeDefaultPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -156,16 +151,13 @@ export const addressDelete = async (req: Request, res: Response) => {
 
     const result = await dashboardService.deleteUserAddress(userId, addressId);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("addressDelete error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -197,16 +189,13 @@ export const addressEditPatch = async (req: Request, res: Response) => {
 
     const result = await dashboardService.updateUserAddress(userId, addressId, req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("addressEditPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -216,7 +205,7 @@ export const profileChangeAvatarPatch = async (req: Request, res: Response) => {
     const file = req.file;
 
     if (!file) {
-      res.json({
+      res.status(400).json({
         code: "error",
         message: "Please select a file!"
       });
@@ -232,17 +221,14 @@ export const profileChangeAvatarPatch = async (req: Request, res: Response) => {
         linkAvatar: result.linkAvatar
       });
     } else {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
     }
   } catch (error) {
     console.error("profileChangeAvatarPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -313,15 +299,12 @@ export const orderReviewPost = async (req: Request, res: Response) => {
       files
     );
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("orderReviewPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

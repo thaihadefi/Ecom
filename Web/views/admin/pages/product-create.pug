@@ -61,7 +61,7 @@ block main
                 button-render-variant="attributes"
               ) Create Variant
               script.
-                const attributeList = !{JSON.stringify(attributeList)};
+                const attributeList = !{safeJson(attributeList)};
           .col-md-12.col-lg-12
             .mb-3
               label.form-label Variants List

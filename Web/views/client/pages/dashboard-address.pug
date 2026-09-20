@@ -46,8 +46,8 @@ block main
                             class="btn btn-primary"
                             href="javascript:;"
                             button-api
-                            data-method="PATCH"
-                            data-api=`/dashboard/address/change-default/${item.id}`
+                            data-method="PUT"
+                            data-api=`/api/customers/me/addresses/${item.id}/default`
                             )
                             | Set Default
                         a(
@@ -60,7 +60,7 @@ block main
                           href="javascript:;"
                           button-api
                           data-method="DELETE"
-                          data-api=`/dashboard/address/delete/${item.id}`
+                          data-api=`/api/customers/me/addresses/${item.id}`
                           data-confirm="Delete this address? This cannot be undone."
                           )
                           | Delete

@@ -9,7 +9,7 @@ section(class="brand_area mt_85")
       .col-xl-6.col-sm-3
         div(class="view_all_btn_area")
           a(
-            href=blockData.linkViewAll
+            href=safeUrl(blockData.linkViewAll)
             class="view_all_btn"
             ) #{blockData.viewAll}
     .row(class="mt_40")
@@ -17,7 +17,7 @@ section(class="brand_area mt_85")
         ul
           each item in blockData.brands
             li.wow.fadeInUp
-              a(href=item.link)
+              a(href=safeUrl(item.link))
                 img.img-fluid(
                   alt=item.name
                   src=getFullUrl(item.image)

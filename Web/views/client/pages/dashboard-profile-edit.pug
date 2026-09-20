@@ -111,7 +111,7 @@ block main
                     if (!newEmail) return;
                     btnSend.disabled = true;
                     btnSend.textContent = 'Sending...';
-                    const res = await fetch('/dashboard/profile/change-email/request', {
+                    const res = await fetch('/api/customers/me/email-changes', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ newEmail })
@@ -130,8 +130,8 @@ block main
                     if (!otp) return;
                     btnVerify.disabled = true;
                     btnVerify.textContent = 'Verifying...';
-                    const res = await fetch('/dashboard/profile/change-email/verify', {
-                      method: 'POST',
+                    const res = await fetch('/api/customers/me/email', {
+                      method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ otp })
                     });

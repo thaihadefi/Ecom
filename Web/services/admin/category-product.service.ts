@@ -44,13 +44,13 @@ export const getCategoryProductTree = async (filter: Record<string, unknown> = {
 };
 
 
-export const createCategoryProduct = async (data: ICategoryProductInput): Promise<{ success: boolean; message: string; category?: ICategoryProduct }> => {
+export const createCategoryProduct = async (data: ICategoryProductInput): Promise<{ success: boolean; status?: number; message: string; category?: ICategoryProduct }> => {
   const existSlug = await CategoryProduct.findOne({
     slug: String(data.slug || "")
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Slug already exists!" };
+    return { success: false, status: 409, message: "Slug already exists!" };
   }
 
   data.search = toSearchText(`${data.name}`);
@@ -65,14 +65,14 @@ export const getCategoryProductById = async (id: string) => {
   return CategoryProduct.findOne({ _id: id, deleted: false });
 };
 
-export const updateCategoryProduct = async (id: string, data: ICategoryProductInput): Promise<{ success: boolean; message: string }> => {
+export const updateCategoryProduct = async (id: string, data: ICategoryProductInput): Promise<{ success: boolean; status?: number; message: string }> => {
   const existSlug = await CategoryProduct.findOne({
     _id: { $ne: id },
     slug: String(data.slug || "")
   }).select("_id");
 
   if (existSlug) {
-    return { success: false, message: "Slug already exists!" };
+    return { success: false, status: 409, message: "Slug already exists!" };
   }
 
   data.search = toSearchText(`${data.name}`);

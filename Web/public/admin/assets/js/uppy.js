@@ -1,4 +1,4 @@
-import { Uppy, Dashboard, XHRUpload } from "https://releases.transloadit.com/uppy/v4.18.2/uppy.min.mjs"
+import { Uppy, Dashboard, XHRUpload } from "/admin/assets/libs/uppy/uppy.min.mjs"
 
 const uppuUpload = document.querySelector("#uppy-upload");
 if(uppuUpload) {
@@ -14,7 +14,7 @@ if(uppuUpload) {
   const folderPath = urlParams.get("folderPath") || "";
 
   uppy.use(XHRUpload, {
-    endpoint: `/${pathAdmin}/file-manager/upload?folderPath=${folderPath}`,
+    endpoint: `/${pathAdmin}/api/files?folderPath=${encodeURIComponent(folderPath)}`,
     fieldName: "files",
     bundle: true
   })

@@ -4,24 +4,27 @@ import AccountUser from "../../models/account-user.model";
 import UserAddress from "../../models/user-address.model";
 import RefreshToken from "../../models/refresh-token.model";
 import VerifyOTP from "../../models/verify-otp.model";
+import { consumeOtp } from "../../helpers/otp.helper";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { generateRandomNumber } from "../../helpers/generate.helper";
 import { sendMail, emailTemplates } from "../../helpers/mail.helper";
-import { issueRefreshToken, rotateRefreshToken, REFRESH_TOKEN_TTL_MS } from "../../helpers/token-rotation.helper";
+import { issueRefreshToken, rotateRefreshToken, signAccessToken, revokeRefreshTokens, isIssuedBeforePasswordChange, REFRESH_TOKEN_TTL_MS } from "../../helpers/token-rotation.helper";
 import { COOKIE_OPTS } from '../../configs/cookie.config';
 import { IRegisterUserInput } from "../../interfaces/models/account-user.interface";
 import { metadataCache } from "../../helpers/metadata-cache.helper";
 import { invalidateAdminDashboardCaches } from "../admin/dashboard.service";
 
-export const registerUser = async (userData: IRegisterUserInput): Promise<{ success: boolean; message: string; tokenUser?: string; user?: typeof AccountUser.prototype }> => {
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(generateRandomNumber(12), 10);
+
+export const registerUser = async (userData: IRegisterUserInput): Promise<{ success: boolean; status?: number; message: string; tokenUser?: string; user?: typeof AccountUser.prototype }> => {
   const existEmail = await AccountUser.findOne({
     email: String(userData.email || ""),
     deleted: false
   }).select("_id");
 
   if (existEmail) {
-    return { success: false, message: "Email is already in use!" };
+    return { success: false, status: 409, message: "Email is already in use!" };
   }
 
   const existPhone = await AccountUser.findOne({
@@ -30,7 +33,7 @@ export const registerUser = async (userData: IRegisterUserInput): Promise<{ succ
   }).select("_id");
 
   if (existPhone) {
-    return { success: false, message: "Phone number is already in use!" };
+    return { success: false, status: 409, message: "Phone number is already in use!" };
   }
 
   const hashedPassword = await bcrypt.hash(String(userData.password), 10);
@@ -62,17 +65,13 @@ export const loginUser = async (email: string, password: string, rememberPasswor
     deleted: false
   }).select("_id email password status");
 
-  if (!existAccount) {
-    return { success: false, message: "Account does not exist!" };
-  }
-
-  const checkPassword = await bcrypt.compare(password, `${existAccount.password}`);
-  if (!checkPassword) {
-    return { success: false, message: "Incorrect password!" };
+  const checkPassword = await bcrypt.compare(password, existAccount ? `${existAccount.password}` : DUMMY_PASSWORD_HASH);
+  if (!existAccount || !checkPassword) {
+    return { success: false, status: 401, message: "Invalid email or password!" };
   }
 
   if (existAccount.status !== "active") {
-    return { success: false, message: "Account is inactive!" };
+    return { success: false, status: 403, message: "Account is inactive!" };
   }
 
   const tokenUser = jwt.sign(
@@ -125,9 +124,13 @@ export const requestPasswordReset = async (email: string) => {
     status: "active"
   }).select("_id");
 
+  const RESET_REQUESTED_MESSAGE = "If this email is registered, we have sent an OTP code. Please check your inbox!";
+
   if (!existAccount) {
-    return { success: false, message: "Email does not exist!" };
+    return { success: true, message: RESET_REQUESTED_MESSAGE };
   }
+
+  await VerifyOTP.deleteMany({ email, type: "otp-password", expireAt: { $lte: new Date() } });
 
   const existVerifyOTP = await VerifyOTP.findOne({
     email: email,
@@ -135,7 +138,7 @@ export const requestPasswordReset = async (email: string) => {
   }).select("_id");
 
   if (existVerifyOTP) {
-    return { success: false, message: "Please retry your request after 5 minutes!" };
+    return { success: true, message: RESET_REQUESTED_MESSAGE };
   }
 
   const otp = generateRandomNumber(6);
@@ -153,10 +156,10 @@ export const requestPasswordReset = async (email: string) => {
   } catch (mailErr) {
     console.error("[forgotPassword] sendMail failed, rolling back OTP:", mailErr);
     await VerifyOTP.deleteOne({ email, type: "otp-password" });
-    return { success: false, message: "Failed to send OTP email. Please try again." };
+    return { success: false, status: 502, message: "Failed to send OTP email. Please try again." };
   }
 
-  return { success: true, message: "We have sent the OTP code via email. Please check your inbox!" };
+  return { success: true, message: RESET_REQUESTED_MESSAGE };
 };
 
 export const verifyOtpAndLogin = async (email: string, otp: string) => {
@@ -167,19 +170,16 @@ export const verifyOtpAndLogin = async (email: string, otp: string) => {
   }).select("_id email");
 
   if (!existAccount) {
-    return { success: false, message: "Email does not exist!" };
+    return { success: false, status: 400, message: "Invalid or expired OTP code!" };
   }
 
-  const verifyRecord = await VerifyOTP.findOneAndDelete({
-    email: email,
-    otp: `${otp}`,
-    type: "otp-password",
-    expireAt: { $gt: new Date() }
-  });
+  const verifyRecord = await consumeOtp({ email, type: "otp-password" }, otp);
 
   if (!verifyRecord) {
-    return { success: false, message: "Invalid or expired OTP code!" };
+    return { success: false, status: 400, message: "Invalid or expired OTP code!" };
   }
+
+  await AccountUser.updateOne({ _id: existAccount._id }, { $set: { emailVerified: true } });
 
   const tokenUser = jwt.sign(
     { id: existAccount.id, email: existAccount.email },
@@ -197,13 +197,17 @@ export const verifyOtpAndLogin = async (email: string, otp: string) => {
   };
 };
 
-export const resetUserPassword = async (userId: string, userEmail?: string, newPassword?: string) => {
+export const resetUserPassword = async (userId?: string, userEmail?: string, newPassword?: string) => {
+  if (!userId) {
+    return { success: false, status: 401, message: "Please log in!" };
+  }
   if (!newPassword) {
-    return { success: false, message: "Password is required!" };
+    return { success: false, status: 400, message: "Password is required!" };
   }
 
   const hashPassword = await bcrypt.hash(newPassword, 10);
-  await AccountUser.updateOne({ _id: userId }, { password: hashPassword });
+  await AccountUser.updateOne({ _id: userId }, { password: hashPassword, passwordChangedAt: new Date() });
+  await revokeRefreshTokens(userId, "user");
   invalidateUserAuthCache(userId);
 
   if (userEmail) {
@@ -215,7 +219,10 @@ export const resetUserPassword = async (userId: string, userEmail?: string, newP
       });
   }
 
-  return { success: true, message: "Password changed successfully!" };
+  const tokenUser = signAccessToken({ id: userId, email: userEmail });
+  const refreshToken = await issueRefreshToken(userId, "user");
+
+  return { success: true, message: "Password changed successfully!", tokenUser, refreshToken };
 };
 
 export const invalidateUserAuthCache = (userId?: string) => {
@@ -228,7 +235,7 @@ export const invalidateUserAuthCache = (userId?: string) => {
   }
 };
 
-export const getUserAccountForAuth = async (userId: string, email: string) => {
+export const getUserAccountForAuth = async (userId: string, email: string, issuedAt?: number) => {
   const cacheKey = `auth:user:${userId}`;
   const cached = metadataCache.get<{
     id: string;
@@ -239,19 +246,25 @@ export const getUserAccountForAuth = async (userId: string, email: string) => {
     addressList: unknown[];
     totalPoint: number;
     usedPoint: number;
+    passwordChangedAt?: Date;
   }>(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    if (cached.email !== email || isIssuedBeforePasswordChange(issuedAt, cached.passwordChangedAt)) return null;
+    return cached;
+  }
 
   const existAccount = await AccountUser.findOne({
     _id: userId,
     email,
     deleted: false,
     status: "active"
-  }).select("_id fullName email phone avatar totalPoint usedPoint status");
+  }).select("_id fullName email phone avatar totalPoint usedPoint status passwordChangedAt");
 
   if (!existAccount) return null;
 
-  const addressList = await UserAddress.find({ userId: existAccount.id }).select("_id name phone address province district ward type").sort({ createdAt: "desc" });
+  if (isIssuedBeforePasswordChange(issuedAt, existAccount.passwordChangedAt)) return null;
+
+  const addressList = await UserAddress.find({ userId: existAccount.id }).select("_id fullName phone address longitude latitude isDefault").sort({ createdAt: "desc" });
 
   const result = {
     id: existAccount.id,
@@ -261,7 +274,8 @@ export const getUserAccountForAuth = async (userId: string, email: string) => {
     avatar: existAccount.avatar,
     addressList,
     totalPoint: existAccount.totalPoint || 0,
-    usedPoint: existAccount.usedPoint || 0
+    usedPoint: existAccount.usedPoint || 0,
+    passwordChangedAt: existAccount.passwordChangedAt
   };
 
   metadataCache.set(cacheKey, result, 60);

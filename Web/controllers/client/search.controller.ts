@@ -3,7 +3,7 @@ import * as searchService from '../../services/client/search.service';
 
 export const search = async (req: Request, res: Response) => {
   try {
-    const keyword = `${req.query.keyword || ""}`;
+    const keyword = `${req.query.keyword || ""}`.slice(0, 100);
     const page = req.query.page;
 
     const data = await searchService.searchProductsAndArticles(keyword, page);

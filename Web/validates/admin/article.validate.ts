@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import Joi from "joi";
+import { slugField } from "./common.validate";
 
 export const createCategoryPost = (req: Request, res: Response, next: NextFunction) => {
   const schema = Joi.object({
@@ -8,13 +9,9 @@ export const createCategoryPost = (req: Request, res: Response, next: NextFuncti
       .messages({
         "string.empty": "Please enter category name!"
       }),
-    slug: Joi.string()
-      .required()
-      .messages({
-        "string.empty": "Please enter slug!"
-      }),
+    slug: slugField(),
     parent: Joi.string().allow(''),
-    status: Joi.string().allow(''),
+    status: Joi.string().valid('active', 'inactive', ''),
     avatar: Joi.string().allow(''),
     description: Joi.string().allow(''),
   })
@@ -24,7 +21,7 @@ export const createCategoryPost = (req: Request, res: Response, next: NextFuncti
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     })
@@ -41,13 +38,9 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
       .messages({
         "string.empty": "Please enter article title!"
       }),
-    slug: Joi.string()
-      .required()
-      .messages({
-        "string.empty": "Please enter slug!"
-      }),
+    slug: slugField(),
     category: Joi.string().allow(''),
-    status: Joi.string().allow(''),
+    status: Joi.string().valid('draft', 'published', 'archived', ''),
     avatar: Joi.string().allow(''),
     description: Joi.string().allow(''),
     content: Joi.string().allow(''),
@@ -58,7 +51,7 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });

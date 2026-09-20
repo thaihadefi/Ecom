@@ -30,7 +30,7 @@ export const profileEditPatch = (req: Request, res: Response, next: NextFunction
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });
@@ -53,7 +53,7 @@ export const changeEmailRequest = (req: Request, res: Response, next: NextFuncti
   });
   const { error } = schema.validate(req.body);
   if (error) {
-    res.json({ code: "error", message: error.details[0].message });
+    res.status(400).json({ code: "error", message: error.details[0].message });
     return;
   }
   next();
@@ -69,7 +69,7 @@ export const changeEmailVerify = (req: Request, res: Response, next: NextFunctio
   });
   const { error } = schema.validate(req.body);
   if (error) {
-    res.json({ code: "error", message: error.details[0].message });
+    res.status(400).json({ code: "error", message: error.details[0].message });
     return;
   }
   next();
@@ -128,7 +128,7 @@ export const addressCreatePost = (req: Request, res: Response, next: NextFunctio
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });
@@ -163,7 +163,7 @@ export const orderReviewPost = (req: Request, res: Response, next: NextFunction)
 
   const { error } = schema.validate(req.body);
   if (error) {
-    res.json({ code: "error", message: error.details[0].message });
+    res.status(400).json({ code: "error", message: error.details[0].message });
     return;
   }
   next();

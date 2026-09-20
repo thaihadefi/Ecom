@@ -4,14 +4,12 @@ import { shuffleArray } from "./generate.helper";
 
 const EULER_MASCHERONI = 0.5772156649;
 
-// Average path length of an unsuccessful BST search of n nodes - used both to close out a subtree and to normalize the score.
 export const averagePathLength = (n: number): number => {
   if (n <= 1) return 0;
   if (n === 2) return 1;
   return 2 * (Math.log(n - 1) + EULER_MASCHERONI) - (2 * (n - 1)) / n;
 };
 
-// Index-based sampling avoids shuffling the whole dataset per tree.
 const sampleWithoutReplacement = <T>(items: T[], size: number): T[] => {
   if (size >= items.length) return [...items];
   const chosen = new Set<number>();
@@ -55,7 +53,6 @@ class IsolationTree {
       this.right = new IsolationTree(right, currentHeight + 1, heightLimit);
       return;
     }
-    // No feature had variance left in this subset -> stays an external node.
   }
 
   isExternal(): boolean {

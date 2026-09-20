@@ -6,11 +6,6 @@ import { escapeRegex } from '../../helpers/generate.helper';
 import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
 
 export const getContactInquiryList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  await ContactInquiry.updateMany(
-    { deleted: { $exists: false } },
-    { $set: { deleted: false } }
-  );
-
   const find: Record<string, unknown> = {
     deleted: { $ne: true }
   };

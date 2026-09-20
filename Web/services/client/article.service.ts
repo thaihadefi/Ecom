@@ -114,13 +114,15 @@ export const getArticleDetail = async (slug: string) => {
   const cached = metadataCache.get<IBlog>(detailCacheKey);
   if (cached) return cached;
 
-  const articleDetail = await Blog.findOne({
+  const articleDoc = await Blog.findOne({
     slug: slug,
     deleted: false,
     status: "published"
   });
 
-  if (!articleDetail) return null;
+  if (!articleDoc) return null;
+
+  const articleDetail = articleDoc.toObject({ virtuals: true }) as unknown as IBlog;
 
   if (articleDetail.updatedBy) {
     const accountInfo = await AccountAdmin.findOne({ _id: articleDetail.updatedBy }).select("_id fullName");
@@ -140,6 +142,16 @@ export const getArticleDetail = async (slug: string) => {
   return articleDetail;
 };
 
+
+export const getArticleIdBySlug = async (slug: string): Promise<string | null> => {
+  const article = await Blog.findOne({ slug, deleted: false, status: "published" }).select("_id");
+  return article ? String(article._id) : null;
+};
+
+export const getCategoryIdBySlug = async (slug: string): Promise<string | null> => {
+  const category = await CategoryBlog.findOne({ slug, deleted: false, status: "active" }).select("_id");
+  return category ? String(category._id) : null;
+};
 
 export const incrementCategoryView = async (categoryId: string) => {
   await CategoryBlog.updateOne(

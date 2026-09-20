@@ -6,7 +6,7 @@ section.category(class="category_area mt_55")
           .col-2.wow.fadeInUp
             a(
               class=`category_item ${item.color || ""}`
-              href=item.link
+              href=safeUrl(item.link)
               )
               .img
                 img(

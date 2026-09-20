@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import Role from '../../models/role.model';
 import AccountAdmin from '../../models/account-admin.model';
 import { IAccountAdmin, IAccountAdminInput } from '../../interfaces/models/account-admin.interface';
@@ -8,6 +9,22 @@ import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
 import { restoreMany, getTrash } from "../../helpers/admin-crud.helper";
 import { invalidateAdminAuthCache } from "./auth.service";
+import { revokeRefreshTokens } from "../../helpers/token-rotation.helper";
+
+export const parseRoleIds = (raw: unknown): string[] | null => {
+  let list: unknown = raw;
+  if (typeof raw === "string") {
+    if (raw.trim() === "") return [];
+    try {
+      list = JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  if (list === undefined || list === null) return [];
+  if (!Array.isArray(list) || !list.every((id) => typeof id === "string" && mongoose.isValidObjectId(id))) return null;
+  return [...new Set(list as string[])];
+};
 
 export const canActorGrantRoles = async (
   actorIsSuperAdmin: boolean,
@@ -30,23 +47,25 @@ export const createAdminAccount = async (
   data: IAccountAdminInput,
   actorIsSuperAdmin: boolean,
   actorPermissions: string[]
-): Promise<{ success: boolean; message: string; account?: IAccountAdmin }> => {
+): Promise<{ success: boolean; status?: number; message: string; account?: IAccountAdmin }> => {
   const existAccount = await AccountAdmin.findOne({
     email: String(data.email || ""),
     deleted: false
   }).select("_id");
 
   if (existAccount) {
-    return { success: false, message: "Email already exists!" };
+    return { success: false, status: 409, message: "Email already exists!" };
   }
 
-  if (typeof data.roles === "string") {
-    data.roles = [data.roles];
+  const roleIds = parseRoleIds(data.roles);
+  if (!roleIds) {
+    return { success: false, status: 400, message: "Invalid role selection!" };
   }
+  data.roles = roleIds;
 
-  const canGrant = await canActorGrantRoles(actorIsSuperAdmin, actorPermissions, (data.roles as string[]) || []);
+  const canGrant = await canActorGrantRoles(actorIsSuperAdmin, actorPermissions, roleIds);
   if (!canGrant) {
-    return { success: false, message: "You cannot assign a role with permissions you do not hold." };
+    return { success: false, status: 403, message: "You cannot assign a role with permissions you do not hold." };
   }
 
   if (data.password) {
@@ -111,19 +130,19 @@ export const updateAdminAccount = async (
   actorId: string,
   actorIsSuperAdmin: boolean,
   actorPermissions: string[]
-): Promise<{ success: boolean; message: string }> => {
+): Promise<{ success: boolean; status?: number; message: string }> => {
   const accountDetail = await AccountAdmin.findOne({ _id: id, deleted: false });
 
   if (!accountDetail) {
-    return { success: false, message: "Account does not exist!" };
+    return { success: false, status: 404, message: "Account does not exist!" };
   }
 
   if (accountDetail.isSuperAdmin && actorId !== id) {
-    return { success: false, message: "Cannot modify a superadmin account." };
+    return { success: false, status: 403, message: "Cannot modify a superadmin account." };
   }
 
   if (actorId === id && data.status && data.status !== "active") {
-    return { success: false, message: "Cannot deactivate your own account." };
+    return { success: false, status: 403, message: "Cannot deactivate your own account." };
   }
 
   const existEmail = await AccountAdmin.findOne({
@@ -133,16 +152,18 @@ export const updateAdminAccount = async (
   }).select("_id");
 
   if (existEmail) {
-    return { success: false, message: "Email already in use by another account!" };
+    return { success: false, status: 409, message: "Email already in use by another account!" };
   }
 
-  if (typeof data.roles === "string") {
-    data.roles = JSON.parse(data.roles);
+  const roleIds = parseRoleIds(data.roles);
+  if (!roleIds) {
+    return { success: false, status: 400, message: "Invalid role selection!" };
   }
+  data.roles = roleIds;
 
-  const canGrant = await canActorGrantRoles(actorIsSuperAdmin, actorPermissions, (data.roles as string[]) || []);
+  const canGrant = await canActorGrantRoles(actorIsSuperAdmin, actorPermissions, roleIds);
   if (!canGrant) {
-    return { success: false, message: "You cannot assign a role with permissions you do not hold." };
+    return { success: false, status: 403, message: "You cannot assign a role with permissions you do not hold." };
   }
 
   data.search = toSearchText(`${data.fullName} ${data.email}`);
@@ -160,15 +181,16 @@ export const changeAdminPassword = async (
   const accountDetail = await AccountAdmin.findOne({ _id: id, deleted: false });
 
   if (!accountDetail) {
-    return { success: false, message: "Account does not exist!" };
+    return { success: false, status: 404, message: "Account does not exist!" };
   }
 
   if (accountDetail.isSuperAdmin && actorId !== id) {
-    return { success: false, message: "Cannot change password of a superadmin account." };
+    return { success: false, status: 403, message: "Cannot change password of a superadmin account." };
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
-  await AccountAdmin.updateOne({ _id: id, deleted: false }, { password: hashedPassword });
+  await AccountAdmin.updateOne({ _id: id, deleted: false }, { password: hashedPassword, passwordChangedAt: new Date() });
+  await revokeRefreshTokens(id, "admin");
   invalidateAdminAuthCache(id);
 
   return { success: true, message: "Password changed successfully!" };
@@ -177,7 +199,7 @@ export const changeAdminPassword = async (
 export const softDeleteAdminAccount = async (id: string) => {
   const target = await AccountAdmin.findOne({ _id: id, deleted: false }).select("isSuperAdmin");
   if (target?.isSuperAdmin) {
-    return { success: false, message: "Cannot delete a superadmin account." };
+    return { success: false, status: 403, message: "Cannot delete a superadmin account." };
   }
 
   await AccountAdmin.updateOne({ _id: id }, { deleted: true, deletedAt: Date.now() });
@@ -186,9 +208,9 @@ export const softDeleteAdminAccount = async (id: string) => {
 };
 
 export const softDeleteManyAdminAccounts = async (ids: string[]) => {
-  await AccountAdmin.updateMany({ _id: { $in: ids }, isSuperAdmin: false }, { deleted: true, deletedAt: new Date() });
+  const result = await AccountAdmin.updateMany({ _id: { $in: ids }, isSuperAdmin: false }, { deleted: true, deletedAt: new Date() });
   invalidateAdminAuthCache();
-  return { success: true, message: `Moved ${ids.length} account(s) to trash!` };
+  return { success: true, message: `Moved ${result.modifiedCount} account(s) to trash!` };
 };
 
 export const restoreAdminAccount = async (id: string) => {
@@ -209,9 +231,9 @@ export const permanentlyDeleteAdminAccount = async (id: string) => {
 };
 
 export const permanentlyDeleteManyAdminAccounts = async (ids: string[]) => {
-  await AccountAdmin.deleteMany({ _id: { $in: ids }, isSuperAdmin: false });
+  const result = await AccountAdmin.deleteMany({ _id: { $in: ids }, isSuperAdmin: false });
   invalidateAdminAuthCache();
-  return { success: true, message: `Deleted ${ids.length} admin account(s) permanently!` };
+  return { success: true, message: `Deleted ${result.deletedCount} admin account(s) permanently!` };
 };
 
 export const getAdminAccountTrash = () => getTrash(AccountAdmin, "_id fullName email status deletedAt");

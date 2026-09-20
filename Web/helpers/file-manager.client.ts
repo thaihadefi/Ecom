@@ -2,9 +2,11 @@ import FormData from "form-data";
 import axios from "axios";
 import { domainCDN } from "../configs/variable.config";
 
+const bearerHeader = () => ({ Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}` });
+
 const authHeaders = (form: FormData) => ({
   ...form.getHeaders(),
-  Authorization: `Bearer ${process.env.FILE_MANAGER_SECRET}`,
+  ...bearerHeader(),
 });
 
 type SavedLink = { folder: string; filename: string };
@@ -12,26 +14,23 @@ type SavedLink = { folder: string; filename: string };
 export const fmUpload = async (
   files: Express.Multer.File[],
   folderPath: string,
-): Promise<{ success: boolean; fileUrls: string[] }> => {
+): Promise<{ success: boolean; fileUrls: string[]; status?: number; message?: string }> => {
   const form = new FormData();
   files.forEach((file) => {
     form.append("files", file.buffer, { filename: file.originalname, contentType: file.mimetype });
   });
   form.append("folderPath", folderPath);
 
-  const res = await axios.post(`${domainCDN}/file-manager/upload`, form, { headers: authHeaders(form) });
-  if (res.data.code === "error") return { success: false, fileUrls: [] };
+  const res = await axios.post(`${domainCDN}/files`, form, { headers: authHeaders(form), validateStatus: () => true });
+  if (res.status >= 400 || res.data.code === "error") return { success: false, fileUrls: [], status: res.status, message: res.data?.message };
 
   const saveLinks: SavedLink[] = res.data.saveLinks || [];
   return { success: true, fileUrls: saveLinks.map((l) => `${l.folder}/${l.filename}`) };
 };
 
 export const fmDeleteFile = (folder: string, fileName: string): void => {
-  const form = new FormData();
-  form.append("folder", folder);
-  form.append("fileName", fileName);
   axios
-    .patch(`${domainCDN}/file-manager/delete-file`, form, { headers: authHeaders(form) })
+    .delete(`${domainCDN}/files`, { params: { folder, fileName }, headers: bearerHeader() })
     .catch((err: unknown) => {
       const msg = err instanceof Error ? err.message : "unknown error";
       console.error(`[FileManager] orphan file, delete failed: ${folder}/${fileName} (${msg})`);
@@ -44,10 +43,8 @@ export const fmDeleteByLink = (link: string): void => {
 };
 
 export const fmDeleteFolder = (folderPath: string): void => {
-  const form = new FormData();
-  form.append("folderPath", folderPath);
   axios
-    .patch(`${domainCDN}/file-manager/folder/delete`, form, { headers: authHeaders(form) })
+    .delete(`${domainCDN}/folders`, { params: { folderPath }, headers: bearerHeader() })
     .catch((err: unknown) => {
       const msg = err instanceof Error ? err.message : "unknown error";
       console.error(`[FileManager] orphan folder, delete failed: ${folderPath} (${msg})`);

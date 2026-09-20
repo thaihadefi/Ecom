@@ -53,7 +53,7 @@ const handleAdminConnect = async (io: Server, socket: import("socket.io").Socket
   listAdminOnline.set(adminId, sockets);
   socket.join(ADMINS_ROOM);
 
-  void touchLastSeen("admin", adminId); // best-effort; presence events go out first
+  void touchLastSeen("admin", adminId);
 
   try {
     const rooms = await ChatRoom.find({ adminId }).select("userId");
@@ -78,7 +78,7 @@ const handleUserConnect = (io: Server, socket: import("socket.io").Socket, userI
   sockets.add(socket.id);
   listUserOnline.set(userId, sockets);
 
-  void touchLastSeen("user", userId); // best-effort; presence events go out first
+  void touchLastSeen("user", userId);
   io.to(ADMINS_ROOM).emit("USER_STATUS_ONLINE", { id: userId, status: "online", serverNow: Date.now() });
   
 };

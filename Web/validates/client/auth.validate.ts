@@ -64,7 +64,7 @@ export const registerPost = (req: Request, res: Response, next: NextFunction) =>
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });
@@ -99,7 +99,7 @@ export const loginPost = (req: Request, res: Response, next: NextFunction) => {
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });
@@ -125,7 +125,7 @@ export const forgotPasswordPost = (req: Request, res: Response, next: NextFuncti
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });
@@ -156,7 +156,7 @@ export const otpPasswordPost = (req: Request, res: Response, next: NextFunction)
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });
@@ -201,7 +201,7 @@ export const resetPasswordPost = (req: Request, res: Response, next: NextFunctio
   if(error) {
     const errorMessage = error.details[0].message;
 
-    res.json({
+    res.status(400).json({
       code: "error",
       message: errorMessage
     });

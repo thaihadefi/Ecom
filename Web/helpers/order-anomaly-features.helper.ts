@@ -1,4 +1,3 @@
-// Turns raw order facts into the feature vector fed to the Isolation Forest. Targets scalper/bot behavior, not payment fraud.
 
 import { ANOMALY_DETECTION_CONFIG } from "../configs/anomaly-detection.config";
 
@@ -33,7 +32,6 @@ export interface OrderFeatureVector {
   ipAccountReuse: number;
 }
 
-// orderValue/itemQuantity are deliberately excluded: basket size varies too much across genuine customers to be signal.
 export const buildFeatureVector = (
   input: OrderFeatureInput,
   counts: OrderVelocityCounts,
@@ -64,7 +62,6 @@ export const toVector = (f: OrderFeatureVector): number[] => [
   f.ipAccountReuse
 ];
 
-// Prunes timestamps once they fall outside the window instead of re-filtering full history each time.
 const computeSlidingWindowCount = (
   items: { key: string | undefined; createdAt: Date }[],
   windowMinutes: number
@@ -100,7 +97,6 @@ export const computeRecentOrderCounts = (
     windowMinutes
   );
 
-/** Other orders using the same coupon in the preceding window - catches a promo-code stampede regardless of who placed the orders. */
 export const computeCouponVelocity = (
   orders: { coupon?: string; createdAt: Date }[],
   windowMinutes: number = ANOMALY_DETECTION_CONFIG.RECENT_WINDOW_MINUTES
@@ -110,7 +106,6 @@ export const computeCouponVelocity = (
     windowMinutes
   );
 
-// Causal: only counts accounts seen strictly earlier, so training never leaks future info.
 const computeDistinctAccountsPerKey = (items: { key?: string; userId?: string }[]): number[] => {
   const accountsByKey = new Map<string, Set<string>>();
   const counts: number[] = new Array(items.length).fill(0);

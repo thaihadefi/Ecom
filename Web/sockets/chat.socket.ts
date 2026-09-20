@@ -43,6 +43,8 @@ export const chatSocket = async (
   const account = socket.data.account;
   if (!account) return;
 
+  if (account.role === 'admin' && !(account.permissions as string[] | undefined)?.includes('chat-list')) return;
+
   const chatRoom = await chatSocketService.initChatRoom(account, listAdminOnline, io);
   if (!chatRoom) {
     
@@ -51,6 +53,9 @@ export const chatSocket = async (
     }
     return;
   }
+
+  const hasPermission = (permission: string): boolean =>
+    account.role !== 'admin' || (account.permissions as string[] | undefined)?.includes(permission) === true;
 
   const roomId = String(chatRoom._id);
   const roomUserId = account.role === 'user' ? account.id : (chatRoom.userId ?? '');
@@ -95,6 +100,7 @@ export const chatSocket = async (
 
   socket.on('CLIENT_SEND_MESSAGE', async (data: IClientSendMessagePayload) => {
     try {
+      if (!hasPermission('chat-reply')) return;
       const content = typeof data?.content === 'string' ? data.content.trim() : '';
       const files = sanitizeFiles(data?.files, roomUserId);
 
@@ -137,6 +143,7 @@ export const chatSocket = async (
   });
 
   socket.on('ADMIN_TYPING', (data: IAdminTypingPayload) => {
+    if (!hasPermission('chat-reply')) return;
     socket.to(roomId).emit('SERVER_SEND_ADMIN_TYPING', { isTyping: Boolean(data?.isTyping) });
   });
 
@@ -153,7 +160,7 @@ export const chatSocket = async (
 
   socket.on('CLIENT_DELETE_MESSAGE', async (data: IClientDeleteMessagePayload) => {
     try {
-      if (!isObjectId(data?.messageId) || rateLimited()) return;
+      if (!hasPermission('chat-reply') || !isObjectId(data?.messageId) || rateLimited()) return;
       const messageId = await chatSocketService.deleteMessage(data.messageId, account.id);
       invalidateRoomList(chatRoom.adminId ?? '');
       io.to(roomId).emit('SERVER_DELETE_MESSAGE', { messageId });
@@ -165,7 +172,7 @@ export const chatSocket = async (
 
   socket.on('ADMIN_DELETE_ROOM', async (data: IAdminDeleteRoomPayload) => {
     try {
-      if (account.role !== 'admin') return;
+      if (account.role !== 'admin' || !hasPermission('chat-reply')) return;
       const targetRoomId = isObjectId(data?.roomId) ? data.roomId : roomId;
       await chatSocketService.deleteRoom(targetRoomId, account.id);
       io.to(targetRoomId).emit('SERVER_DELETE_ROOM', { roomId: targetRoomId });

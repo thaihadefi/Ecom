@@ -3,7 +3,6 @@
 import { FORECAST_CONFIG } from "../configs/forecast.config";
 import { mean, stdDev, percentile } from "./statistics.helper";
 
-// Caps outlier days (e.g. a flash-sale spike) so a promo doesn't get read into the baseline as the new normal demand.
 export const winsorizeSeries = (
   series: number[],
   cappingPercentile: number = FORECAST_CONFIG.OUTLIER_CAP_PERCENTILE
@@ -16,7 +15,6 @@ export const winsorizeSeries = (
 export interface IHoltForecast {
   level: number;
   trend: number;
-  /** One-step-ahead forecast, clamped to non-negative (demand can't be negative). */
   forecast: number;
 }
 
@@ -47,7 +45,6 @@ export interface IReorderForecast {
   daysOfSupply: number;
   needsReorder: boolean;
   suggestedReorderQty: number;
-  /** True when there's too little sales history to trust the trend - forecast falls back to a flat average. */
   insufficientData: boolean;
 }
 
@@ -60,7 +57,6 @@ export const computeReorderForecast = (
   serviceLevelZ: number = FORECAST_CONFIG.SERVICE_LEVEL_Z,
   outlierCapPercentile: number = FORECAST_CONFIG.OUTLIER_CAP_PERCENTILE
 ): IReorderForecast => {
-  // Skip winsorizing when data's too sparse to tell a real sale from an outlier.
   const nonZeroDays = rawDailyDemandSeries.filter((d) => d > 0).length;
   const insufficientData = nonZeroDays < minSaleDaysForTrend;
   const dailyDemandSeries = insufficientData
@@ -78,7 +74,6 @@ export const computeReorderForecast = (
   const daysOfSupply = forecastedDailyDemand > 0 ? currentStock / forecastedDailyDemand : Infinity;
   const needsReorder = currentStock <= reorderPoint;
 
-  // Target stock covers lead time + one review cycle, plus safety stock.
   const targetStock = forecastedDailyDemand * (leadTimeDays + reviewPeriodDays) + safetyStock;
   const suggestedReorderQty = needsReorder ? Math.max(0, Math.ceil(targetStock - currentStock)) : 0;
 

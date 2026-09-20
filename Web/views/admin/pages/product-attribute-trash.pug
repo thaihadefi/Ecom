@@ -30,6 +30,6 @@ block main
                         small #{formatDateTime(item.deletedAt)}
                       td.text-end
                         +trash-action-buttons(
-                          `/${pathAdmin}/product/attribute/undo/${item.id}`,
-                          `/${pathAdmin}/product/attribute/destroy/${item.id}`
+                          `/${pathAdmin}/api/product-attributes/${item.id}/restore`,
+                          `/${pathAdmin}/api/product-attributes/${item.id}?permanent=true`
                         )

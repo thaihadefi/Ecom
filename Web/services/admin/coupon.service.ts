@@ -5,22 +5,23 @@ import moment from 'moment';
 import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
 import { paginatedSearch } from "../../helpers/list-query.helper";
 
-export const createCoupon = async (couponData: ICouponInput): Promise<{ success: boolean; message: string; coupon?: ICoupon }> => {
+export const createCoupon = async (couponData: ICouponInput): Promise<{ success: boolean; status?: number; message: string; coupon?: ICoupon }> => {
   const existCoupon = await Coupon.findOne({
-    code: String(couponData.code || ""),
+    code: String(couponData.code || "").trim(),
     deleted: false
   }).select("_id");
 
   if (existCoupon) {
-    return { success: false, message: "Coupon already exists!" };
+    return { success: false, status: 409, message: "Coupon already exists!" };
   }
 
+  couponData.code = String(couponData.code || "").trim();
   couponData.value = couponData.value ? parseInt(couponData.value as string) : 0;
   couponData.minOrderValue = couponData.minOrderValue ? parseInt(couponData.minOrderValue as string) : 0;
   couponData.maxDiscountValue = couponData.maxDiscountValue ? parseInt(couponData.maxDiscountValue as string) : 0;
   couponData.usageLimit = couponData.usageLimit ? parseInt(couponData.usageLimit as string) : 0;
   couponData.startDate = couponData.startDate ? moment(couponData.startDate as string, "DD/MM/YYYY").toDate() : undefined;
-  couponData.endDate = couponData.endDate ? moment(couponData.endDate as string, "DD/MM/YYYY").toDate() : undefined;
+  couponData.endDate = couponData.endDate ? moment(couponData.endDate as string, "DD/MM/YYYY").endOf("day").toDate() : undefined;
   couponData.search = toSearchText(`${couponData.code} ${couponData.name}`);
 
   const newRecord = new Coupon(couponData);
@@ -65,32 +66,33 @@ export const getCouponDetailById = async (id: string) => {
   return couponDetail;
 };
 
-export const updateCoupon = async (id: string, updateData: ICouponInput): Promise<{ success: boolean; message: string }> => {
+export const updateCoupon = async (id: string, updateData: ICouponInput): Promise<{ success: boolean; status?: number; message: string }> => {
   const couponDetail = await Coupon.findOne({
     _id: id,
     deleted: false
   });
 
   if (!couponDetail) {
-    return { success: false, message: "ID does not exist!" };
+    return { success: false, status: 404, message: "ID does not exist!" };
   }
 
   const existCoupon = await Coupon.findOne({
     _id: { $ne: id },
-    code: String(updateData.code || ""),
+    code: String(updateData.code || "").trim(),
     deleted: false
   }).select("_id");
 
   if (existCoupon) {
-    return { success: false, message: "Coupon already exists!" };
+    return { success: false, status: 409, message: "Coupon already exists!" };
   }
 
+  updateData.code = String(updateData.code || "").trim();
   updateData.value = updateData.value ? parseInt(String(updateData.value)) : 0;
   updateData.minOrderValue = updateData.minOrderValue ? parseInt(String(updateData.minOrderValue)) : 0;
   updateData.maxDiscountValue = updateData.maxDiscountValue ? parseInt(String(updateData.maxDiscountValue)) : 0;
   updateData.usageLimit = updateData.usageLimit ? parseInt(String(updateData.usageLimit)) : 0;
   updateData.startDate = updateData.startDate ? moment(String(updateData.startDate), "DD/MM/YYYY").toDate() : undefined;
-  updateData.endDate = updateData.endDate ? moment(String(updateData.endDate), "DD/MM/YYYY").toDate() : undefined;
+  updateData.endDate = updateData.endDate ? moment(String(updateData.endDate), "DD/MM/YYYY").endOf("day").toDate() : undefined;
   updateData.search = toSearchText(`${updateData.code} ${updateData.name}`);
 
   await Coupon.updateOne({ _id: id, deleted: false }, updateData);

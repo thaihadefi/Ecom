@@ -8,7 +8,7 @@ block main
         .card-header
           +trash-header(`/${pathAdmin}/account-user/list`)
         .card-body.pt-0
-          +trash-buttons(`/${pathAdmin}/account-user/change-multi`)
+          +trash-buttons(`/${pathAdmin}/api/customer-accounts`)
           .table-responsive
             table.table.table-striped.mb-0
               thead.table-light
@@ -35,6 +35,6 @@ block main
                         small #{formatDateTime(item.deletedAt)}
                       td.text-end
                         +trash-action-buttons(
-                          `/${pathAdmin}/account-user/undo/${item.id}`,
-                          `/${pathAdmin}/account-user/destroy/${item.id}`
+                          `/${pathAdmin}/api/customer-accounts/${item.id}/restore`,
+                          `/${pathAdmin}/api/customer-accounts/${item.id}?permanent=true`
                         )

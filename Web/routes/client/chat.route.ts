@@ -1,21 +1,21 @@
 import { Router } from "express";
 import * as chatController from "../../controllers/client/chat.controller";
-import multer from "multer";
+import * as authMiddleware from "../../middlewares/client/auth.middleware";
+import { chatUpload } from "../../helpers/upload.helper";
 
-const router = Router();
+export const sessionStateApi = Router();
 
-const upload = multer();
+sessionStateApi.get('/current', chatController.session);
 
-router.get('/session', chatController.session);
+export const chatApi = Router();
 
-router.get('/messages', chatController.messages);
+chatApi.get('/current/messages', chatController.messages);
 
-router.post(
-  '/upload',
-  upload.array("files"),
+chatApi.post(
+  '/current/attachments',
+  authMiddleware.loggedIn,
+  chatUpload.array("files"),
   chatController.uploadPost
 );
 
-router.post('/rate', chatController.ratePost);
-
-export default router;
+chatApi.put('/current/rating', authMiddleware.loggedIn, chatController.ratePost);

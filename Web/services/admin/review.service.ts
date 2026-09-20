@@ -70,7 +70,7 @@ export const getReviewList = async (
 export const deleteReviewById = async (id: string) => {
   const review = await Review.findById(id).select("_id productId userId");
   if (!review) {
-    return { success: false, message: "Review not found!" };
+    return { success: false, status: 404, message: "Review not found!" };
   }
 
   const session = await mongoose.startSession();
@@ -103,6 +103,9 @@ export const deleteReviewById = async (id: string) => {
 };
 
 export const changeReviewStatus = async (id: string, status: string) => {
+  if (status !== "approved" && status !== "rejected") {
+    return { success: false, status: 400, message: "Invalid review status!" };
+  }
   await Review.updateOne({ _id: id }, { status });
   invalidateProductCaches();
   return { success: true, message: "Status updated successfully!" };

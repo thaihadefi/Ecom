@@ -17,6 +17,8 @@ import { IReview } from '../../interfaces/models/review.interface';
 import { metadataCache, invalidateProductCaches } from '../../helpers/metadata-cache.helper';
 import { getActiveAttributes } from '../admin/attribute-product.service';
 
+const MAX_LIMIT_ITEMS = 60;
+
 export interface ProductFilterQuery {
   page?: unknown;
   limitItems?: unknown;
@@ -162,7 +164,7 @@ export const getProductsByCategory = async (
   let limitItems = PAGINATION.CLIENT_LIMIT;
   if (query.limitItems) {
     const currentLimitItems = parseInt(`${query.limitItems}`);
-    if (currentLimitItems > 0) limitItems = currentLimitItems;
+    if (currentLimitItems > 0) limitItems = Math.min(currentLimitItems, MAX_LIMIT_ITEMS);
   }
 
   const totalRecord = await Product.countDocuments(find);
@@ -170,7 +172,8 @@ export const getProductsByCategory = async (
 
   const sort: Record<string, 1 | -1 | "asc" | "desc"> = {};
   if (query.sort) {
-    const [sortKey, sortValue] = `${query.sort}`.split("-");
+    const [sortKey, rawSortValue] = `${query.sort}`.split("-");
+    const sortValue = rawSortValue === "asc" || rawSortValue === "1" ? "asc" : "desc";
     switch (sortKey) {
       case "position":
         sort.position = sortValue as 1 | -1 | "asc" | "desc";
@@ -252,7 +255,7 @@ export const getProductsByCategory = async (
 };
 
 export const getProductSuggestions = async (rawKeyword?: unknown) => {
-  const keywordStr = `${rawKeyword || ""}`.trim();
+  const keywordStr = `${rawKeyword || ""}`.trim().slice(0, 100);
   const cacheKey = `suggestions:${keywordStr}`;
   const cached = metadataCache.get<IProduct[]>(cacheKey);
   if (cached) return cached;
@@ -296,13 +299,15 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
   }>(detailCacheKey);
 
   if (!cachedDetail) {
-    const productDetail = await Product.findOne({
+    const productDoc = await Product.findOne({
       slug: slug,
       deleted: false,
       status: "active"
     });
 
-    if (!productDetail) return null;
+    if (!productDoc) return null;
+
+    const productDetail = productDoc.toObject({ virtuals: true }) as unknown as IProduct;
 
     const attributeIdSet = new Set((productDetail.attributes || []).map((a) => String(a)));
     const allActiveAttrs = await getActiveAttributes();
@@ -455,20 +460,18 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
 
 
 export const reportReview = async (reviewId: string, userId: string) => {
-  const review = await Review.findById(reviewId).select("_id reportedBy productId");
+  const review = await Review.findById(reviewId).select("_id productId");
   if (!review) {
-    return { success: false, message: "Review not found!" };
+    return { success: false, status: 404, message: "Review not found!" };
   }
 
-  const alreadyReported = review.reportedBy?.includes(userId);
-  if (alreadyReported) {
-    return { success: false, message: "You have already reported this review!" };
+  const result = await Review.updateOne(
+    { _id: reviewId, reportedBy: { $ne: userId } },
+    { $inc: { reportCount: 1 }, $push: { reportedBy: userId } }
+  );
+  if (result.modifiedCount === 0) {
+    return { success: false, status: 409, message: "You have already reported this review!" };
   }
-
-  await Review.updateOne({ _id: reviewId }, {
-    $inc: { reportCount: 1 },
-    $push: { reportedBy: userId }
-  });
 
   if (review.productId) {
     const product = await Product.findById(review.productId).select("slug");
@@ -478,6 +481,16 @@ export const reportReview = async (reviewId: string, userId: string) => {
   }
 
   return { success: true, message: "Review reported successfully!" };
+};
+
+export const getProductIdBySlug = async (slug: string): Promise<string | null> => {
+  const product = await Product.findOne({ slug, deleted: false, status: "active" }).select("_id");
+  return product ? String(product._id) : null;
+};
+
+export const getCategoryIdBySlug = async (slug: string): Promise<string | null> => {
+  const category = await CategoryProduct.findOne({ slug, deleted: false, status: "active" }).select("_id");
+  return category ? String(category._id) : null;
 };
 
 export const incrementProductView = async (productId: string) => {

@@ -142,8 +142,8 @@ if (formChat) {
   let userUnreadCount = 0;
   let isUserOnline = false;
 
-  let serverClockOffset = 0;    // serverNow - clientNow
-  let headerLastSeenAt  = null; // epoch ms for the conversation header
+  let serverClockOffset = 0;
+  let headerLastSeenAt  = null;
   const applyServerNow = (serverNow) => {
     if (typeof serverNow === "number") serverClockOffset = serverNow - Date.now();
   };
@@ -306,7 +306,7 @@ if (formChat) {
       const fd = new FormData();
       selectedFiles.forEach(f => fd.append("files", f));
       fd.append("roomId", chatRoomId);
-      const res  = await fetch(`/${pathAdmin}/chat/upload`, { method: "POST", body: fd });
+      const res  = await fetch(`/${pathAdmin}/api/chat-rooms/${chatRoomId}/attachments`, { method: "POST", body: fd });
       const data = await res.json();
       if (data.code === "success") fileUrls = data.fileUrls;
     }
@@ -347,7 +347,7 @@ if (formChat) {
   });
 
   const loadInitialMessages = async () => {
-    const res  = await fetch(`/${pathAdmin}/chat/messages?limit=20&roomId=${chatRoomId}`);
+    const res  = await fetch(`/${pathAdmin}/api/chat-rooms/${chatRoomId}/messages?limit=20`);
     const data = await res.json();
     userUnreadCount = data.userUnreadCount ?? 0;
     for (const item of data.messages) appendMessage(item);
@@ -363,7 +363,7 @@ if (formChat) {
     const first   = chatDetail.querySelector(".d-flex");
     const firstId = first?.getAttribute("id");
     if (!firstId) { isLoading = false; return; }
-    const res  = await fetch(`/${pathAdmin}/chat/messages?lastMessageId=${firstId}&limit=20&roomId=${chatRoomId}`);
+    const res  = await fetch(`/${pathAdmin}/api/chat-rooms/${chatRoomId}/messages?lastMessageId=${firstId}&limit=20`);
     const data = await res.json();
     if (!data.messages?.length) { hasMore = false; }
     else {
@@ -491,10 +491,10 @@ if (formChat) {
   const buttonLock = document.querySelector("[button-lock]");
   buttonLock?.addEventListener("click", () => {
     const status = buttonLock.getAttribute("button-lock");
-    fetch(`/${pathAdmin}/chat/change-status`, {
+    fetch(`/${pathAdmin}/api/chat-rooms/${chatRoomId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, roomId: chatRoomId })
+      body: JSON.stringify({ status })
     })
       .then(r => r.json())
       .then(data => {
@@ -531,7 +531,7 @@ if (formChat) {
     const boxContent = chatAiSuggestReply.querySelector(".inner-content");
 
     document.querySelector("#button-ai-suggest-reply")?.addEventListener("click", async () => {
-      const res  = await fetch(`/${pathAdmin}/chat/suggest-reply/${chatRoomId}`);
+      const res  = await fetch(`/${pathAdmin}/api/chat-rooms/${chatRoomId}/reply-suggestion`);
       const data = await res.json();
       if (data.code === "success") { boxContent.innerHTML = renderAiText(data.content); chatAiSuggestReply.classList.remove("d-none"); }
     });
@@ -542,7 +542,7 @@ if (formChat) {
     });
 
     document.querySelector("#button-ai-edit-reply")?.addEventListener("click", async () => {
-      const res  = await fetch(`/${pathAdmin}/chat/edit-reply/${chatRoomId}`, {
+      const res  = await fetch(`/${pathAdmin}/api/chat-rooms/${chatRoomId}/reply-refinements`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: inputContent.value.trim() })
@@ -552,13 +552,13 @@ if (formChat) {
     });
 
     document.querySelector("#button-ai-chat-summary")?.addEventListener("click", async () => {
-      const res  = await fetch(`/${pathAdmin}/chat/summary/${chatRoomId}`);
+      const res  = await fetch(`/${pathAdmin}/api/chat-rooms/${chatRoomId}/summary`);
       const data = await res.json();
       if (data.code === "success") { boxContent.innerHTML = renderAiText(data.content); chatAiSuggestReply.classList.remove("d-none"); }
     });
 
     document.querySelector("#button-ai-customer-emotions")?.addEventListener("click", async () => {
-      const res  = await fetch(`/${pathAdmin}/chat/customer-emotions/${chatRoomId}`);
+      const res  = await fetch(`/${pathAdmin}/api/chat-rooms/${chatRoomId}/customer-emotion`);
       const data = await res.json();
       if (data.code === "success") { boxContent.innerHTML = renderAiText(data.content); chatAiSuggestReply.classList.remove("d-none"); }
     });

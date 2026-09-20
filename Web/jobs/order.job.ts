@@ -28,7 +28,7 @@ export const autoCancelUnpaidOrders = () => {
         try {
           await session.withTransaction(async () => {
             const result = await Order.updateOne(
-              { _id: order._id, orderStatus: "pending" },
+              { _id: order._id, orderStatus: "pending", paymentStatus: "unpaid" },
               { orderStatus: "cancelled", pointEarned: 0 },
               { session }
             );

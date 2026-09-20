@@ -3,6 +3,7 @@ import { pathAdmin } from '../../configs/variable.config';
 import { logAdminAction } from '../../helpers/log.helper';
 import { RequestAccount } from '../../interfaces/request.interface';
 import * as articleService from '../../services/admin/article.service';
+import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const category = async (req: Request, res: Response) => {
   const data = await articleService.getCategoryBlogList(req.query.keyword, req.query.page);
@@ -35,16 +36,13 @@ export const createCategoryPost = async (req: Request, res: Response) => {
   try {
     const result = await articleService.createCategoryBlog(req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("createCategoryPost error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -75,16 +73,13 @@ export const editCategoryPatch = async (req: Request, res: Response) => {
     const id = req.params.id;
     const result = await articleService.updateCategoryBlog(id, req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("editCategoryPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -99,10 +94,7 @@ export const deleteCategoryPatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("deleteCategoryPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -117,10 +109,7 @@ export const undoCategoryPatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("undoCategoryPatch error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -135,37 +124,7 @@ export const destroyCategoryDelete = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("destroyCategoryDelete error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
-  }
-};
-
-export const changeMultiCategoryPatch = async (req: Request, res: Response) => {
-  try {
-    const { value, ids } = req.body;
-    if (!value || !ids || !ids.length) {
-      res.json({ code: "error", message: "Invalid data!" });
-      return;
-    }
-    switch (value) {
-      case "undo": {
-        const result = await articleService.restoreManyCategories(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      case "destroy": {
-        const result = await articleService.permanentlyDeleteManyCategories(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      default:
-        res.json({ code: "error", message: "Invalid action!" });
-    }
-  } catch (error) {
-    console.error("changeMultiCategoryPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -173,14 +132,14 @@ export const deleteManyCategory = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await articleService.softDeleteManyCategories(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("deleteManyCategory error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -188,14 +147,14 @@ export const undoManyCategoryPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await articleService.restoreManyCategories(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoManyCategoryPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -203,14 +162,14 @@ export const destroyManyCategoryDelete = async (req: Request, res: Response) => 
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await articleService.permanentlyDeleteManyCategories(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyManyCategoryDelete error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -228,7 +187,7 @@ export const createPost = async (req: RequestAccount, res: Response) => {
     const result = await articleService.createArticle(req.body, req.adminId);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -243,10 +202,7 @@ export const createPost = async (req: RequestAccount, res: Response) => {
     });
   } catch (error) {
     console.error("createPost article error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -287,7 +243,7 @@ export const editPatch = async (req: RequestAccount, res: Response) => {
     const result = await articleService.updateArticle(id, req.body, req.adminId);
 
     if (!result.success) {
-      res.json({
+      res.status(resultStatus(result)).json({
         code: "error",
         message: result.message
       });
@@ -302,10 +258,7 @@ export const editPatch = async (req: RequestAccount, res: Response) => {
     });
   } catch (error) {
     console.error("editPatch article error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid data!"
-    });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -322,10 +275,7 @@ export const deletePatch = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("deletePatch article error:", error);
-    res.json({
-      code: "error",
-      message: "Invalid ID!"
-    });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -354,13 +304,13 @@ export const editSEOPatch = async (req: Request, res: Response) => {
     const id = req.params.id;
     const result = await articleService.updateArticleSEO(id, req.body);
 
-    res.json({
+    res.status(resultStatus(result)).json({
       code: result.success ? "success" : "error",
       message: result.message
     });
   } catch (error) {
     console.error("editSEOPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -368,14 +318,14 @@ export const destroyManyDelete = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await articleService.permanentlyDeleteManyArticles(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyManyDelete error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -390,7 +340,7 @@ export const undoPatch = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoPatch error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -400,7 +350,7 @@ export const destroyDelete = async (req: Request, res: Response) => {
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("destroyDelete error:", error);
-    res.json({ code: "error", message: "Invalid ID!" });
+    sendCaughtError(res, error, "Invalid ID!");
   }
 };
 
@@ -408,14 +358,14 @@ export const deleteManyPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await articleService.softDeleteManyArticles(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("deleteManyPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };
 
@@ -423,40 +373,13 @@ export const undoManyPatch = async (req: Request, res: Response) => {
   try {
     const ids: string[] = req.body.ids;
     if (!ids || !ids.length) {
-      res.json({ code: "error", message: "No items selected!" });
+      res.status(400).json({ code: "error", message: "No items selected!" });
       return;
     }
     const result = await articleService.restoreManyArticles(ids);
     res.json({ code: "success", message: result.message });
   } catch (error) {
     console.error("undoManyPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
-  }
-};
-
-export const changeMultiPatch = async (req: Request, res: Response) => {
-  try {
-    const { value, ids } = req.body;
-    if (!value || !ids || !ids.length) {
-      res.json({ code: "error", message: "Invalid data!" });
-      return;
-    }
-    switch (value) {
-      case "undo": {
-        const result = await articleService.restoreManyArticles(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      case "destroy": {
-        const result = await articleService.permanentlyDeleteManyArticles(ids);
-        res.json({ code: "success", message: result.message });
-        break;
-      }
-      default:
-        res.json({ code: "error", message: "Invalid action!" });
-    }
-  } catch (error) {
-    console.error("changeMultiPatch error:", error);
-    res.json({ code: "error", message: "Invalid data!" });
+    sendCaughtError(res, error, "Invalid data!");
   }
 };

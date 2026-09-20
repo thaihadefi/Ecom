@@ -12,7 +12,7 @@ block main
             .col-auto
               button.btn.btn-danger.me-1(
                 button-delete-many
-                data-api=`/${pathAdmin}/review/destroy-many`
+                data-api=`/${pathAdmin}/api/reviews`
                 style="display:none"
               )
                 i.fa-solid.fa-trash.me-1
@@ -116,8 +116,8 @@ block main
                           a.tbl-action(
                             href="javascript:;"
                             button-api
-                            data-method="PATCH"
-                            data-api=`/${pathAdmin}/review/clear-reports/${item.id}`
+                            data-method="DELETE"
+                            data-api=`/${pathAdmin}/api/reviews/${item.id}/reports`
                             title="Clear all reports"
                             aria-label="Clear all reports"
                           )
@@ -126,8 +126,8 @@ block main
                           a.tbl-action.warning(
                             href="javascript:;"
                             button-api
-                            data-method="PATCH"
-                            data-api=`/${pathAdmin}/review/change-status/${item.id}/rejected`
+                            data-method="PUT"
+                            data-api=`/${pathAdmin}/api/reviews/${item.id}/status/rejected`
                             title="Hide"
                             aria-label="Hide"
                           )
@@ -136,8 +136,8 @@ block main
                           a.tbl-action(
                             href="javascript:;"
                             button-api
-                            data-method="PATCH"
-                            data-api=`/${pathAdmin}/review/change-status/${item.id}/approved`
+                            data-method="PUT"
+                            data-api=`/${pathAdmin}/api/reviews/${item.id}/status/approved`
                             title="Unhide"
                             aria-label="Unhide"
                           )
@@ -146,7 +146,7 @@ block main
                           href="javascript:;"
                           button-api
                           data-method="DELETE"
-                          data-api=`/${pathAdmin}/review/delete/${item.id}`
+                          data-api=`/${pathAdmin}/api/reviews/${item.id}`
                           title="Delete"
                           aria-label="Delete"
                         )

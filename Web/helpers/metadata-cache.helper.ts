@@ -9,9 +9,11 @@ export const CACHE_KEYS = {
   HOME_BLOCK_LIST: "metadata:home_block_list",
 };
 
+const PRODUCT_DASHBOARD_KEYS = ["admin:dashboard:top_selling", "admin:dashboard:inventory_forecast"];
+
 export const invalidateProductCaches = (slug?: string) => {
   const keys = metadataCache.keys();
-  const toDel: string[] = [];
+  const toDel: string[] = [...PRODUCT_DASHBOARD_KEYS];
   if (slug) {
     toDel.push(`product:detail:${slug}`);
   }

@@ -11,10 +11,11 @@ export const autoAuditLog = (req: RequestAccount, res: Response, next: NextFunct
     if (res.statusCode < 400 && !req._auditLogged && req.adminId) {
       let title = res.locals.auditTitle;
       if (!title) {
-        const urlParts = req.originalUrl.split("?")[0].split("/").filter(Boolean);
-        const action = urlParts[urlParts.length - 1] || "action";
-        const moduleName = urlParts[1] || "system";
-        title = `${req.method} /${moduleName}/${action}`;
+        // /admin/api/<resource>[/<id>][/<action>]: the record id says nothing useful in a title.
+        const urlParts = req.originalUrl.split("?")[0].split("/").filter(Boolean).filter((part, index) => !(index < 2 && (part === "admin" || part === "api")));
+        const moduleName = urlParts[0] || "system";
+        const action = urlParts.slice(1).filter((part) => !/^[0-9a-f]{24}$/i.test(part)).join("/");
+        title = `${req.method} /${moduleName}${action ? `/${action}` : ""}`;
       }
       logAdminAction(req, title);
     }

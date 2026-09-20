@@ -3,68 +3,81 @@ import * as authController from "../../controllers/client/auth.controller";
 import * as authValidate from "../../validates/client/auth.validate";
 import passport from "passport";
 import * as authMiddleware from "../../middlewares/client/auth.middleware";
+import { pageRateLimit, MINUTE, HOUR } from "../../middlewares/rate-limit.middleware";
+import { emailOf } from "../../helpers/rate-limit.helper";
 
 const router = Router();
 
 router.get('/register', authController.register);
 
-router.post(
-  '/register',
-  authValidate.registerPost,
-  authController.registerPost
-);
-
 router.get('/login', authController.login);
 
-router.post(
-  '/login',
+const oauthLimit = pageRateLimit({ windowMs: 15 * MINUTE, max: 30 });
+const oauthOptions = { session: false, failureRedirect: '/auth/login?oauthError=email' };
+
+router.get('/google', oauthLimit, passport.authenticate('google', {
+  scope: ['profile', 'email'],
+  session: false,
+}));
+
+router.get('/google/callback', passport.authenticate('google', oauthOptions), authController.callbackGoogle);
+
+router.get('/facebook', oauthLimit, passport.authenticate('facebook', {
+  scope: ['email'],
+  session: false,
+}));
+
+router.get('/facebook/callback', passport.authenticate('facebook', oauthOptions), authController.callbackFacebook);
+
+router.get('/forgot-password', authController.forgotPassword);
+
+router.get('/otp-password', authController.otpPassword);
+
+router.get('/reset-password', authController.resetPassword);
+
+export default router;
+
+export const sessionApi = Router();
+
+sessionApi.post(
+  '/',
+  pageRateLimit({ windowMs: 15 * MINUTE, max: 30 }, { windowMs: 15 * MINUTE, max: 10, key: (req) => `${req.ip}|${emailOf(req)}` }),
   authValidate.loginPost,
   authController.loginPost
 );
 
-router.get('/logout', authController.logout);
+sessionApi.delete('/current', authController.logout);
 
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email'],
-}));
+export const customerApi = Router();
 
-router.get('/google/callback', passport.authenticate('google', {
-  failureRedirect: '/auth/login?oauthError=email',
-}), authController.callbackGoogle);
+customerApi.post(
+  '/',
+  pageRateLimit({ windowMs: HOUR, max: 10 }),
+  authValidate.registerPost,
+  authController.registerPost
+);
 
-router.get('/facebook', passport.authenticate('facebook', {
-  scope: ['email'],
-}));
+export const passwordResetApi = Router();
 
-router.get('/facebook/callback', passport.authenticate('facebook', {
-  failureRedirect: '/auth/login?oauthError=email',
-}), authController.callbackFacebook);
-
-router.get('/forgot-password', authController.forgotPassword);
-
-router.post(
-  '/forgot-password',
-
+passwordResetApi.post(
+  '/',
+  pageRateLimit({ windowMs: 15 * MINUTE, max: 5 }, { windowMs: HOUR, max: 3, key: emailOf }),
   authValidate.forgotPasswordPost,
   authController.forgotPasswordPost
 );
 
-router.get('/otp-password', authController.otpPassword);
-
-router.post(
-  '/otp-password',
-
+passwordResetApi.post(
+  '/verification',
+  pageRateLimit({ windowMs: 15 * MINUTE, max: 20 }),
   authValidate.otpPasswordPost,
   authController.otpPasswordPost
 );
 
-router.get('/reset-password', authController.resetPassword);
+export const passwordApi = Router();
 
-router.post(
-  '/reset-password',
-  authMiddleware.verifyToken,
+passwordApi.put(
+  '/',
+  authMiddleware.loggedIn,
   authValidate.resetPasswordPost,
   authController.resetPasswordPost
 );
-
-export default router;

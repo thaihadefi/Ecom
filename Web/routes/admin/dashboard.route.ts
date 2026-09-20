@@ -9,10 +9,8 @@ const db = checkPermission("dashboard");
 router.get('/', db, dashboardController.dashboard);
 
 router.get('/revenue-by-time', db, dashboardController.revenueByTime);
-router.get('/revenue-by-time/data', db, dashboardController.revenueByTimeData);
 
 router.get('/order-statistic', db, dashboardController.orderStatistic);
-router.get('/order-statistic/data', db, dashboardController.orderStatisticData);
 
 router.get('/top-selling-products', db, dashboardController.topSellingProducts);
 
@@ -21,3 +19,9 @@ router.get('/inventory-forecast', db, dashboardController.inventoryForecast);
 router.get('/customer-statistic', db, dashboardController.customerStatistic);
 
 export default router;
+
+export const statisticsApi = Router();
+
+statisticsApi.get('/revenue-by-time', db, dashboardController.revenueByTimeData);
+
+statisticsApi.get('/orders', db, dashboardController.orderStatisticData);

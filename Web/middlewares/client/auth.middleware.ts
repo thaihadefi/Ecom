@@ -1,14 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import * as clientAuthService from "../../services/client/auth.service";
+import { bearerTokenOf, isApiRequest, usesAuthorizationHeader } from "../../helpers/access-token.helper";
 
 const paths = [
   "/.well-known",
   "/client"
 ];
 
-const loadAccountIntoLocals = async (res: Response, userId: string, email: string) => {
-  const accountUser = await clientAuthService.getUserAccountForAuth(userId, email);
+const loadAccountIntoLocals = async (res: Response, userId: string, email: string, issuedAt?: number) => {
+  const accountUser = await clientAuthService.getUserAccountForAuth(userId, email, issuedAt);
   if (!accountUser) return false;
 
   res.locals.accountUser = accountUser;
@@ -21,13 +22,27 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
       return next();
     }
 
+    if (usesAuthorizationHeader(req)) {
+      const bearer = bearerTokenOf(req);
+      if (bearer) {
+        try {
+          const decoded = jwt.verify(bearer, `${process.env.JWT_SECRET}`) as JwtPayload;
+          await loadAccountIntoLocals(res, decoded.id, decoded.email, decoded.iat);
+        } catch {
+          // an invalid or expired token leaves the request anonymous, so protected routes answer 401
+        }
+      }
+      return next();
+    }
+
     const token = req.cookies.tokenUser;
 
     if (token) {
       try {
         const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as JwtPayload;
-        await loadAccountIntoLocals(res, decoded.id, decoded.email);
-        return next();
+        if (await loadAccountIntoLocals(res, decoded.id, decoded.email, decoded.iat)) {
+          return next();
+        }
       } catch (err: unknown) {
         const errorName = err instanceof Error ? err.name : "";
         if (errorName !== "TokenExpiredError") {
@@ -52,10 +67,10 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 
 export const loggedIn = async (req: Request, res: Response, next: NextFunction) => {
   if (!res.locals.accountUser) {
-    if (req.method == "GET") {
+    if (req.method == "GET" && !isApiRequest(req)) {
       res.redirect("/auth/login");
     } else {
-      res.json({
+      res.status(401).json({
         code: "error",
         message: "Please log in!"
       });

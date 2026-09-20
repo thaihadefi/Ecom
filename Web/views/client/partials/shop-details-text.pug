@@ -2,7 +2,7 @@ include ../mixins/index.pug
 
 div(class="shop_details_text")
   script.
-    const productVariants = !{JSON.stringify(productDetail.variants)};
+    const productVariants = !{safeJson(productDetail.variants)};
   h2(class="details_title") #{productDetail.name}
   .d-flex.flex-wrap.align-items-center
     if (productDetail.stock > 0)
@@ -28,7 +28,7 @@ div(class="shop_details_text")
             ? Math.round((1 - productDetail.priceNew / productDetail.priceOld) * 100)
             : 0);
     span.discount(style=(detailDisc > 0 ? "" : "display: none;")) -#{detailDisc}%
-  div(class="short_description") !{productDetail.description}
+  div(class="short_description") !{safeHtml(productDetail.description)}
   each attribute in attributeList
     div(class="details_single_variant")
       p(class="variant_title") #{attribute.name}:
@@ -36,7 +36,7 @@ div(class="shop_details_text")
         ul(class="details_variant_color")
           each variant, index in attribute.variants
             li(
-              style=`background: ${variant};`
+              style=`background: ${safeColor(variant)};`
               attribute-id=attribute.id
               variant=variant
               title=(attribute.variantsLabel && attribute.variantsLabel[index] ? attribute.variantsLabel[index] : variant)

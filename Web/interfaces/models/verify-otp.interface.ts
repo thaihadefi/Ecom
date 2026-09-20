@@ -7,6 +7,7 @@ export interface IVerifyOTP extends Document {
   type?: "otp-password" | "otp-register" | "otp-email-change";
   userId?: string;
   newEmail?: string;
+  attempts?: number;
   expireAt?: Date;
   createdAt: Date;
   updatedAt: Date;

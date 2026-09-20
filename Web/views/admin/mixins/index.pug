@@ -218,7 +218,6 @@ mixin trash-buttons(apiPath)
     button.btn.btn-success(
       button-restore-many
       data-api=apiPath
-      data-value="undo"
       style="display:none"
     )
       i.las.la-undo.me-1
@@ -226,7 +225,6 @@ mixin trash-buttons(apiPath)
     button.btn.btn-danger(
       button-delete-many
       data-api=apiPath
-      data-value="destroy"
       style="display:none"
     )
       i.las.la-trash-alt.me-1
@@ -236,7 +234,7 @@ mixin trash-action-buttons(undoApi, destroyApi)
   a.tbl-action(
     href="javascript:;"
     button-api
-    data-method="PATCH"
+    data-method="POST"
     data-api=undoApi
     title="Restore"
     aria-label="Restore"

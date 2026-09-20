@@ -1,9 +1,8 @@
-import { toSearchText } from '../helpers/slugify.helper';
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import AccountUser from "../models/account-user.model";
 import { getApiLoginSocial } from "./setting.config";
-import { invalidateAdminDashboardCaches } from "../services/admin/dashboard.service";
+import { CookieStateStore } from "./oauth-state.config";
+import { resolveOAuthUser } from "../services/client/oauth.service";
 
 export const configureGooglePassport = async function (
   passportInstance: typeof passport
@@ -20,55 +19,31 @@ export const configureGooglePassport = async function (
         clientID: `${googleClientId}`,
         clientSecret: `${googleClientSecret}`,
         callbackURL: `${googleCallbackUrl}`,
+        store: new CookieStateStore(),
       },
       async (_accessToken, _refreshToken, profile, done) => {
         try {
-          const email = profile.emails?.[0]?.value;
-          if (!email) {
-            return done(new Error("Google account email is not available."), undefined);
-          }
+          const primaryEmail = profile.emails?.[0] as { value?: string; verified?: boolean | string } | undefined;
+          const rawJson = (profile as { _json?: { email_verified?: boolean | string } })._json;
+          const verified = [primaryEmail?.verified, rawJson?.email_verified].some((flag) => flag === true || flag === "true");
 
-          const existingUser = await AccountUser.findOne({
-            email: email
+          const result = await resolveOAuthUser({
+            provider: "google",
+            providerId: profile.id,
+            email: primaryEmail?.value,
+            emailVerified: verified,
+            displayName: profile.displayName,
           });
-          if (existingUser) {
-            if (!existingUser.status) {
-              existingUser.status = "active";
-              await existingUser.save();
-            }
-            return done(null, existingUser);
+
+          if (!result.user) {
+            done(null, false, { message: result.reason });
+            return;
           }
-
-          const fullName = profile.displayName;
-          const search = toSearchText(`${fullName} ${email}`);
-
-          const newUser = new AccountUser({
-            googleId: profile.id,
-            fullName: fullName,
-            email: email,
-            search: search,
-            status: "active"
-          });
-          await newUser.save();
-          invalidateAdminDashboardCaches();
-          done(null, newUser);
+          done(null, result.user);
         } catch (error) {
           done(error, undefined);
         }
       }
     )
   );
-
-  passportInstance.serializeUser((user: { id?: string }, done) => {
-    done(null, user.id);
-  });
-
-  passportInstance.deserializeUser(async (id, done) => {
-    try {
-      const user = await AccountUser.findById(id).select("-password");
-      done(null, user);
-    } catch (error) {
-      done(error, null);
-    }
-  });
 };
