@@ -1,0 +1,11 @@
+export const AI_CONFIG = {
+  API_BASE: "https://api.groq.com/openai/v1",
+  DEFAULT_MODEL: "openai/gpt-oss-20b",
+  MIN_CONTEXT_WINDOW: 32768,
+  CATALOG_TTL_MS: 24 * 60 * 60 * 1000,
+  CATALOG_FAILURE_TTL_MS: 5 * 60 * 1000,
+  CATALOG_TIMEOUT_MS: 8000,
+  REQUEST_TIMEOUT_MS: 20000,
+  MAX_ATTEMPTS: 3,
+  TOTAL_BUDGET_MS: 45000,
+} as const;
