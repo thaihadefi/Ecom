@@ -10,7 +10,7 @@ export const wishlist = (_req: Request, res: Response) => {
 
 export const list = async (req: Request, res: Response) => {
   try {
-    const wishlist = req.body || [];
+    const wishlist = Array.isArray(req.body) ? req.body : [];
     const wishlistDetail = await wishlistService.getWishlistDetailList(wishlist);
 
     res.json({

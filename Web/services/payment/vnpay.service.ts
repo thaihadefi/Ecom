@@ -90,7 +90,8 @@ const splitTxnRef = (params: Record<string, unknown>): { phone: string; orderCod
 
 export const handleVNPayResult = async (queryParams: Record<string, unknown>) => {
   const settingGeneral = await getGeneral();
-  const domain = settingGeneral.domainWebsite;
+  // Avoids building the literal string "undefined/..." when the store domain isn't set.
+  const domain = settingGeneral.domainWebsite || "";
 
   if (!(await verifyVNPaySignature(queryParams))) return `${domain}/`;
 

@@ -18,6 +18,7 @@ import { configureFacebookPassport } from './configs/facebookOauth.config';
 import { RequestAccount } from './interfaces/request.interface';
 import { Server } from 'socket.io';
 import { createServer } from 'node:http';
+import type { Socket } from 'node:net';
 import { initSocket, stopSocket } from './sockets/index.socket';
 import { startJobs } from './jobs/index.job';
 import * as adminAuth from './middlewares/admin/auth.middleware';
@@ -36,6 +37,20 @@ app.disable('x-powered-by');
 const port = parseInt(process.env.PORT || "3000", 10);
 
 const server = createServer(app);
+
+// A request Node's HTTP parser rejects (bad header bytes, malformed request line, ...) never
+// reaches Express; without this handler the client gets a raw, bodyless 400 instead of JSON.
+server.on('clientError', (err: NodeJS.ErrnoException, socket: Socket) => {
+  if (err.code === 'ECONNRESET' || !socket.writable) return;
+  const body = JSON.stringify({ code: 'error', message: 'Bad Request' });
+  socket.end(
+    `HTTP/1.1 400 Bad Request\r\n` +
+    `Content-Type: application/json; charset=utf-8\r\n` +
+    `Content-Length: ${Buffer.byteLength(body)}\r\n` +
+    `Connection: close\r\n\r\n${body}`
+  );
+});
+
 const io = new Server(server, {
   pingInterval: 25000,
   pingTimeout: 60000,

@@ -2,6 +2,9 @@ openapi: 3.0.3
 info:
   title: Ecom & FileManager API Documentation
   version: 1.0.0
+  license:
+    name: MIT
+    url: https://github.com/thaihadefi/Ecom/blob/main/LICENSE
   description: |-
     Documentation of every API endpoint of the Ecom web application (port 3000) and the FileManager microservice (port 4000). Server-rendered HTML pages are out of scope, apart from the few read-only ones described under Response conventions.
 

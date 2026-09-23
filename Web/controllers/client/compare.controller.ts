@@ -10,7 +10,7 @@ export const compare = (_req: Request, res: Response) => {
 
 export const list = async (req: Request, res: Response) => {
   try {
-    const compareList = req.body || [];
+    const compareList = Array.isArray(req.body) ? req.body : [];
     const compareDetail = await compareService.getCompareDetailList(compareList);
 
     res.json({

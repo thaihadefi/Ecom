@@ -196,7 +196,11 @@ export const createFolder = async (
     return { success: false, status: 409, message: "Folder already exists!" };
   }
 
-  await fs.promises.mkdir(targetPath, { recursive: true });
+  try {
+    await fs.promises.mkdir(targetPath, { recursive: true });
+  } catch {
+    return { success: false, status: 400, message: "Invalid folder name!" };
+  }
   return { success: true, status: 200, message: "Success!" };
 };
 
@@ -210,7 +214,12 @@ export const listFolders = async (
     return { success: false, status: 403, message: "Access denied!" };
   }
 
-  const items = await fs.promises.readdir(mediaPath);
+  let items: string[];
+  try {
+    items = await fs.promises.readdir(mediaPath);
+  } catch {
+    return { success: false, status: 404, message: "Folder does not exist!" };
+  }
   const folders: { name: string; createdAt: Date }[] = [];
 
   await Promise.all(
@@ -364,7 +373,12 @@ export const listFiles = async (
     return { success: false, status: 403, message: "Access denied!" };
   }
 
-  const items = await fs.promises.readdir(mediaPath);
+  let items: string[];
+  try {
+    items = await fs.promises.readdir(mediaPath);
+  } catch {
+    return { success: false, status: 404, message: "Folder does not exist!" };
+  }
   const files: { folder: string; filename: string; mimetype: string; size: number; createdAt: Date }[] = [];
 
   await Promise.all(
@@ -389,7 +403,7 @@ export const listFiles = async (
 
   files.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-  const limit = parseInt(rawLimit as string) || 20;
+  const limit = Math.max(1, parseInt(rawLimit as string) || 20);
   const page = Math.max(1, parseInt(rawPage as string) || 1);
   const total = files.length;
   const totalPage = Math.ceil(total / limit);

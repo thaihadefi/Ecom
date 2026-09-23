@@ -10,7 +10,7 @@
 [![Docker](https://img.shields.io/badge/Deployment-Docker-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-Ecom is a full-stack e-commerce and management platform for retail customers and store administrators. Beyond a standard storefront and checkout, customers get real-time WebSocket chat with AI-assisted support, while the platform runs from-scratch machine learning for product recommendations, demand forecasting, and bot/fraud detection, role-based access control with refresh token theft detection, an automated SEO & OpenGraph engine, and cascading media synchronization through a dedicated storage microservice — all behind a containerized, load-balanced deployment stack.
+Ecom is a full-stack e-commerce and management platform for retail customers and store administrators. Beyond a standard storefront and checkout, customers get real-time WebSocket chat with AI-assisted support, while the platform runs from-scratch machine learning for product recommendations, demand forecasting, and bot/fraud detection, role-based access control with refresh token theft detection, an automated SEO & OpenGraph engine, and cascading media synchronization through a dedicated storage microservice — all behind a containerized deployment with an nginx reverse proxy.
 
 ---
 
@@ -54,7 +54,7 @@ Ecom is a full-stack e-commerce and management platform for retail customers and
 - **Frontend:** Server-Side Rendering with Pug Templates, Bootstrap 5, CSS3, JavaScript ES6+, Socket.IO Client, OpenLayers Map Picker with OpenStreetMap/Nominatim Geocoding, Progressive Web App (Service Worker, dynamic Web App Manifest, offline fallback page).
 - **Backend:** Node.js, Express 5, TypeScript (Strict Mode, Fully Typed), Socket.IO Server, Groq API, Passport.js (OAuth2), Nodemailer, Bcryptjs, Joi, Axios, gzip response compression, CSV import/export (`papaparse` / `json2csv`), OpenMap.vn Reverse Geocoding (GoShip address resolution).
 - **Database & Storage:** MongoDB Atlas (Mongoose ORM with Type Generics, Embedded Sub-Schemas, & Partial Filter Indexes), Aggregation Pipeline Engine (Multi-Facet Metrics, Timezone Time-Series, & Unwind Operations), Atlas Search Engine with Regex Fallback, NodeCache (In-Memory Multi-Tier Caching: Metadata, Settings, Realtime Chat & Presence), Dynamic SEO Sub-Schema (`SeoSchema`), Standalone FileManager Microservice.
-- **Infrastructure & Design Patterns:** 3-Tier Layered Architecture (Routes → Controllers → Services → Models), DTO-Driven Domain Services, Shared Helper Layer (metadata cache invalidation, admin CRUD/trash lifecycle, paginated list queries, SEO payload builder, order resource rollback, FileManager client, media propagation), Zero N+1 Batch Query Resolution, Event-Driven Active Cache Invalidation, Payment Gateway Services, Admin Audit Trail Logging, Token Theft Detection & Refresh Token Rotation, Cascading Media Propagation, Path Traversal Protection, HttpOnly Cookies, Multer Disk Staging, OS Graceful Shutdown, Containerized Multi-Replica Deployment (Docker, `nginx` load balancing with sticky sessions).
+- **Infrastructure & Design Patterns:** 3-Tier Layered Architecture (Routes → Controllers → Services → Models), DTO-Driven Domain Services, Shared Helper Layer (metadata cache invalidation, admin CRUD/trash lifecycle, paginated list queries, SEO payload builder, order resource rollback, FileManager client, media propagation), Zero N+1 Batch Query Resolution, Event-Driven Active Cache Invalidation, Payment Gateway Services, Admin Audit Trail Logging, Token Theft Detection & Refresh Token Rotation, Cascading Media Propagation, Path Traversal Protection, HttpOnly Cookies, Multer Disk Staging, OS Graceful Shutdown, Containerized Deployment (Docker, `nginx` reverse proxy with WebSocket upgrade).
 - **Machine Learning & Forecasting (From-Scratch, No ML Libraries):** Item-based Collaborative Filtering (`Web/helpers/recommendation.helper.ts`), Isolation Forest unsupervised anomaly detection (`Web/helpers/isolation-forest.helper.ts`), and Holt's Linear Trend demand forecasting with reorder-point/safety-stock inventory planning (`Web/helpers/forecast.helper.ts`).
 
 ---
@@ -77,7 +77,8 @@ Ecom/
 ├── FileManager/                      # Standalone Media & Asset Storage Microservice (Port 4000)
 │   ├── config/                       # Allowed upload file extensions & security settings (secret strength, CORS allowlist, trust proxy)
 │   ├── controllers/                  # HTTP route handlers (request parsing & response mapping)
-│   ├── media/                        # Physical disk storage (temp staging & user assets)
+│   ├── media/                        # Physical disk storage (temp staging & user assets), bind-mounted into the container
+│   │   ├── chats/                    # Live-chat attachments, one folder per customer
 │   │   ├── temp/                     # Staging directory for partial / stream uploads
 │   │   └── users/                    # Sanitized user uploaded media storage
 │   ├── middlewares/                  # Timing-safe Bearer secret guard, failed-attempt limiter & CORS allowlist
@@ -129,9 +130,9 @@ Ecom/
 │   ├── package.json                  # Web application dependencies & scripts
 │   └── Dockerfile                    # Multi-stage build (tsc, then production deps + dist/, views/, public/)
 │
-├── nginx/
-│   └── nginx.conf                    # Load-balancing reverse proxy over web1+web2 (sticky ip_hash), WebSocket upgrade for /socket.io/
-└── docker-compose.yml                # nginx -> web1/web2 -> filemanager stack; filemanager has no published port
+├── nginx/                            # Mounted as nginx's conf.d directory (edit, then `nginx -s reload`)
+│   └── nginx.conf                    # Reverse proxy to web: re-resolves the container, forwards the client scheme, WebSocket upgrade for /socket.io/
+└── docker-compose.yml                # nginx -> web -> filemanager stack; filemanager has no published port
 ```
 
 ---
@@ -183,11 +184,10 @@ yarn dev
 
 ### Docker
 
-A production-style stack is defined in `docker-compose.yml`: `nginx` load-balances (sticky
-`ip_hash`, since Socket.IO chat has no shared adapter across replicas) over two identical `web`
-replicas, which reach `filemanager` — never published, reachable only from `web1`/`web2` over the
-internal Docker network. It does not run MongoDB: `DATABASE` in `Web/.env` is expected to point at
-MongoDB Atlas, same as local dev.
+A production-style stack is defined in `docker-compose.yml`: `nginx` is the reverse proxy in front
+of the `web` container, which reaches `filemanager` (never published, reachable only from `web`
+over the internal Docker network). It does not run MongoDB: `DATABASE` in `Web/.env` is expected
+to point at MongoDB Atlas, same as local dev.
 
 ```bash
 cp Web/.env.example Web/.env               # fill in real values
@@ -195,10 +195,13 @@ cp FileManager/.env.example FileManager/.env  # FILE_MANAGER_SECRET must match W
 docker compose up -d --build
 ```
 
-The app is then served on `http://localhost` (port 80) through nginx, load-balanced across both
-`web` replicas. Each service also has its own `Dockerfile` if you want to build/run it standalone.
-To add a third replica: duplicate the `web2` block in `docker-compose.yml` as `web3`, and add
-`server web3:3000;` to the `upstream` block in `nginx/nginx.conf`.
+The app is then served on `http://localhost` (port 80, also 3000) through nginx. Each service also
+has its own `Dockerfile` if you want to build/run it standalone.
+
+Auth cookies get the `Secure` flag only when the request arrived over HTTPS (at nginx, or at a
+proxy in front of it such as ngrok), so login also works over plain HTTP before TLS is set up.
+`nginx/` is mounted as a directory, so after editing `nginx/nginx.conf` run
+`docker compose exec nginx nginx -s reload`.
 
 ### Environment variables
 
@@ -233,7 +236,7 @@ To add a third replica: duplicate the `web2` block in `docker-compose.yml` as `w
 - **Reverse proxy:** set `TRUST_PROXY` in `Web/.env` to the number of proxies in front of the app (default `1` in production, `0` otherwise). A wrong value lets clients fake their IP and bypass the login and OTP rate limits.
 - **FileManager exposure:** it listens on `0.0.0.0:4000` and only the Web app has to reach it, so keep port 4000 closed to the public with a firewall or private network; browsers read media through the Web app at `/media`. If you publish it anyway (for example for the API documentation), put it behind HTTPS, use a `FILE_MANAGER_SECRET` of at least 32 random characters (`openssl rand -hex 32`), list the exact browser origins in `FILE_MANAGER_CORS_ORIGINS`, and set `TRUST_PROXY`. Wrong secrets are counted per client IP and answered with HTTP 429 after 20 failures in 15 minutes.
 - **Uploads:** only image, video, audio, PDF, text, Office and zip files are accepted, up to 10 MB each. Customer avatars and review photos must be real JPG, PNG, GIF or WEBP images.
-- **VNPay and ZaloPay without a public domain:** `localhost` works, because the VNPay browser return (`/order/payment-vnpay-result`) already records the payment. The server-to-server notifications (VNPay IPN `/order/payment-vnpay-ipn`, ZaloPay callback `/order/payment-zalopay-callback`) need a public HTTPS address, so they only work once the site is hosted or exposed with a tunnel such as ngrok. After hosting, register those URLs in the merchant portals so a payment is recorded even when the customer closes the browser before returning.
+- **Payments need a public URL (ngrok when running locally):** VNPay and ZaloPay call the app from their own servers (VNPay IPN `/order/payment-vnpay-ipn`, ZaloPay callback `/order/payment-zalopay-callback`), which cannot reach `localhost`. Expose nginx with a tunnel, e.g. `ngrok http --url=<your-domain> 80`, and set **Settings → General → Domain** (`domainWebsite`) to that URL: the payment return URLs, the ZaloPay callback, canonical links and the sitemap are all built from it. Without the tunnel, ZaloPay payments are never marked as paid, and a VNPay payment is recorded only if the customer's browser comes back to `/order/payment-vnpay-result`. After hosting, register the IPN/callback URLs in the merchant portals.
 - **Social login:** an account registered with a password that never proved its email loses that password the first time the real owner links Google or Facebook (they can sign in with the social account or use "Forgot password").
 
 ---
