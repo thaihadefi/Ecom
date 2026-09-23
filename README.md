@@ -7,9 +7,10 @@
 [![Bootstrap](https://img.shields.io/badge/UI-Bootstrap%205-7952B3?style=flat-square&logo=bootstrap)](https://getbootstrap.com/)
 [![CSS3](https://img.shields.io/badge/Styling-CSS3-1572B6?style=flat-square&logo=css3)](https://developer.mozilla.org/en-US/docs/Web/CSS)
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
+[![Docker](https://img.shields.io/badge/Deployment-Docker-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built for retail customers and store administrators. The platform seamlessly bridges consumer shopping experiences with enterprise administration through dynamic product discovery, product comparison, AI-assisted customer support, real-time chat, automated order lifecycle tracking, role-based access control (RBAC), an automated SEO & OpenGraph engine, cascading media synchronization, a dedicated media storage microservice, and from-scratch machine learning models for product recommendations, demand forecasting, and bot/fraud order detection.
+Ecom is a full-stack e-commerce and management platform for retail customers and store administrators. Beyond a standard storefront and checkout, customers get real-time WebSocket chat with AI-assisted support, while the platform runs from-scratch machine learning for product recommendations, demand forecasting, and bot/fraud detection, role-based access control with refresh token theft detection, an automated SEO & OpenGraph engine, and cascading media synchronization through a dedicated storage microservice — all behind a containerized, load-balanced deployment stack.
 
 ---
 
@@ -20,11 +21,11 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 - **Product Catalog, Atlas Search & Multi-Tier Caching:** Keyword search powered by MongoDB `Atlas Search` with multi-field regex fallback, real-time query suggestions (`/api/product-suggestions`), dynamic slugification, multi-attribute conjunction filtering (`$and` queries across color, size, and custom specifications), on-sale status filtering, multi-tier sorting (price, position, high-precision discount ranking), category tree navigation (`Web/models/category-product.model.ts`), zero N+1 queries via batch `$in` resolution, product comparison, and multi-tier in-memory caching (`metadataCache` via `Web/helpers/metadata-cache.helper.ts`) for instant catalog rendering.
 - **Product Variants & Interactive Selection:** Comprehensive multi-attribute product variants (`Web/models/product.model.ts`) with first in-stock variant auto-selection on detail view, real-time price and stock updates, gallery image synchronization, out-of-stock and inactive variant safeguards, option-aware cart/wishlist/compare additions with "Select Options" redirections, and dedicated variant image rendering.
 - **Cart & Dynamic Checkout:** Interactive shopping cart persisted client-side (`localStorage`) with server-side variant stock/quantity revalidation, coupon application, loyalty points redemption with automatic deduction caps, GoShip real-time carrier rate selection, shipping address management with GPS coordinates (`Web/models/user-address.model.ts`), and multi-gateway checkout (COD, VNPay, ZaloPay).
-- **Real-Time Support Chat & Rate Feedback:** Live customer-to-admin instant messaging powered by WebSockets (`Socket.io`) with online/active status tracking (`Web/helpers/presence.helper.ts`), two-tier chat caching (`Web/helpers/chat-cache.helper.ts`), live typing indicators, multi-file media attachments, open/locked conversation control, unread indicators, automated 10-day stale chat purge with microservice media cleanup (`Web/jobs/chat.job.ts`), and a 5-star conversation rating widget (`Web/views/client/partials/chat.pug`) reviewable by admins (`Web/views/admin/pages/chat-rate.pug`).
-- **Order Lifecycle & History:** Customer dashboard tracking purchase history with line-item variant details, payment status, a Retry Payment action on the order result page when an online payment is incomplete (`Web/views/client/pages/order-success.pug`), automated cancellation of unpaid online-payment (VNPay, ZaloPay) orders after 30 minutes, checked every 15 minutes, with atomic inventory release (`Web/jobs/order.job.ts`), and real-time status transitions (`Pending`, `Confirmed`, `Shipping`, `Completed`, `Cancelled`, `Returned`).
+- **Real-Time Support Chat & Rate Feedback:** Live customer-to-admin instant messaging powered by WebSockets (`Socket.io`) with online/active status tracking (`Web/helpers/presence.helper.ts`), two-tier chat caching (`Web/helpers/chat-cache.helper.ts`), live typing indicators, multi-file media attachments, open/locked conversation control, unread indicators, automated stale chat purge with microservice media cleanup (`Web/jobs/chat.job.ts`), and a 5-star conversation rating widget (`Web/views/client/partials/chat.pug`) reviewable by admins (`Web/views/admin/pages/chat-rate.pug`).
+- **Order Lifecycle & History:** Customer dashboard tracking purchase history with line-item variant details, payment status, a Retry Payment action on the order result page when an online payment is incomplete (`Web/views/client/pages/order-success.pug`), automated cancellation of unpaid online-payment (VNPay, ZaloPay) orders after a payment timeout, with atomic inventory release (`Web/jobs/order.job.ts`), and real-time status transitions (`Pending`, `Confirmed`, `Shipping`, `Completed`, `Cancelled`, `Returned`).
 - **Product Reviews, Recommendations & Flash Sales:** 5-star rating system with order-verified review submission, community review violation reporting (`Web/models/review.model.ts`), wishlist bookmarking, reward points earn-on-purchase lifecycle, flash sales (`Web/views/client/blocks/flash-sale.pug`), and "frequently bought together" recommendations (`Web/views/client/partials/bought-together-products.pug`) powered by an item-based Collaborative Filtering engine built from scratch (`Web/helpers/recommendation.helper.ts`) with recency-weighted co-occurrence scoring, category diversity re-ranking, and same-category most-viewed fallback for cold-start products, recomputed nightly (`Web/jobs/recommendation.job.ts`) with an admin-triggered manual recompute using async polling status.
 - **Editorial Blog & Information Pages:** Rich-content blog hub (`/article`) with category filtering, cookie-guarded view count deduplication, publication lifecycle (`draft`, `published`, `archived`), sticky sidebar navigation, customer inquiry submission (`/contact`), and dedicated static pages (`/about`, `/faq`, store policies with tab-safe external links).
-- **Multi-Currency & Internationalization:** Client-side dynamic currency conversion supporting 6 major currencies (`VND`, `USD`, `EUR`, `JPY`, `GBP`, `CNY`) with live exchange rate fetching (`exchangerate.host` primary, `open.er-api.com` fallback), localized decimal precision, `localStorage` caching with 6-hour TTL, and integrated GTranslate multilingual support.
+- **Multi-Currency & Internationalization:** Client-side dynamic currency conversion supporting 6 major currencies (`VND`, `USD`, `EUR`, `JPY`, `GBP`, `CNY`) with live exchange rate fetching (`exchangerate.host` primary, `open.er-api.com` fallback), localized decimal precision, `localStorage` caching, and integrated GTranslate multilingual support.
 - **Progressive Web App (PWA):** Installable storefront with a dynamically generated `Web App Manifest` (`/manifest.webmanifest`) reflecting live admin store settings (name, short name, favicon-derived icons), a Service Worker (`Web/public/sw.js`) implementing cache-first static assets and network-first HTML pages, and a dedicated offline fallback page (`Web/public/offline.html`) served when navigation requests fail without network connectivity.
 
 ### Store Manager Workflow
@@ -32,9 +33,9 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 - **CMS Layout & Block Builder:** Modular homepage layout engine featuring configurable dynamic blocks (`Web/models/block.model.ts`) and reusable page templates (`Web/models/template.model.ts`).
 - **Articles & Inquiry Management:** Full editorial publishing workflow for articles and blog categories (`Web/models/blog.model.ts`, `Web/models/category-blog.model.ts`) with dedicated SEO schemas, alongside a customer contact inquiry inbox (`Web/models/contact-inquiry.model.ts`).
 - **Coupons & Promotional Campaigns:** Campaign discount management (`Web/models/coupon.model.ts`) supporting percentage vs. fixed discounts, minimum qualifying order values, maximum discount caps, total usage limits, start/end validity scheduling, and public vs. private voucher visibility.
-- **AI-Powered Support Assistant:** LLM-driven semantic analysis of support conversations (smart reply suggestions, draft response refinement, conversation summarization, and customer sentiment/emotion detection), powered by the Groq API with dynamic model discovery and automatic failover (the live `GET /models` catalog is re-read once a day and right after a model is retired; the preferred and default models go first, then any active text model with tool support and a large context window; it moves on after a quota, retired-model, server or timeout error, at most 3 attempts within 45 seconds; `Web/helpers/ai.helper.ts`, `Web/configs/ai.config.ts`).
+- **AI-Powered Support Assistant:** LLM-driven semantic analysis of support conversations (smart reply suggestions, draft response refinement, conversation summarization, and customer sentiment/emotion detection), powered by the Groq API with dynamic model discovery and automatic failover (the live `GET /models` catalog is cached and re-read right after a model is retired; the preferred and default models go first, then any active text model with tool support and a large context window; it moves on to the next model after a quota, retired-model, server or timeout error, within an overall time budget; `Web/helpers/ai.helper.ts`, `Web/configs/ai.config.ts`).
 - **SEO & Social OpenGraph Engine:** Custom SEO metadata management (`title`, `description`, `keywords`, `robots index/follow`), OpenGraph social sharing tags (`og:image`), canonical URL middleware (`canonical`), and a dynamically generated `/sitemap.xml`.
-- **Inventory & Order Processing:** Searchable order management inbox (`Web/models/order.model.ts`) with direct status updates (`Pending`, `Confirmed`, `Shipping`, `Completed`, `Cancelled`, `Returned`), shipping carrier integration (GoShip), customer order confirmation & dispatch status emails with line-item variant breakdowns, atomic double-deduction and restoration of both product-level and variant-level stock within MongoDB transactions, automated cancellation of unpaid VNPay and ZaloPay orders after 30 minutes with inventory release (`Web/jobs/order.job.ts`), loyalty points awarded once an order is paid (never for cancelled or returned orders), and points and coupon usage restored when an order is cancelled or returned.
+- **Inventory & Order Processing:** Searchable order management inbox (`Web/models/order.model.ts`) with direct status updates (`Pending`, `Confirmed`, `Shipping`, `Completed`, `Cancelled`, `Returned`), shipping carrier integration (GoShip), customer order confirmation & dispatch status emails with line-item variant breakdowns, atomic double-deduction and restoration of both product-level and variant-level stock within MongoDB transactions, automated cancellation of unpaid VNPay and ZaloPay orders after a payment timeout with inventory release (`Web/jobs/order.job.ts`), loyalty points awarded once an order is paid (never for cancelled or returned orders), and points and coupon usage restored when an order is cancelled or returned.
 - **Sales Analytics & Aggregation Engine:** Advanced analytics dashboards powered by MongoDB Aggregation Pipelines (multi-branch `$facet` metrics, hourly/daily/monthly revenue grouping with `+07:00` timezone normalization, and `$unwind` product rankings) for time-series revenue (`Web/views/admin/pages/dashboard-revenue-by-time.pug`), top-selling products, order metrics, customer growth statistics, and one-click CSV data export (`json2csv`).
 - **Demand Forecasting & Reorder Planning:** Per-product inventory forecasting dashboard (`Web/views/admin/pages/dashboard-inventory-forecast.pug`) using Holt's linear trend smoothing over daily sales history with outlier winsorization (flash-sale spikes excluded from the trend baseline) and a reorder-point/safety-stock model (`Web/helpers/forecast.helper.ts`) to flag understocked products and suggest reorder quantities.
 
@@ -42,7 +43,7 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 - **Role-Based Access Control (RBAC):** Permission-matrix administration (`Web/models/role.model.ts`) and SuperAdmin privileges protecting core management routes across staff roles (`Web/models/account-admin.model.ts`).
 - **Account & Content Moderation:** User account status management (`Web/models/account-user.model.ts`), product review moderation & community report handling (`Web/models/review.model.ts`), and administrative audit logs (`Web/models/admin-log.model.ts`).
 - **System Settings & Active Cache Invalidation:** Centralized in-app administration for store info & brand identity (website name, domain, logo/favicon, warehouse coordinates, sender contact), Payment Gateways (ZaloPay, VNPay), Shipping Providers (GoShip API), Social Auth Keys, and App Passwords (`Web/models/setting.model.ts`), backed by synchronized multi-tier cache invalidation across mutations, webhooks, and media propagation: catalog metadata (`metadataCache` via `Web/helpers/metadata-cache.helper.ts`), system settings (`settingCache` via `Web/configs/setting.config.ts`), live support chat (`hotCache` & `warmCache` via `Web/helpers/chat-cache.helper.ts`), and online presence (`presenceCache` via `Web/helpers/presence.helper.ts`).
-- **Token Rotation & Theft Detection:** Refresh Token Rotation with a 15-second grace period for concurrent requests and instant global token revocation upon token reuse attempt (`Web/helpers/token-rotation.helper.ts`, `Web/models/refresh-token.model.ts`).
+- **Token Rotation & Theft Detection:** Refresh Token Rotation with a brief grace period for concurrent requests and instant global token revocation upon token reuse attempt (`Web/helpers/token-rotation.helper.ts`, `Web/models/refresh-token.model.ts`).
 - **Bot & Fraud Order Detection:** Unsupervised anomaly scoring on every order via a from-scratch Isolation Forest implementation (`Web/helpers/isolation-forest.helper.ts`) trained on order velocity, coupon usage, discount ratio, and account-age features, combined with hard-coded velocity/coupon-stampede rules into a hybrid detector; flagged orders surface in a dedicated review queue (`Web/views/admin/pages/order-flagged-list.pug`, `Web/services/admin/anomaly-detection.service.ts`) with dismiss/audit-trail support, nightly retraining, and an admin-triggered manual retrain with async polling status.
 - **Media Microservice & Cascading Sync:** Standalone media storage service (`FileManager`) with streamed multi-file batch upload, temp staging, UTF-8 sanitization, and automated cross-collection media rename/delete propagation (`Web/helpers/media-propagate.helper.ts`, `Web/models/media.model.ts`).
 
@@ -53,7 +54,7 @@ Ecom is a comprehensive e-commerce ecosystem and multi-role web platform built f
 - **Frontend:** Server-Side Rendering with Pug Templates, Bootstrap 5, CSS3, JavaScript ES6+, Socket.IO Client, OpenLayers Map Picker with OpenStreetMap/Nominatim Geocoding, Progressive Web App (Service Worker, dynamic Web App Manifest, offline fallback page).
 - **Backend:** Node.js, Express 5, TypeScript (Strict Mode, Fully Typed), Socket.IO Server, Groq API, Passport.js (OAuth2), Nodemailer, Bcryptjs, Joi, Axios, gzip response compression, CSV import/export (`papaparse` / `json2csv`), OpenMap.vn Reverse Geocoding (GoShip address resolution).
 - **Database & Storage:** MongoDB Atlas (Mongoose ORM with Type Generics, Embedded Sub-Schemas, & Partial Filter Indexes), Aggregation Pipeline Engine (Multi-Facet Metrics, Timezone Time-Series, & Unwind Operations), Atlas Search Engine with Regex Fallback, NodeCache (In-Memory Multi-Tier Caching: Metadata, Settings, Realtime Chat & Presence), Dynamic SEO Sub-Schema (`SeoSchema`), Standalone FileManager Microservice.
-- **Infrastructure & Design Patterns:** 3-Tier Layered Architecture (Routes → Controllers → Services → Models), DTO-Driven Domain Services, Shared Helper Layer (metadata cache invalidation, admin CRUD/trash lifecycle, paginated list queries, SEO payload builder, order resource rollback, FileManager client, media propagation), Zero N+1 Batch Query Resolution, Event-Driven Active Cache Invalidation, Payment Gateway Services, Admin Audit Trail Logging, Token Theft Detection & Refresh Token Rotation, Cascading Media Propagation, Path Traversal Protection, HttpOnly Cookies, Multer Disk Staging, OS Graceful Shutdown.
+- **Infrastructure & Design Patterns:** 3-Tier Layered Architecture (Routes → Controllers → Services → Models), DTO-Driven Domain Services, Shared Helper Layer (metadata cache invalidation, admin CRUD/trash lifecycle, paginated list queries, SEO payload builder, order resource rollback, FileManager client, media propagation), Zero N+1 Batch Query Resolution, Event-Driven Active Cache Invalidation, Payment Gateway Services, Admin Audit Trail Logging, Token Theft Detection & Refresh Token Rotation, Cascading Media Propagation, Path Traversal Protection, HttpOnly Cookies, Multer Disk Staging, OS Graceful Shutdown, Containerized Multi-Replica Deployment (Docker, `nginx` load balancing with sticky sessions).
 - **Machine Learning & Forecasting (From-Scratch, No ML Libraries):** Item-based Collaborative Filtering (`Web/helpers/recommendation.helper.ts`), Isolation Forest unsupervised anomaly detection (`Web/helpers/isolation-forest.helper.ts`), and Holt's Linear Trend demand forecasting with reorder-point/safety-stock inventory planning (`Web/helpers/forecast.helper.ts`).
 
 ---
@@ -83,48 +84,54 @@ Ecom/
 │   ├── routes/                       # Express routes for media & file-manager APIs
 │   ├── services/                     # Business & filesystem logic (upload, streaming, folder management)
 │   ├── index.ts                      # Storage server entry point (listens on 0.0.0.0:4000) & upload error handler
-│   └── package.json                  # Microservice dependencies & scripts
+│   ├── package.json                  # Microservice dependencies & scripts
+│   └── Dockerfile                    # Multi-stage build (tsc, then production deps + dist/; media/ is volume-mounted)
 │
-└── Web/                              # Main E-Commerce Web Application (Port 3000)
-    ├── configs/                      # Database connection, OAuth strategies & cookie-based OAuth state, system settings cache, ML/forecasting tuning constants, & env validation
-    ├── controllers/                  # HTTP request delegates (admin/, client/)
-    │   ├── admin/                    # Admin controllers delegating to admin services
-    │   └── client/                   # Storefront controllers delegating to client services
-    ├── helpers/                      # Shared utility + domain helpers (metadata cache invalidation, chat cache & presence, token rotation, rate limiting (MongoDB-backed), upload validation, HTML/URL sanitizing, OTP, media propagation, slugify, mailer, AI assistant, Atlas search, admin CRUD/trash, list-query pagination, SEO payload builder, order resource rollback, FileManager client, collaborative filtering, isolation forest, demand forecasting, statistics)
-    ├── interfaces/                   # Strict TypeScript domain interfaces & Input DTOs
-    │   ├── models/                   # Type declarations for Mongoose models & input DTO schemas
-    │   ├── request.interface.ts      # Extended Express Request interface (admin session & audit context)
-    │   └── socket-events.interface.ts # Typed DTOs for all Socket.IO event payloads (client & server events)
-    ├── jobs/                         # Background cron jobs (stale chat cleanup, unpaid order cancellation, CF recommendation recompute, anomaly model retraining & scoring backfill)
-    ├── middlewares/                  # Security guards, RBAC matrices, & request logger
-    │   ├── admin/                    # Admin authentication, permission guards & RBAC privilege-escalation guards
-    │   ├── client/                   # Customer auth, settings & SEO middleware
-    │   ├── rate-limit.middleware.ts  # Per-route rate limits for form posts
-    │   └── request-logger.middleware.ts # Structured HTTP access & slow-request logger with query redaction
-    ├── models/                       # Mongoose data models with TypeScript generics & sub-schemas
-    │   └── schemas/                  # Embedded sub-documents & reusable schema definitions
-    ├── public/                       # Client & Admin static web assets (CSS, JS, images) and the Swagger UI copy at api-docs/
-    │   ├── admin/                    # Admin panel custom scripts, styles, & plugins
-    │   ├── client/                   # Storefront styles, JS scripts, & icons
-    │   ├── offline.html              # PWA offline fallback page
-    │   └── sw.js                     # PWA Service Worker (cache-first assets, network-first HTML)
-    ├── routes/                       # Express routing modules (admin/, client/)
-    │   ├── admin/                    # Admin management routes & RBAC endpoints
-    │   └── client/                   # Customer-facing shopping & account routes
-    ├── services/                     # Core Business Logic & Database Transactions
-    │   ├── admin/                    # Store administration services (catalog, orders, RBAC, audit logs, CF recommendation recompute, anomaly detection & retraining)
-    │   ├── client/                   # Storefront services (cart, checkout, Atlas search, live chat, orders, OAuth account linking)
-    │   ├── payment/                  # Payment gateway services (ZaloPay, VNPay: URL creation, return/IPN/callback signature verification, shared paid-order helper)
-    │   └── socket/                   # Socket service layer (chat room init, message persistence, CDN file cleanup)
-    ├── sockets/                      # Socket.IO bootstrap, handshake JWT auth, and presence tracking; chat event handlers delegate persistence to the socket service layer
-    ├── validates/                    # Joi request payload validation schemas
-    │   ├── admin/                    # Admin request payload validation schemas
-    │   └── client/                   # Storefront request validation schemas
-    ├── views/                        # Server-rendered Pug templates (admin/, client/)
-    │   ├── admin/                    # Admin dashboard layouts, pages, partials, & mixins
-    │   └── client/                   # Storefront layouts, pages, partials, mixins, & dynamic blocks
-    ├── index.ts                      # App server entry point & OS Graceful Shutdown handler
-    └── package.json                  # Web application dependencies & scripts
+├── Web/                              # Main E-Commerce Web Application (Port 3000)
+│   ├── configs/                      # Database connection, OAuth strategies & cookie-based OAuth state, system settings cache, ML/forecasting tuning constants, & env validation
+│   ├── controllers/                  # HTTP request delegates (admin/, client/)
+│   │   ├── admin/                    # Admin controllers delegating to admin services
+│   │   └── client/                   # Storefront controllers delegating to client services
+│   ├── helpers/                      # Shared utility + domain helpers (metadata cache invalidation, chat cache & presence, token rotation, rate limiting (MongoDB-backed), upload validation, HTML/URL sanitizing, OTP, media propagation, slugify, mailer, AI assistant, Atlas search, admin CRUD/trash, list-query pagination, SEO payload builder, order resource rollback, FileManager client, collaborative filtering, isolation forest, demand forecasting, statistics)
+│   ├── interfaces/                   # Strict TypeScript domain interfaces & Input DTOs
+│   │   ├── models/                   # Type declarations for Mongoose models & input DTO schemas
+│   │   ├── request.interface.ts      # Extended Express Request interface (admin session & audit context)
+│   │   └── socket-events.interface.ts # Typed DTOs for all Socket.IO event payloads (client & server events)
+│   ├── jobs/                         # Background cron jobs (stale chat cleanup, unpaid order cancellation, CF recommendation recompute, anomaly model retraining & scoring backfill)
+│   ├── middlewares/                  # Security guards, RBAC matrices, & request logger
+│   │   ├── admin/                    # Admin authentication, permission guards & RBAC privilege-escalation guards
+│   │   ├── client/                   # Customer auth, settings & SEO middleware
+│   │   ├── rate-limit.middleware.ts  # Per-route rate limits for form posts
+│   │   └── request-logger.middleware.ts # Structured HTTP access & slow-request logger with query redaction
+│   ├── models/                       # Mongoose data models with TypeScript generics & sub-schemas
+│   │   └── schemas/                  # Embedded sub-documents & reusable schema definitions
+│   ├── public/                       # Client & Admin static web assets (CSS, JS, images) and the Swagger UI copy at api-docs/
+│   │   ├── admin/                    # Admin panel custom scripts, styles, & plugins
+│   │   ├── client/                   # Storefront styles, JS scripts, & icons
+│   │   ├── offline.html              # PWA offline fallback page
+│   │   └── sw.js                     # PWA Service Worker (cache-first assets, network-first HTML)
+│   ├── routes/                       # Express routing modules (admin/, client/)
+│   │   ├── admin/                    # Admin management routes & RBAC endpoints
+│   │   └── client/                   # Customer-facing shopping & account routes
+│   ├── services/                     # Core Business Logic & Database Transactions
+│   │   ├── admin/                    # Store administration services (catalog, orders, RBAC, audit logs, CF recommendation recompute, anomaly detection & retraining)
+│   │   ├── client/                   # Storefront services (cart, checkout, Atlas search, live chat, orders, OAuth account linking)
+│   │   ├── payment/                  # Payment gateway services (ZaloPay, VNPay: URL creation, return/IPN/callback signature verification, shared paid-order helper)
+│   │   └── socket/                   # Socket service layer (chat room init, message persistence, CDN file cleanup)
+│   ├── sockets/                      # Socket.IO bootstrap, handshake JWT auth, and presence tracking; chat event handlers delegate persistence to the socket service layer
+│   ├── validates/                    # Joi request payload validation schemas
+│   │   ├── admin/                    # Admin request payload validation schemas
+│   │   └── client/                   # Storefront request validation schemas
+│   ├── views/                        # Server-rendered Pug templates (admin/, client/)
+│   │   ├── admin/                    # Admin dashboard layouts, pages, partials, & mixins
+│   │   └── client/                   # Storefront layouts, pages, partials, mixins, & dynamic blocks
+│   ├── index.ts                      # App server entry point & OS Graceful Shutdown handler
+│   ├── package.json                  # Web application dependencies & scripts
+│   └── Dockerfile                    # Multi-stage build (tsc, then production deps + dist/, views/, public/)
+│
+├── nginx/
+│   └── nginx.conf                    # Load-balancing reverse proxy over web1+web2 (sticky ip_hash), WebSocket upgrade for /socket.io/
+└── docker-compose.yml                # nginx -> web1/web2 -> filemanager stack; filemanager has no published port
 ```
 
 ---
@@ -174,6 +181,25 @@ cp .env.example .env
 yarn dev
 ```
 
+### Docker
+
+A production-style stack is defined in `docker-compose.yml`: `nginx` load-balances (sticky
+`ip_hash`, since Socket.IO chat has no shared adapter across replicas) over two identical `web`
+replicas, which reach `filemanager` — never published, reachable only from `web1`/`web2` over the
+internal Docker network. It does not run MongoDB: `DATABASE` in `Web/.env` is expected to point at
+MongoDB Atlas, same as local dev.
+
+```bash
+cp Web/.env.example Web/.env               # fill in real values
+cp FileManager/.env.example FileManager/.env  # FILE_MANAGER_SECRET must match Web/.env
+docker compose up -d --build
+```
+
+The app is then served on `http://localhost` (port 80) through nginx, load-balanced across both
+`web` replicas. Each service also has its own `Dockerfile` if you want to build/run it standalone.
+To add a third replica: duplicate the `web2` block in `docker-compose.yml` as `web3`, and add
+`server web3:3000;` to the `upstream` block in `nginx/nginx.conf`.
+
 ### Environment variables
 
 `Web/.env` (copy from `Web/.env.example`):
@@ -198,6 +224,7 @@ yarn dev
 | Variable | Required | Purpose |
 |---|---|---|
 | `FILE_MANAGER_SECRET` | yes | Same value as in `Web/.env`; at least 32 characters in production |
+| `NODE_ENV` | no | Set to `production` to enforce the secret-strength check and the CORS allowlist below |
 | `FILE_MANAGER_CORS_ORIGINS` | no | Comma-separated browser origins allowed to call FileManager (unset: `*` in development, none in production) |
 | `TRUST_PROXY` | no | Number of reverse proxies in front of FileManager (default 1 in production, 0 otherwise) |
 

@@ -1,0 +1,81 @@
+# nginx (public, load-balancing) -> web1/web2 -> filemanager (internal only). No MongoDB
+# service: DATABASE in Web/.env points at MongoDB Atlas, same as local dev.
+#
+# Setup: cp Web/.env.example Web/.env && cp FileManager/.env.example FileManager/.env, fill
+# both in (FILE_MANAGER_SECRET must match in both), then `docker compose up -d --build`.
+#
+# To add a third web replica: copy the web2 block below to web3, and add `server web3:3000;`
+# to the upstream block in nginx/nginx.conf.
+x-web: &web-common
+  build:
+    context: ./Web
+  env_file:
+    - ./Web/.env
+  environment:
+    TRUST_PROXY: "1"
+    NODE_ENV: "production"
+    FILE_MANAGER_URL: "http://filemanager:4000"
+  depends_on:
+    filemanager:
+      condition: service_healthy
+  restart: unless-stopped
+  networks:
+    - ecom
+  healthcheck:
+    # TCP connect, not an HTTP request: some routes return non-2xx by design, and "localhost"
+    # can resolve to the IPv6 loopback the app doesn't listen on in this image.
+    test: ["CMD", "node", "-e", "require('net').createConnection(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 20s
+
+services:
+  web1:
+    <<: *web-common
+
+  web2:
+    <<: *web-common
+
+  filemanager:
+    build:
+      context: ./FileManager
+    env_file:
+      - ./FileManager/.env
+    environment:
+      TRUST_PROXY: "1"
+      NODE_ENV: "production"
+    restart: unless-stopped
+    networks:
+      - ecom
+    volumes:
+      - filemanager_media:/app/media
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').createConnection(4000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # No ports: published; only web1/web2 reach it, over the ecom network.
+
+  nginx:
+    image: nginx:alpine
+    depends_on:
+      web1:
+        condition: service_healthy
+      web2:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+    networks:
+      - ecom
+
+networks:
+  ecom:
+    driver: bridge
+
+volumes:
+  filemanager_media:
