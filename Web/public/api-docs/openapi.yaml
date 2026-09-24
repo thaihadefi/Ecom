@@ -1011,8 +1011,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/StandardResult'
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -1074,8 +1074,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/StandardResult'
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -1101,8 +1101,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/StandardResult'
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -1243,8 +1243,6 @@ paths:
                       type: object
                   userUnreadCount:
                     type: integer
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -2030,8 +2028,8 @@ paths:
                   status:
                     type: object
                     additionalProperties: true
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/PermissionDenied'
       security:
@@ -2262,8 +2260,8 @@ paths:
             text/csv:
               schema:
                 type: string
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/PermissionDenied'
         '500':
@@ -2955,8 +2953,8 @@ paths:
             text/csv:
               schema:
                 type: string
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/PermissionDenied'
         '500':
@@ -3219,8 +3217,8 @@ paths:
                   status:
                     type: object
                     additionalProperties: true
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/PermissionDenied'
       security:
@@ -3837,8 +3835,8 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -3889,8 +3887,8 @@ paths:
                       - day
                       - month
                 additionalProperties: true
-        '302':
-          $ref: '#/components/responses/RedirectToLogin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -4789,7 +4787,10 @@ paths:
                   type: string
                 usePoint:
                   type: boolean
-                usedPoint: {}
+                usedPoint:
+                  type: integer
+                  minimum: 0
+                  description: Number of loyalty points to redeem.
               required:
                 - fullName
                 - phone
@@ -6380,12 +6381,12 @@ components:
             - ''
         startDate:
           type: string
-          pattern: ^\d{2}\/\d{2}\/\d{4}$
-          description: Empty string allowed.
+          pattern: ^(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})$
+          description: 'ISO 8601 date (YYYY-MM-DD) preferred. DD/MM/YYYY also accepted via form submission.'
         endDate:
           type: string
-          pattern: ^\d{2}\/\d{2}\/\d{4}$
-          description: Empty string allowed.
+          pattern: ^(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})$
+          description: 'ISO 8601 date (YYYY-MM-DD) preferred. DD/MM/YYYY also accepted via form submission.'
         description:
           type: string
           description: Empty string allowed.
@@ -6520,9 +6521,9 @@ components:
           maxLength: 200
           pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
         position:
-          type: string
-          pattern: ^\d{1,9}$
-          description: Empty string allowed.
+          type: integer
+          minimum: 0
+          description: Accepts both integer and string-encoded integer via multipart.
         status:
           type: string
           enum:
@@ -6543,13 +6544,13 @@ components:
           type: string
           description: Empty string allowed.
         priceOld:
-          type: string
-          pattern: ^\d{1,12}$
-          description: Empty string allowed.
+          type: integer
+          minimum: 0
+          description: Accepts both integer and string-encoded integer via multipart.
         priceNew:
-          type: string
-          pattern: ^\d{1,12}$
-          description: Empty string allowed.
+          type: integer
+          minimum: 0
+          description: Accepts both integer and string-encoded integer via multipart.
         attributes:
           type: string
           description: Empty string allowed.
@@ -6557,9 +6558,9 @@ components:
           type: string
           description: Empty string allowed.
         stock:
-          type: string
-          pattern: ^\d{1,9}$
-          description: Empty string allowed.
+          type: integer
+          minimum: 0
+          description: Accepts both integer and string-encoded integer via multipart.
         tags:
           type: string
           description: Empty string allowed.

@@ -1568,11 +1568,11 @@
           "200": {
             "$ref": "#/components/responses/StandardResult"
           },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
-          },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/PermissionDenied"
@@ -1673,11 +1673,11 @@
           "200": {
             "$ref": "#/components/responses/StandardResult"
           },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
-          },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/PermissionDenied"
@@ -1718,11 +1718,11 @@
           "200": {
             "$ref": "#/components/responses/StandardResult"
           },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
-          },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/PermissionDenied"
@@ -1947,9 +1947,6 @@
                 }
               }
             }
-          },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -3197,8 +3194,8 @@
               }
             }
           },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/PermissionDenied"
@@ -3572,8 +3569,8 @@
               }
             }
           },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/PermissionDenied"
@@ -4653,8 +4650,8 @@
               }
             }
           },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/PermissionDenied"
@@ -5076,8 +5073,8 @@
               }
             }
           },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/PermissionDenied"
@@ -6078,11 +6075,11 @@
               }
             }
           },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
-          },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/PermissionDenied"
@@ -6159,11 +6156,11 @@
               }
             }
           },
-          "302": {
-            "$ref": "#/components/responses/RedirectToLogin"
-          },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
             "$ref": "#/components/responses/PermissionDenied"
@@ -7586,7 +7583,11 @@
                   "usePoint": {
                     "type": "boolean"
                   },
-                  "usedPoint": {}
+                  "usedPoint": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Number of loyalty points to redeem."
+                  }
                 },
                 "required": [
                   "fullName",
@@ -10027,13 +10028,13 @@
           },
           "startDate": {
             "type": "string",
-            "pattern": "^\\d{2}\\/\\d{2}\\/\\d{4}$",
-            "description": "Empty string allowed."
+            "pattern": "^(\\d{4}-\\d{2}-\\d{2}|\\d{2}\\/\\d{2}\\/\\d{4})$",
+            "description": "ISO 8601 date (YYYY-MM-DD) preferred. DD/MM/YYYY also accepted via form submission."
           },
           "endDate": {
             "type": "string",
-            "pattern": "^\\d{2}\\/\\d{2}\\/\\d{4}$",
-            "description": "Empty string allowed."
+            "pattern": "^(\\d{4}-\\d{2}-\\d{2}|\\d{2}\\/\\d{2}\\/\\d{4})$",
+            "description": "ISO 8601 date (YYYY-MM-DD) preferred. DD/MM/YYYY also accepted via form submission."
           },
           "description": {
             "type": "string",
@@ -10223,9 +10224,9 @@
             "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
           },
           "position": {
-            "type": "string",
-            "pattern": "^\\d{1,9}$",
-            "description": "Empty string allowed."
+            "type": "integer",
+            "minimum": 0,
+            "description": "Accepts both integer and string-encoded integer via multipart."
           },
           "status": {
             "type": "string",
@@ -10253,14 +10254,14 @@
             "description": "Empty string allowed."
           },
           "priceOld": {
-            "type": "string",
-            "pattern": "^\\d{1,12}$",
-            "description": "Empty string allowed."
+            "type": "integer",
+            "minimum": 0,
+            "description": "Accepts both integer and string-encoded integer via multipart."
           },
           "priceNew": {
-            "type": "string",
-            "pattern": "^\\d{1,12}$",
-            "description": "Empty string allowed."
+            "type": "integer",
+            "minimum": 0,
+            "description": "Accepts both integer and string-encoded integer via multipart."
           },
           "attributes": {
             "type": "string",
@@ -10271,9 +10272,9 @@
             "description": "Empty string allowed."
           },
           "stock": {
-            "type": "string",
-            "pattern": "^\\d{1,9}$",
-            "description": "Empty string allowed."
+            "type": "integer",
+            "minimum": 0,
+            "description": "Accepts both integer and string-encoded integer via multipart."
           },
           "tags": {
             "type": "string",

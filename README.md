@@ -10,7 +10,7 @@
 [![Docker](https://img.shields.io/badge/Deployment-Docker-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-Ecom is a full-stack e-commerce and management platform for retail customers and store administrators. Beyond a standard storefront and checkout, customers get real-time WebSocket chat with AI-assisted support, while the platform runs from-scratch machine learning for product recommendations, demand forecasting, and bot/fraud detection, role-based access control with refresh token theft detection, an automated SEO & OpenGraph engine, and cascading media synchronization through a dedicated storage microservice — all behind a containerized deployment with an nginx reverse proxy.
+Ecom is a full-stack e-commerce and store management platform featuring real-time customer messaging with LLM-assisted operator workflows, and embedded machine learning for recommendations, fraud detection, and demand forecasting. It is architected with role-based access control, token theft detection, a dedicated media microservice, and a containerized deployment behind an nginx reverse proxy.
 
 ---
 
@@ -61,8 +61,8 @@ Ecom is a full-stack e-commerce and management platform for retail customers and
 
 ## API Documentation
 
-- **Interactive docs:** [Swagger UI on GitHub Pages](https://thaihadefi.github.io/ecom-api-docs/) and the OpenAPI 3.0 file [openapi.yaml](https://thaihadefi.github.io/ecom-api-docs/openapi.yaml).
-- **Try it out:** with the Web app running, open `http://localhost:3000/api-docs/`. It is served from the API's own origin, so the HTTP-only auth cookies are sent; the GitHub Pages copy cannot send them.
+- **Interactive docs:** [Swagger UI on Vercel](https://ecom-api-docs.vercel.app) and the OpenAPI 3.0 file [openapi.yaml](https://ecom-api-docs.vercel.app/openapi.yaml).
+- **Try it out:** with the Web app running, open `http://localhost:3000/api-docs/`. It is served from the API's own origin, so the HTTP-only auth cookies are sent; the Vercel copy cannot send them.
 - **Base URLs:** Web `http://localhost:3000`, FileManager `http://localhost:4000` (production URL: TBD).
 - **Errors:** a failed request answers with the matching HTTP status (400 invalid request, 401 not logged in, 403 not allowed, 404 not found, 409 conflict with the current state, 429 too many attempts, 500 unexpected error, 502 a dependent service failed) and the body `{ "code": "error", "message": "..." }`; success is HTTP 200 with `{ "code": "success" }`. The helpers are in `Web/helpers/http-response.helper.ts`.
 - **Authentication:** The JSON endpoints of Web (`/api`, `/admin/api`) accept the `tokenUser` / `tokenAdmin` cookies set by the login endpoints (used by the browser pages) or `Authorization: Bearer <accessToken>` with the `accessToken` the login endpoints return (for API clients); they answer 401 and 403 as JSON and never redirect. FileManager uses `Authorization: Bearer <FILE_MANAGER_SECRET>` (enter it under "Authorize"); browser calls to it are cross-origin, so in production its origin must be listed in `FILE_MANAGER_CORS_ORIGINS`.

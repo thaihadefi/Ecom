@@ -5,6 +5,15 @@ import moment from 'moment';
 import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
 import { paginatedSearch } from "../../helpers/list-query.helper";
 
+const parseFlexDate = (raw: unknown): Date | undefined => {
+  if (!raw) return undefined;
+  const s = String(raw).trim();
+  if (!s) return undefined;
+  const iso = moment(s, "YYYY-MM-DD", true);
+  if (iso.isValid()) return iso.toDate();
+  return moment(s, "DD/MM/YYYY", true).toDate();
+};
+
 export const createCoupon = async (couponData: ICouponInput): Promise<{ success: boolean; status?: number; message: string; coupon?: ICoupon }> => {
   const existCoupon = await Coupon.findOne({
     code: String(couponData.code || "").trim(),
@@ -20,8 +29,9 @@ export const createCoupon = async (couponData: ICouponInput): Promise<{ success:
   couponData.minOrderValue = couponData.minOrderValue ? parseInt(couponData.minOrderValue as string) : 0;
   couponData.maxDiscountValue = couponData.maxDiscountValue ? parseInt(couponData.maxDiscountValue as string) : 0;
   couponData.usageLimit = couponData.usageLimit ? parseInt(couponData.usageLimit as string) : 0;
-  couponData.startDate = couponData.startDate ? moment(couponData.startDate as string, "DD/MM/YYYY").toDate() : undefined;
-  couponData.endDate = couponData.endDate ? moment(couponData.endDate as string, "DD/MM/YYYY").endOf("day").toDate() : undefined;
+  couponData.startDate = parseFlexDate(couponData.startDate);
+  const endParsed = parseFlexDate(couponData.endDate);
+  couponData.endDate = endParsed ? moment(endParsed).endOf("day").toDate() : undefined;
   couponData.search = toSearchText(`${couponData.code} ${couponData.name}`);
 
   const newRecord = new Coupon(couponData);
@@ -91,8 +101,9 @@ export const updateCoupon = async (id: string, updateData: ICouponInput): Promis
   updateData.minOrderValue = updateData.minOrderValue ? parseInt(String(updateData.minOrderValue)) : 0;
   updateData.maxDiscountValue = updateData.maxDiscountValue ? parseInt(String(updateData.maxDiscountValue)) : 0;
   updateData.usageLimit = updateData.usageLimit ? parseInt(String(updateData.usageLimit)) : 0;
-  updateData.startDate = updateData.startDate ? moment(String(updateData.startDate), "DD/MM/YYYY").toDate() : undefined;
-  updateData.endDate = updateData.endDate ? moment(String(updateData.endDate), "DD/MM/YYYY").endOf("day").toDate() : undefined;
+  updateData.startDate = parseFlexDate(updateData.startDate);
+  const endParsed = parseFlexDate(updateData.endDate);
+  updateData.endDate = endParsed ? moment(endParsed).endOf("day").toDate() : undefined;
   updateData.search = toSearchText(`${updateData.code} ${updateData.name}`);
 
   await Coupon.updateOne({ _id: id, deleted: false }, updateData);
