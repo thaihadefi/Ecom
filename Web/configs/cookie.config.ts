@@ -1,7 +1,5 @@
-const IS_PROD = process.env.NODE_ENV === "production";
-
+// `secure` is set per request by middlewares/secure-cookie.middleware.ts (Secure only over HTTPS).
 export const COOKIE_OPTS = {
   httpOnly: true,
   sameSite: "lax" as const,
-  secure: IS_PROD,
 };

@@ -32,10 +32,14 @@ export const fmDeleteFile = (folder: string, fileName: string): void => {
   axios
     .delete(`${domainCDN}/files`, { params: { folder, fileName }, headers: bearerHeader() })
     .catch((err: unknown) => {
+      if (isAlreadyGone(err)) return;
       const msg = err instanceof Error ? err.message : "unknown error";
       console.error(`[FileManager] orphan file, delete failed: ${folder}/${fileName} (${msg})`);
     });
 };
+
+// Deletes are idempotent: a file or folder that no longer exists is already in the wanted state.
+const isAlreadyGone = (err: unknown): boolean => axios.isAxiosError(err) && err.response?.status === 404;
 
 export const fmDeleteByLink = (link: string): void => {
   const i = link.lastIndexOf("/");
@@ -46,6 +50,7 @@ export const fmDeleteFolder = (folderPath: string): void => {
   axios
     .delete(`${domainCDN}/folders`, { params: { folderPath }, headers: bearerHeader() })
     .catch((err: unknown) => {
+      if (isAlreadyGone(err)) return;
       const msg = err instanceof Error ? err.message : "unknown error";
       console.error(`[FileManager] orphan folder, delete failed: ${folderPath} (${msg})`);
     });

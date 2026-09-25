@@ -2,14 +2,15 @@ import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import * as clientAuthService from "../../services/client/auth.service";
 import { bearerTokenOf, isApiRequest, usesAuthorizationHeader } from "../../helpers/access-token.helper";
+import { tokenIssuedAtMs } from "../../helpers/token-rotation.helper";
 
 const paths = [
   "/.well-known",
   "/client"
 ];
 
-const loadAccountIntoLocals = async (res: Response, userId: string, email: string, issuedAt?: number) => {
-  const accountUser = await clientAuthService.getUserAccountForAuth(userId, email, issuedAt);
+const loadAccountIntoLocals = async (res: Response, userId: string, email: string, issuedAtMs?: number) => {
+  const accountUser = await clientAuthService.getUserAccountForAuth(userId, email, issuedAtMs);
   if (!accountUser) return false;
 
   res.locals.accountUser = accountUser;
@@ -27,7 +28,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
       if (bearer) {
         try {
           const decoded = jwt.verify(bearer, `${process.env.JWT_SECRET}`) as JwtPayload;
-          await loadAccountIntoLocals(res, decoded.id, decoded.email, decoded.iat);
+          await loadAccountIntoLocals(res, decoded.id, decoded.email, tokenIssuedAtMs(decoded));
         } catch {
           // an invalid or expired token leaves the request anonymous, so protected routes answer 401
         }
@@ -40,7 +41,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
     if (token) {
       try {
         const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as JwtPayload;
-        if (await loadAccountIntoLocals(res, decoded.id, decoded.email, decoded.iat)) {
+        if (await loadAccountIntoLocals(res, decoded.id, decoded.email, tokenIssuedAtMs(decoded))) {
           return next();
         }
       } catch (err: unknown) {

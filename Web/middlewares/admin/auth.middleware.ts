@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import * as adminAuthService from "../../services/admin/auth.service";
 import { RequestAccount } from "../../interfaces/request.interface";
 import { bearerTokenOf, isApiRequest, usesAuthorizationHeader } from "../../helpers/access-token.helper";
+import { tokenIssuedAtMs } from "../../helpers/token-rotation.helper";
 
 interface AdminAccountForLocals {
   id?: string;
@@ -48,7 +49,7 @@ export const verifyToken = async (req: RequestAccount, res: Response, next: Next
       if (bearer) {
         try {
           const decoded = jwt.verify(bearer, `${process.env.JWT_SECRET}`) as jwt.JwtPayload;
-          existAccount = await adminAuthService.getAdminAccountForAuth(decoded.id, decoded.email, decoded.iat);
+          existAccount = await adminAuthService.getAdminAccountForAuth(decoded.id, decoded.email, tokenIssuedAtMs(decoded));
         } catch {
           existAccount = null;
         }
@@ -67,7 +68,7 @@ export const verifyToken = async (req: RequestAccount, res: Response, next: Next
     if (token) {
       try {
         const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as jwt.JwtPayload;
-        const existAccount = await adminAuthService.getAdminAccountForAuth(decoded.id, decoded.email, decoded.iat);
+        const existAccount = await adminAuthService.getAdminAccountForAuth(decoded.id, decoded.email, tokenIssuedAtMs(decoded));
 
         if (existAccount) {
           await loadAdminIntoLocals(res, req, existAccount);

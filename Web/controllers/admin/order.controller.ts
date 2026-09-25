@@ -1,4 +1,4 @@
-import { safeCsvOptions } from "../../helpers/csv.helper";
+import { safeCsvOptions, toCsvRows } from "../../helpers/csv.helper";
 import { Request, Response } from 'express';
 import { pathAdmin } from '../../configs/variable.config';
 import { Parser } from 'json2csv';
@@ -117,7 +117,7 @@ export const exportCSV = async (_req: Request, res: Response) => {
       const batch = await orderService.getOrdersBatchForExport(skip, BATCH);
       if (!batch.length) break;
 
-      let csv = parser.parse(batch);
+      let csv = parser.parse(toCsvRows(batch));
       if (headerWritten) {
         csv = csv.substring(csv.indexOf("\n") + 1);
       }

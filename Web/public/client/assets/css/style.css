@@ -184,7 +184,6 @@ button {
     content: "";
     width: 80px;
     height: 15px;
-    background: url(../images/line_shapes.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -218,7 +217,6 @@ button {
     content: "";
     width: 100px;
     height: 75px;
-    background: url(../images/heading_shapes.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -1705,7 +1703,6 @@ header .header_support p.header_hotline a:hover {
     content: "";
     width: 80px;
     height: 25px;
-    background: url(../images/line_shapes.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -1728,7 +1725,6 @@ header .header_support p.header_hotline a:hover {
     content: "";
     width: 100px;
     height: 100px;
-    background: url(../images/arrow_shapes.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -2322,7 +2318,6 @@ header .header_support p.header_hotline a:hover {
 .view_all_btn_area .view_all_btn::after {
     position: absolute;
     content: "";
-    background: url(../images/arrow_icon_black.svg);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -4559,7 +4554,6 @@ footer {
 .testimonial_item::after {
     position: absolute;
     content: "";
-    background: url(../images/testimonial_shapes_3.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -4963,7 +4957,6 @@ footer {
 .about_us_text ol li::before {
     position: absolute;
     content: "";
-    background: url(../images/about_check.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -5309,7 +5302,6 @@ footer {
     left: 50px;
     width: 45px;
     height: 39px;
-    background: url(../images/review.png);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -5338,7 +5330,6 @@ footer {
     left: 0px;
     width: 15px;
     height: 15px;
-    background: url(../images/Star.png);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -5544,7 +5535,6 @@ footer {
     margin: 20px 0px 45px 25px;
     padding: 60px 0px;
     text-align: center;
-    background: url(../images/blog_owner_bg.html);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -7928,7 +7918,6 @@ footer {
 .track_order_map li::before {
     position: absolute;
     content: "";
-    background: url(../images/traking_arrow_1.png);
     background-position: center;
     background-size: contain;
     background-repeat: no-repeat;
@@ -8229,14 +8218,12 @@ footer {
 }
 
 .faq_page .accordion-button::after {
-    background: url(../images/plus_icon.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
 }
 
 .faq_page .accordion-button:not(.collapsed)::after {
-    background: url(../images/minus_icon.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -9789,6 +9776,8 @@ footer {
     font-size: 13px !important;
     font-weight: 500 !important;
     color: var(--colorBlack) !important;
+    white-space: nowrap !important;
+    line-height: 1.4 !important;
 }
 
 #chat-button {

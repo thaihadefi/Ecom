@@ -275,8 +275,11 @@ export const sendMail = async (email: string, title: string, content: string) =>
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
+    // Port 587 starts in plain text and upgrades with STARTTLS; `secure: true` is only for port 465.
+    // requireTLS refuses to send if the upgrade does not happen.
     port: 587,
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
+    requireTLS: true,
     auth: {
       user: gmailUser,
       pass: gmailPassword,

@@ -251,5 +251,5 @@ export const permanentlyDeleteManyOrders = async (ids: string[]) => {
 export const getOrderTrash = () => getTrash(Order, "_id code fullName phone total orderStatus paymentStatus deletedAt");
 
 export const getOrdersBatchForExport = async (skip: number, limit: number) => {
-  return Order.find({ deleted: false }).sort({ _id: 1 }).skip(skip).limit(limit);
+  return Order.find({ deleted: false }).sort({ _id: 1 }).skip(skip).limit(limit).lean();
 };

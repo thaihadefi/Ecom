@@ -152,7 +152,6 @@ export const detailView = async (req: Request, res: Response) => {
     const updatedHistory = [productId, ...readViewHistory(req).filter((id) => id !== productId)].slice(0, PRODUCT_DISPLAY_CONFIG.VIEWED_PRODUCTS_LIMIT);
     res.cookie("productViewHistory", JSON.stringify(updatedHistory), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 30 * 24 * 60 * 60 * 1000
     });

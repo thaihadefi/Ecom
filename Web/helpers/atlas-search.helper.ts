@@ -51,40 +51,40 @@ export const searchAtlas = async <T>({
     }
   ];
 
+  // $search against a missing or still-building index returns no hits instead of throwing, so an
+  // empty result falls back to the regex search too, not only an error.
   try {
     const results = await model.aggregate(stages);
-    return results
-      .map((item: { _id?: unknown }) => item._id ? String(item._id) : undefined)
-      .filter((id): id is string => typeof id === "string" && id.length > 0);
+    const ids = toIds(results);
+    if (ids.length > 0) return ids;
   } catch (error) {
-    let fallbackQuery: Record<string, unknown>;
-
-    if (model.schema.path("search")) {
-      const cleanKeyword = removeAccents(keyword.trim());
-      const words = cleanKeyword.split(/\s+/).filter(Boolean);
-      fallbackQuery = {
-        $and: words.map(word => ({
-          search: new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")
-        }))
-      };
-    } else {
-      const paths = Array.isArray(atlasPaths) ? atlasPaths : [atlasPaths];
-      const regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-      fallbackQuery = {
-        $or: paths.map(path => ({ [path]: regex }))
-      };
-    }
-
-    try {
-      const results = await model.find(fallbackQuery).select("_id").limit(limit);
-      return results
-        .map((item: { _id?: unknown }) => item._id ? String(item._id) : undefined)
-        .filter((id): id is string => typeof id === "string" && id.length > 0);
-    } catch (fallbackError) {
-      console.error("Fallback search failed:", fallbackError);
-      return [];
-    }
+    console.error("Atlas search failed, using regex fallback:", error instanceof Error ? error.message : error);
   }
+
+  try {
+    const results = await model.find(buildFallbackQuery(model, keyword, atlasPaths)).select("_id").limit(limit);
+    return toIds(results);
+  } catch (fallbackError) {
+    console.error("Fallback search failed:", fallbackError);
+    return [];
+  }
+};
+
+const toIds = (results: Array<{ _id?: unknown }>): string[] =>
+  results
+    .map((item) => item._id ? String(item._id) : undefined)
+    .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+const escapeRegex = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const buildFallbackQuery = <T>(model: Model<T>, keyword: string, atlasPaths: string | string[]): Record<string, unknown> => {
+  if (model.schema.path("search")) {
+    const words = removeAccents(keyword.trim()).split(/\s+/).filter(Boolean);
+    return { $and: words.map(word => ({ search: new RegExp(escapeRegex(word), "i") })) };
+  }
+  const paths = Array.isArray(atlasPaths) ? atlasPaths : [atlasPaths];
+  const regex = new RegExp(escapeRegex(keyword), "i");
+  return { $or: paths.map(path => ({ [path]: regex })) };
 };
 
 export const findIdsByKeyword = searchAtlas;

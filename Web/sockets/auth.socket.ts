@@ -5,7 +5,7 @@ import AccountAdmin from "../models/account-admin.model";
 import AccountUser from "../models/account-user.model";
 import RefreshToken from "../models/refresh-token.model";
 import { getEffectivePermissions } from "../services/admin/auth.service";
-import { isIssuedBeforePasswordChange } from "../helpers/token-rotation.helper";
+import { isIssuedBeforePasswordChange, tokenIssuedAtMs } from "../helpers/token-rotation.helper";
 
 type SocketNextFn = (err?: Error) => void;
 
@@ -15,7 +15,7 @@ interface ResolvedIdentity {
   id: string;
   email: string;
   role: SocketRole;
-  issuedAt?: number;
+  issuedAtMs?: number;
 }
 
 interface ActiveAccount {
@@ -26,11 +26,11 @@ const loadActiveAccount = async (identity: ResolvedIdentity): Promise<ActiveAcco
   const filter = { _id: identity.id, email: identity.email, deleted: false, status: "active" };
   if (identity.role === "admin") {
     const admin = await AccountAdmin.findOne(filter).select("_id roles isSuperAdmin passwordChangedAt");
-    if (!admin || isIssuedBeforePasswordChange(identity.issuedAt, admin.passwordChangedAt)) return null;
+    if (!admin || isIssuedBeforePasswordChange(identity.issuedAtMs, admin.passwordChangedAt)) return null;
     return { permissions: await getEffectivePermissions(admin) };
   }
   const user = await AccountUser.findOne(filter).select("_id passwordChangedAt");
-  if (!user || isIssuedBeforePasswordChange(identity.issuedAt, user.passwordChangedAt)) return null;
+  if (!user || isIssuedBeforePasswordChange(identity.issuedAtMs, user.passwordChangedAt)) return null;
   return { permissions: [] };
 };
 
@@ -39,7 +39,7 @@ const identityFromAccessToken = (token: string | undefined, role: SocketRole): R
   try {
     const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as JwtPayload;
     if (!decoded?.id || !decoded?.email) return null;
-    return { id: decoded.id, email: decoded.email, role, issuedAt: decoded.iat };
+    return { id: decoded.id, email: decoded.email, role, issuedAtMs: tokenIssuedAtMs(decoded) };
   } catch {
     
     return null;
@@ -66,7 +66,7 @@ const identityFromRefreshToken = async (
     : await AccountUser.findOne(filter).select("_id email");
   if (!account) return null;
 
-  return { id: String(account._id), email: account.email ?? "", role, issuedAt: Math.floor(Date.now() / 1000) };
+  return { id: String(account._id), email: account.email ?? "", role, issuedAtMs: Date.now() };
 };
 
 export const authSocket = async (socket: Socket, next: SocketNextFn) => {

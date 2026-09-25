@@ -6,7 +6,6 @@ import RefreshToken from "../../models/refresh-token.model";
 import VerifyOTP from "../../models/verify-otp.model";
 import { consumeOtp } from "../../helpers/otp.helper";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { generateRandomNumber } from "../../helpers/generate.helper";
 import { sendMail, emailTemplates } from "../../helpers/mail.helper";
 import { issueRefreshToken, rotateRefreshToken, signAccessToken, revokeRefreshTokens, isIssuedBeforePasswordChange, REFRESH_TOKEN_TTL_MS } from "../../helpers/token-rotation.helper";
@@ -45,11 +44,7 @@ export const registerUser = async (userData: IRegisterUserInput): Promise<{ succ
   await newAccount.save();
   invalidateAdminDashboardCaches();
 
-  const tokenUser = jwt.sign(
-    { id: newAccount.id, email: newAccount.email },
-    `${process.env.JWT_SECRET}`,
-    { expiresIn: "7d" }
-  );
+  const tokenUser = signAccessToken({ id: newAccount.id, email: newAccount.email }, "7d");
 
   return {
     success: true,
@@ -74,11 +69,7 @@ export const loginUser = async (email: string, password: string, rememberPasswor
     return { success: false, status: 403, message: "Account is inactive!" };
   }
 
-  const tokenUser = jwt.sign(
-    { id: existAccount.id, email: existAccount.email },
-    `${process.env.JWT_SECRET}`,
-    { expiresIn: rememberPassword ? "7d" : "1d" }
-  );
+  const tokenUser = signAccessToken({ id: existAccount.id, email: existAccount.email }, rememberPassword ? "7d" : "1d");
 
   let refreshToken: string | undefined;
   if (rememberPassword) {
@@ -102,11 +93,7 @@ export const logoutUser = async (refreshToken?: string) => {
 
 export const createOAuthSession = async (user: { id?: string; _id?: unknown; email?: string }) => {
   const userId = String(user._id || user.id);
-  const tokenUser = jwt.sign(
-    { id: userId, email: user.email },
-    `${process.env.JWT_SECRET}`,
-    { expiresIn: "1d" }
-  );
+  const tokenUser = signAccessToken({ id: userId, email: user.email }, "1d");
 
   const refreshToken = await issueRefreshToken(userId, "user");
   return {
@@ -181,11 +168,7 @@ export const verifyOtpAndLogin = async (email: string, otp: string) => {
 
   await AccountUser.updateOne({ _id: existAccount._id }, { $set: { emailVerified: true } });
 
-  const tokenUser = jwt.sign(
-    { id: existAccount.id, email: existAccount.email },
-    `${process.env.JWT_SECRET}`,
-    { expiresIn: "1d" }
-  );
+  const tokenUser = signAccessToken({ id: existAccount.id, email: existAccount.email }, "1d");
 
   const refreshToken = await issueRefreshToken(existAccount.id, "user");
 
@@ -235,7 +218,7 @@ export const invalidateUserAuthCache = (userId?: string) => {
   }
 };
 
-export const getUserAccountForAuth = async (userId: string, email: string, issuedAt?: number) => {
+export const getUserAccountForAuth = async (userId: string, email: string, issuedAtMs?: number) => {
   const cacheKey = `auth:user:${userId}`;
   const cached = metadataCache.get<{
     id: string;
@@ -249,7 +232,7 @@ export const getUserAccountForAuth = async (userId: string, email: string, issue
     passwordChangedAt?: Date;
   }>(cacheKey);
   if (cached) {
-    if (cached.email !== email || isIssuedBeforePasswordChange(issuedAt, cached.passwordChangedAt)) return null;
+    if (cached.email !== email || isIssuedBeforePasswordChange(issuedAtMs, cached.passwordChangedAt)) return null;
     return cached;
   }
 
@@ -262,7 +245,7 @@ export const getUserAccountForAuth = async (userId: string, email: string, issue
 
   if (!existAccount) return null;
 
-  if (isIssuedBeforePasswordChange(issuedAt, existAccount.passwordChangedAt)) return null;
+  if (isIssuedBeforePasswordChange(issuedAtMs, existAccount.passwordChangedAt)) return null;
 
   const addressList = await UserAddress.find({ userId: existAccount.id }).select("_id fullName phone address longitude latitude isDefault").sort({ createdAt: "desc" });
 

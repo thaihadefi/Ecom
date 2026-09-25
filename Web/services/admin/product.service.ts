@@ -320,7 +320,7 @@ export const restoreManyProducts = (ids: string[]) => {
 export const getProductTrash = () => getTrash(Product, "_id name slug images status deletedAt");
 
 export const getProductsBatchForExport = async (skip: number, limit: number) => {
-  return Product.find({ deleted: false }).sort({ _id: 1 }).skip(skip).limit(limit);
+  return Product.find({ deleted: false }).sort({ _id: 1 }).skip(skip).limit(limit).lean();
 };
 
 const nonNegativeInt = (value: unknown): number => {

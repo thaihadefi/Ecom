@@ -2,11 +2,10 @@ import { Response } from 'express';
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
 import AccountAdmin from '../../models/account-admin.model';
 import Role from '../../models/role.model';
 import RefreshToken from '../../models/refresh-token.model';
-import { issueRefreshToken, rotateRefreshToken, isIssuedBeforePasswordChange } from "../../helpers/token-rotation.helper";
+import { issueRefreshToken, rotateRefreshToken, isIssuedBeforePasswordChange, signAccessToken } from "../../helpers/token-rotation.helper";
 import { COOKIE_OPTS } from '../../configs/cookie.config';
 import { IAccountAdmin } from '../../interfaces/models/account-admin.interface';
 import { metadataCache } from '../../helpers/metadata-cache.helper';
@@ -43,11 +42,7 @@ export const loginAdmin = async (
   const tokenTTL = remember ? "7d" : "1d";
   const cookieMaxAge = remember ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
 
-  const token = jwt.sign(
-    { id: existAccount.id, email: existAccount.email },
-    `${process.env.JWT_SECRET}`,
-    { expiresIn: tokenTTL }
-  );
+  const token = signAccessToken({ id: existAccount.id, email: existAccount.email }, tokenTTL);
 
   let refreshToken: string | undefined;
   if (remember) {
@@ -80,11 +75,11 @@ export const invalidateAdminAuthCache = (id?: string) => {
   }
 };
 
-export const getAdminAccountForAuth = async (id: string, email: string, issuedAt?: number): Promise<IAccountAdmin | null> => {
+export const getAdminAccountForAuth = async (id: string, email: string, issuedAtMs?: number): Promise<IAccountAdmin | null> => {
   const cacheKey = `admin:auth:${id}`;
   const cached = metadataCache.get<IAccountAdmin>(cacheKey);
   if (cached) {
-    if (cached.email !== email || isIssuedBeforePasswordChange(issuedAt, cached.passwordChangedAt)) return null;
+    if (cached.email !== email || isIssuedBeforePasswordChange(issuedAtMs, cached.passwordChangedAt)) return null;
     return cached;
   }
 
@@ -95,7 +90,7 @@ export const getAdminAccountForAuth = async (id: string, email: string, issuedAt
     status: "active"
   }).select("_id fullName email avatar isSuperAdmin roles status passwordChangedAt");
 
-  if (!account || isIssuedBeforePasswordChange(issuedAt, account.passwordChangedAt)) return null;
+  if (!account || isIssuedBeforePasswordChange(issuedAtMs, account.passwordChangedAt)) return null;
 
   metadataCache.set(cacheKey, account, 60);
   return account;

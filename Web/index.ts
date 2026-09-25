@@ -24,6 +24,7 @@ import { startJobs } from './jobs/index.job';
 import * as adminAuth from './middlewares/admin/auth.middleware';
 import { validateEnv } from './configs/env.config';
 import { requestLogger } from './middlewares/request-logger.middleware';
+import { secureCookies } from './middlewares/secure-cookie.middleware';
 import { formatDate, formatDateTime, formatVND } from './helpers/format.helper';
 import { safeHtml, safeJson, safeUrl, safeColor } from './helpers/html-sanitize.helper';
 
@@ -67,6 +68,7 @@ app.use((_req, res, next) => {
   next();
 });
 app.use(requestLogger);
+app.use(secureCookies);
 
 app.use((req, res, next) => {
   if (req.path === `/${pathAdmin}` || req.path.startsWith(`/${pathAdmin}/`)) {

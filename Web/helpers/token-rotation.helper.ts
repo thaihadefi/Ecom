@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
 import mongoose from "mongoose";
 import { Response } from "express";
@@ -20,12 +20,20 @@ export const issueRefreshToken = async (userId: string, role: "user" | "admin"):
   return token;
 };
 
+// iatMs carries the issue time in milliseconds: the standard iat claim is whole seconds, so a token
+// issued earlier in the same second as a password change could not be told apart from a newer one.
 export const signAccessToken = (account: { id: string; email?: string | null }, expiresIn: "1d" | "7d" = "1d"): string =>
-  jwt.sign({ id: account.id, email: account.email }, `${process.env.JWT_SECRET}`, { expiresIn });
+  jwt.sign({ id: account.id, email: account.email, iatMs: Date.now() }, `${process.env.JWT_SECRET}`, { expiresIn });
 
-export const isIssuedBeforePasswordChange = (issuedAtSec: number | undefined, passwordChangedAt?: Date | null): boolean => {
-  if (!passwordChangedAt || issuedAtSec === undefined) return false;
-  return issuedAtSec < Math.floor(new Date(passwordChangedAt).getTime() / 1000);
+// Tokens signed before iatMs existed fall back to iat, keeping their old whole-second comparison.
+export const tokenIssuedAtMs = (decoded: JwtPayload): number | undefined => {
+  if (typeof decoded.iatMs === "number") return decoded.iatMs;
+  return typeof decoded.iat === "number" ? decoded.iat * 1000 + 999 : undefined;
+};
+
+export const isIssuedBeforePasswordChange = (issuedAtMs: number | undefined, passwordChangedAt?: Date | null): boolean => {
+  if (!passwordChangedAt || issuedAtMs === undefined) return false;
+  return issuedAtMs < new Date(passwordChangedAt).getTime();
 };
 
 export const revokeRefreshTokens = async (userId: string, role: "user" | "admin"): Promise<void> => {

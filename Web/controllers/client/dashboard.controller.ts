@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as dashboardService from '../../services/client/dashboard.service';
 import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
+import { COOKIE_OPTS } from "../../configs/cookie.config";
 
 export const dashboard = async (_req: Request, res: Response) => {
   const userId = res.locals.accountUser.id;
@@ -77,9 +78,8 @@ export const changeEmailVerifyPost = async (req: Request, res: Response) => {
     );
 
     if (result.success) {
-      const cookieOpts = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production" };
-      res.clearCookie("tokenUser", cookieOpts);
-      res.clearCookie("refreshToken", cookieOpts);
+      res.clearCookie("tokenUser", COOKIE_OPTS);
+      res.clearCookie("refreshToken", COOKIE_OPTS);
     }
 
     res.status(resultStatus(result)).json({

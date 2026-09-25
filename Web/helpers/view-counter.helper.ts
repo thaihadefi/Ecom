@@ -10,7 +10,6 @@ export const claimView = (req: Request, res: Response, key: string): boolean => 
   const first = !alreadyViewed(req, key);
   res.cookie(cookieName(key), "true", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     maxAge: VISIT_MS,
   });
