@@ -5,29 +5,30 @@ import passport from "passport";
 import * as authMiddleware from "../../middlewares/client/auth.middleware";
 import { pageRateLimit, MINUTE, HOUR } from "../../middlewares/rate-limit.middleware";
 import { emailOf } from "../../helpers/rate-limit.helper";
+import { requireSocialLogin, socialLoginOptions } from "../../middlewares/client/social-login.middleware";
 
 const router = Router();
 
 router.get('/register', authController.register);
 
-router.get('/login', authController.login);
+router.get('/login', socialLoginOptions, authController.login);
 
 const oauthLimit = pageRateLimit({ windowMs: 15 * MINUTE, max: 30 });
 const oauthOptions = { session: false, failureRedirect: '/auth/login?oauthError=email' };
 
-router.get('/google', oauthLimit, passport.authenticate('google', {
+router.get('/google', oauthLimit, requireSocialLogin("google"), passport.authenticate('google', {
   scope: ['profile', 'email'],
   session: false,
 }));
 
-router.get('/google/callback', passport.authenticate('google', oauthOptions), authController.callbackGoogle);
+router.get('/google/callback', requireSocialLogin("google"), passport.authenticate('google', oauthOptions), authController.callbackGoogle);
 
-router.get('/facebook', oauthLimit, passport.authenticate('facebook', {
+router.get('/facebook', oauthLimit, requireSocialLogin("facebook"), passport.authenticate('facebook', {
   scope: ['email'],
   session: false,
 }));
 
-router.get('/facebook/callback', passport.authenticate('facebook', oauthOptions), authController.callbackFacebook);
+router.get('/facebook/callback', requireSocialLogin("facebook"), passport.authenticate('facebook', oauthOptions), authController.callbackFacebook);
 
 router.get('/forgot-password', authController.forgotPassword);
 
@@ -78,6 +79,7 @@ export const passwordApi = Router();
 passwordApi.put(
   '/',
   authMiddleware.loggedIn,
+  pageRateLimit({ windowMs: 15 * MINUTE, max: 5, key: (req) => req.res?.locals.accountUser?.id || req.ip }),
   authValidate.resetPasswordPost,
   authController.resetPasswordPost
 );

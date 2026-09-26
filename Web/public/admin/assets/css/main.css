@@ -199,7 +199,7 @@
   text-align: center;
   margin: 14px auto 8px;
   background: rgba(15, 23, 42, 0.08);
-  color: #64748b;
+  color: #617087;
   font-size: 11px;
   font-weight: 600;
   padding: 3px 10px;
@@ -349,7 +349,7 @@
 
 .admin-chat-status-text {
   font-size: 12px;
-  color: #64748b;
+  color: #617087;
 }
 
 .user-lastseen {
@@ -418,7 +418,7 @@
 
 .admin-confirm-msg {
   font-size: 13px;
-  color: #64748b;
+  color: #617087;
   margin-bottom: 20px;
 }
 
@@ -479,16 +479,16 @@
   background: rgba(0, 0, 0, .04);
 }
 
-.dash-text-shipping { color: #7367f0; }
-.dash-text-returned { color: #fd7e14; }
+.dash-text-shipping { color: #4f44d6; }
+.dash-text-returned { color: #a4500c; }
 
 .dash-badge-shipping {
   background-color: rgba(115, 103, 240, .15);
-  color: #7367f0;
+  color: #4f44d6;
 }
 .dash-badge-returned {
   background-color: rgba(253, 126, 20, .15);
-  color: #fd7e14;
+  color: #a4500c;
 }
 
 .dash-status-table th {
@@ -663,7 +663,7 @@ label[for] {
 .startbar-menu .collapsing .nav .nav-item .nav-link {
   font-size: 13px !important;
   font-weight: 400 !important;
-  color: #64748b !important;
+  color: #617087 !important;
   padding: 6px 10px 6px 12px !important;
   border-radius: 6px;
   margin: 1px 6px 1px 0;
@@ -727,7 +727,7 @@ label[for] {
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
-  color: #64748b !important;
+  color: #617087 !important;
   white-space: nowrap;
   vertical-align: middle !important;
   padding-top: 10px !important;
@@ -774,7 +774,7 @@ label[for] {
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  color: #64748b;
+  color: #617087;
   text-decoration: none;
   transition: background 0.14s ease, color 0.14s ease;
   cursor: pointer;
@@ -932,3 +932,39 @@ button, a, [button-api], [button-soft-delete-many], [button-delete-many], .btn, 
   border-bottom: 1px solid #fde68a;
 }
 .chat-detail .bubble p a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+
+/* Accessibility overrides for the admin theme: text and button colours darkened just enough to reach
+   WCAG AA contrast (4.5:1) on the theme's white and light-grey surfaces, keeping the original hues. */
+:root, [data-bs-theme=light] {
+  --bs-secondary-color: #626f8b;
+  --bs-secondary: #6272a9; --bs-secondary-rgb: 98, 114, 169;
+  --bs-info: #186f78; --bs-info-rgb: 24, 111, 120;
+  --bs-primary: #178640; --bs-primary-rgb: 23, 134, 64;
+  --bs-success: #157b6c; --bs-success-rgb: 21, 123, 108;
+  --bs-danger: #c82333; --bs-danger-rgb: 200, 35, 51;
+  --bs-link-color: #178640; --bs-link-color-rgb: 23, 134, 64;
+}
+.btn-primary { --bs-btn-bg: #178640; --bs-btn-border-color: #178640; --bs-btn-hover-bg: #137036; --bs-btn-hover-border-color: #137036; --bs-btn-active-bg: #10602e; --bs-btn-active-border-color: #10602e; --bs-btn-disabled-bg: #178640; --bs-btn-disabled-border-color: #178640; }
+.btn-outline-primary { --bs-btn-color: #178640; --bs-btn-border-color: #178640; --bs-btn-hover-bg: #178640; --bs-btn-hover-border-color: #178640; --bs-btn-active-bg: #137036; --bs-btn-active-border-color: #137036; }
+/* The login header sits on a black panel, where muted text needs a light tone instead. */
+.auth-header-box .text-muted { color: #c3cad8 !important; }
+.selectr-placeholder { color: #5f6b77; }
+.selectr-tag { background: #178640; }
+thead th { color: #626f8b; }
+.text-success { color: #157b6c !important; }
+.btn-secondary { --bs-btn-bg: #6272a9; --bs-btn-border-color: #6272a9; --bs-btn-hover-bg: #52609a; --bs-btn-hover-border-color: #52609a; --bs-btn-active-bg: #4a568b; --bs-btn-active-border-color: #4a568b; --bs-btn-disabled-bg: #6272a9; --bs-btn-disabled-border-color: #6272a9; }
+.btn-outline-secondary { --bs-btn-color: #6272a9; --bs-btn-border-color: #6272a9; --bs-btn-hover-bg: #6272a9; --bs-btn-hover-border-color: #6272a9; --bs-btn-active-bg: #52609a; --bs-btn-active-border-color: #52609a; }
+.btn-info { --bs-btn-bg: #186f78; --bs-btn-border-color: #186f78; --bs-btn-hover-bg: #176b74; --bs-btn-hover-border-color: #176b74; --bs-btn-active-bg: #135a61; --bs-btn-active-border-color: #135a61; --bs-btn-color: #fff; --bs-btn-hover-color: #fff; }
+.btn-outline-info { --bs-btn-color: #186f78; --bs-btn-border-color: #186f78; --bs-btn-hover-bg: #186f78; --bs-btn-hover-border-color: #186f78; --bs-btn-hover-color: #fff; --bs-btn-active-bg: #176b74; --bs-btn-active-color: #fff; }
+.btn-danger { --bs-btn-bg: #c82333; --bs-btn-border-color: #c82333; --bs-btn-hover-bg: #a71d2a; --bs-btn-hover-border-color: #a71d2a; --bs-btn-active-bg: #8f1924; --bs-btn-active-border-color: #8f1924; }
+.btn-outline-danger { --bs-btn-color: #c82333; --bs-btn-border-color: #c82333; --bs-btn-hover-bg: #c82333; --bs-btn-hover-border-color: #c82333; --bs-btn-active-bg: #a71d2a; }
+.btn-outline-success { --bs-btn-color: #178640; --bs-btn-border-color: #178640; --bs-btn-hover-bg: #178640; --bs-btn-hover-border-color: #178640; }
+.avatar-initials { background: linear-gradient(135deg, #157b6c 0%, #5b50d6 100%); }
+
+/* The collapsed sidebar hides menu labels with display:none, which also hides them from screen
+   readers; keep them visually hidden instead so every icon link keeps its name. */
+[data-sidebar-size=collapsed] .startbar:not(:hover) .startbar-menu .navbar-nav .nav-item .nav-link span {
+  display: inline !important; position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}

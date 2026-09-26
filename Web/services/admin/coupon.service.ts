@@ -1,18 +1,26 @@
+import { toMoney } from '../../configs/storefront.config';
 import { toSearchText } from '../../helpers/slugify.helper';
 import Coupon from '../../models/coupon.model';
 import { ICoupon, ICouponInput } from '../../interfaces/models/coupon.interface';
-import moment from 'moment';
+import { getStorefront } from '../../configs/storefront.config';
+import { formatInZone, zonedTimeToUtc } from '../../helpers/timezone.helper';
 import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
 import { paginatedSearch } from "../../helpers/list-query.helper";
 
-const parseFlexDate = (raw: unknown): Date | undefined => {
-  if (!raw) return undefined;
-  const s = String(raw).trim();
-  if (!s) return undefined;
-  const iso = moment(s, "YYYY-MM-DD", true);
-  if (iso.isValid()) return iso.toDate();
-  return moment(s, "DD/MM/YYYY", true).toDate();
+// A coupon date typed as YYYY-MM-DD or DD/MM/YYYY is a calendar day in the store time zone.
+const parseCouponDay = (raw: unknown, endOfDay = false): Date | undefined => {
+  const s = String(raw ?? "").trim();
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const dmy = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const [y, m, d] = iso ? [iso[1], iso[2], iso[3]] : dmy ? [dmy[3], dmy[2], dmy[1]] : [];
+  if (!y) return undefined;
+  const time = endOfDay ? [23, 59, 59, 999] : [0, 0, 0, 0];
+  const date = zonedTimeToUtc(getStorefront().timezone, Number(y), Number(m) - 1, Number(d), ...time);
+  return Number.isNaN(date.getTime()) ? undefined : date;
 };
+
+// Value for the coupon form's date pickers.
+const couponDayText = (date: Date) => formatInZone(date, getStorefront().timezone, "DD/MM/YYYY");
 
 export const createCoupon = async (couponData: ICouponInput): Promise<{ success: boolean; status?: number; message: string; coupon?: ICoupon }> => {
   const existCoupon = await Coupon.findOne({
@@ -25,13 +33,12 @@ export const createCoupon = async (couponData: ICouponInput): Promise<{ success:
   }
 
   couponData.code = String(couponData.code || "").trim();
-  couponData.value = couponData.value ? parseInt(couponData.value as string) : 0;
-  couponData.minOrderValue = couponData.minOrderValue ? parseInt(couponData.minOrderValue as string) : 0;
-  couponData.maxDiscountValue = couponData.maxDiscountValue ? parseInt(couponData.maxDiscountValue as string) : 0;
+  couponData.value = couponData.typeDiscount === "percentage" ? Math.round(parseFloat(String(couponData.value || 0)) * 100) / 100 || 0 : toMoney(couponData.value);
+  couponData.minOrderValue = toMoney(couponData.minOrderValue);
+  couponData.maxDiscountValue = toMoney(couponData.maxDiscountValue);
   couponData.usageLimit = couponData.usageLimit ? parseInt(couponData.usageLimit as string) : 0;
-  couponData.startDate = parseFlexDate(couponData.startDate);
-  const endParsed = parseFlexDate(couponData.endDate);
-  couponData.endDate = endParsed ? moment(endParsed).endOf("day").toDate() : undefined;
+  couponData.startDate = parseCouponDay(couponData.startDate);
+  couponData.endDate = parseCouponDay(couponData.endDate, true);
   couponData.search = toSearchText(`${couponData.code} ${couponData.name}`);
 
   const newRecord = new Coupon(couponData);
@@ -45,10 +52,10 @@ export const getCouponList = async (keyword?: unknown, rawPage?: unknown) => {
 
   for (const item of recordList) {
     if (item.startDate) {
-      item.startDateFormat = moment(item.startDate).format("DD/MM/YYYY");
+      item.startDateFormat = couponDayText(item.startDate);
     }
     if (item.endDate) {
-      item.endDateFormat = moment(item.endDate).format("DD/MM/YYYY");
+      item.endDateFormat = couponDayText(item.endDate);
     }
   }
 
@@ -67,10 +74,10 @@ export const getCouponDetailById = async (id: string) => {
   if (!couponDetail) return null;
 
   if (couponDetail.startDate) {
-    couponDetail.startDateFormat = moment(couponDetail.startDate).format("DD/MM/YYYY");
+    couponDetail.startDateFormat = couponDayText(couponDetail.startDate);
   }
   if (couponDetail.endDate) {
-    couponDetail.endDateFormat = moment(couponDetail.endDate).format("DD/MM/YYYY");
+    couponDetail.endDateFormat = couponDayText(couponDetail.endDate);
   }
 
   return couponDetail;
@@ -97,13 +104,12 @@ export const updateCoupon = async (id: string, updateData: ICouponInput): Promis
   }
 
   updateData.code = String(updateData.code || "").trim();
-  updateData.value = updateData.value ? parseInt(String(updateData.value)) : 0;
-  updateData.minOrderValue = updateData.minOrderValue ? parseInt(String(updateData.minOrderValue)) : 0;
-  updateData.maxDiscountValue = updateData.maxDiscountValue ? parseInt(String(updateData.maxDiscountValue)) : 0;
+  updateData.value = updateData.typeDiscount === "percentage" ? Math.round(parseFloat(String(updateData.value || 0)) * 100) / 100 || 0 : toMoney(updateData.value);
+  updateData.minOrderValue = toMoney(updateData.minOrderValue);
+  updateData.maxDiscountValue = toMoney(updateData.maxDiscountValue);
   updateData.usageLimit = updateData.usageLimit ? parseInt(String(updateData.usageLimit)) : 0;
-  updateData.startDate = parseFlexDate(updateData.startDate);
-  const endParsed = parseFlexDate(updateData.endDate);
-  updateData.endDate = endParsed ? moment(endParsed).endOf("day").toDate() : undefined;
+  updateData.startDate = parseCouponDay(updateData.startDate);
+  updateData.endDate = parseCouponDay(updateData.endDate, true);
   updateData.search = toSearchText(`${updateData.code} ${updateData.name}`);
 
   await Coupon.updateOne({ _id: id, deleted: false }, updateData);

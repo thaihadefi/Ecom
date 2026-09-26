@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { IOrder, OrderStatus, OrderPaymentStatus } from '../../interfaces/models/order.interface';
 import Order from '../../models/order.model';
 import AccountUser from '../../models/account-user.model';
-import { pointConfig } from '../../configs/variable.config';
+import { pointsEarnedFor } from '../../helpers/point.helper';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
 import { escapeRegex } from '../../helpers/generate.helper';
@@ -106,8 +106,7 @@ export const updateOrderAdmin = async (
 
       const earnsPoints = !TERMINAL_STATUSES.includes(orderStatus);
       if (earnsPoints && wasUnpaid && paymentStatus === "paid" && order.userId && (!order.pointEarned || order.pointEarned === 0)) {
-        const productValue = Math.max(0, (order.subTotal || 0) - (order.discount || 0) - (order.pointDiscount || 0));
-        const pointEarned = Math.floor(productValue / pointConfig.MONEY_PER_POINT);
+        const pointEarned = pointsEarnedFor(order);
         if (pointEarned > 0) {
           order.pointEarned = pointEarned;
           await order.save({ session });

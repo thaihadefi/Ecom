@@ -86,6 +86,7 @@ block main
                   href="javascript:;"
                   button-to-folder
                   data-folder-path=item.name
+                  aria-label=`Open folder ${item.name}`
                 )
                 i.fa-solid.fa-folder.text-warning.mb-1(style="font-size:2rem")
                 p.small.text-truncate.mb-0.fw-medium(title=item.name) #{item.name}
@@ -102,8 +103,9 @@ block main
             placeholder="Search files..."
             type="text"
             name="keyword"
+            aria-label="Search files"
           )
-          button.btn.btn-outline-secondary(type="submit")
+          button.btn.btn-outline-secondary(type="submit" aria-label="Search")
             i.fa-solid.fa-search
         button.btn.btn-sm.btn-outline-secondary(button-copy-multi type="button")
           i.fa-solid.fa-copy.me-1

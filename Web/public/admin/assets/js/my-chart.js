@@ -1,3 +1,13 @@
+// Money in the store currency (window.storeLocale is set by the admin layout).
+const adminMoney = (amount) => {
+  const store = window.storeLocale || { currency: "VND", locale: "vi-VN" };
+  try {
+    return new Intl.NumberFormat(store.locale, { style: "currency", currency: store.currency, currencyDisplay: "narrowSymbol" }).format(Number(amount) || 0);
+  } catch (error) {
+    return String(amount);
+  }
+};
+
 const revenueChartHour = document.querySelector("#revenueChartHour");
 if (revenueChartHour) {
   const ctx = revenueChartHour.getContext("2d");
@@ -36,7 +46,7 @@ if (revenueChartHour) {
               return (
                 context.dataset.label +
                 ": " +
-                context.parsed.y.toLocaleString('vi-VN') + ' ₫'
+                adminMoney(context.parsed.y)
               );
             },
           },
@@ -46,7 +56,7 @@ if (revenueChartHour) {
         y: {
           ticks: {
             callback: function (value) {
-              return value.toLocaleString('vi-VN') + ' ₫';
+              return adminMoney(value);
             },
           },
         },
@@ -93,7 +103,7 @@ if (revenueChartDay) {
               return (
                 context.dataset.label +
                 ": " +
-                context.parsed.y.toLocaleString('vi-VN') + ' ₫'
+                adminMoney(context.parsed.y)
               );
             },
           },
@@ -103,7 +113,7 @@ if (revenueChartDay) {
         y: {
           ticks: {
             callback: function (value) {
-              return value.toLocaleString('vi-VN') + ' ₫';
+              return adminMoney(value);
             },
           },
         },
@@ -142,7 +152,7 @@ if (revenueChartMonth) {
             label: (context) => {
               return `${
                 context.dataset.label
-              }: ${context.raw.toLocaleString("vi-VN")} ₫`;
+              }: ${adminMoney(context.raw)}`;
             },
           },
         },
@@ -154,7 +164,7 @@ if (revenueChartMonth) {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: (value) => value.toLocaleString("vi-VN") + " ₫",
+            callback: (value) => adminMoney(value),
           },
         },
       },
@@ -216,7 +226,7 @@ function reEnableSubmitButton() {
 }
 
 function drawRevenueChart(from, to) {
-  fetch('/admin/api/statistics/revenue-by-time?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to))
+  fetch('/' + pathAdmin + '/api/statistics/revenue-by-time?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to))
     .then(function(r) { return r.json(); })
     .then(function(json) {
       reEnableSubmitButton();
@@ -252,9 +262,9 @@ function drawRevenueChart(from, to) {
           responsive: true,
           plugins: {
             legend: { position: 'top' },
-            tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('vi-VN') + ' ₫'; } } },
+            tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + adminMoney(ctx.parsed.y); } } },
           },
-          scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString('vi-VN') + ' ₫'; } } } },
+          scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return adminMoney(v); } } } },
         },
       });
 
@@ -286,7 +296,7 @@ if (btnRevenueReset) {
 var _orderCustomChart = null;
 
 function drawOrderChart(from, to) {
-  fetch('/admin/api/statistics/orders?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to))
+  fetch('/' + pathAdmin + '/api/statistics/orders?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to))
     .then(function(r) { return r.json(); })
     .then(function(json) {
       reEnableSubmitButton();

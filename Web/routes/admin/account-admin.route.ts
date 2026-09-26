@@ -4,6 +4,7 @@ import { textForm } from "../../helpers/upload.helper";
 import * as accountAdminValidate from "../../validates/admin/account-admin.validate";
 import { checkAnyPermission, checkPermission } from "../../middlewares/admin/auth.middleware";
 import { guardAdminTargets } from "../../middlewares/admin/rbac-guard.middleware";
+import { pageRateLimit, MINUTE } from "../../middlewares/rate-limit.middleware";
 
 import { permanentOnly } from "../../helpers/rest.helper";
 const router = Router();
@@ -40,4 +41,4 @@ api.delete('/', checkPermission("account-admin-delete"), guardAdminTargets, acco
 
 api.delete('/:id', checkPermission("account-admin-delete"), guardAdminTargets, accountAdminController.deletePatch);
 
-api.put('/:id/password', upload.none(), checkPermission("account-admin-change-password"), guardAdminTargets, accountAdminValidate.changePasswordPatch, accountAdminController.changePasswordPatch);
+api.put('/:id/password', upload.none(), checkPermission("account-admin-change-password"), guardAdminTargets, pageRateLimit({ windowMs: 15 * MINUTE, max: 5, key: (req) => req.res?.locals.accountAdmin?.id || req.ip }), accountAdminValidate.changePasswordPatch, accountAdminController.changePasswordPatch);

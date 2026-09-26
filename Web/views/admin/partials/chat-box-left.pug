@@ -4,7 +4,7 @@
       .col
         each item in chatRoomList
           .p-2.border-dashed.border-theme-color.rounded.mb-2(class=`${chatRoomDetail && item.id === chatRoomDetail.id ? 'bg-light' : ''}` user-id=item.userId)
-            a(href=`/${pathAdmin}/chat/detail/${item.id}`)
+            a(href=`/${pathAdmin}/chat/detail/${item.id}` aria-label=`Chat with ${item.infoUser.fullName || 'customer'}`)
               .d-flex.align-items-start
                 .position-relative
                   - const _p = (item.infoUser.fullName || '').trim().split(/\s+/)

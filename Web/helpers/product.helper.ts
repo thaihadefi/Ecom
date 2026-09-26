@@ -1,4 +1,4 @@
-import moment from "moment";
+import { formatDate } from "./format.helper";
 import AccountAdmin from "../models/account-admin.model";
 import Blog from "../models/blog.model";
 import CategoryBlog from "../models/category-blog.model";
@@ -119,7 +119,7 @@ export const getBlogByCategory = async (getByCategory: GetByCategoryOptions) => 
       const name = id ? adminMap.get(String(id)) : undefined;
       if (name) {
         item.authorName = name;
-        item.date = moment(item.updatedBy ? item.updatedAt : item.createdAt).format("DD/MM/YYYY");
+        item.date = formatDate(item.updatedBy ? item.updatedAt : item.createdAt);
       }
     }
   }

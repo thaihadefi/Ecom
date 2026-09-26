@@ -2,7 +2,7 @@ extends ../layouts/default.pug
 
 block main
   if (permissions.includes("dashboard"))
-    - const fmt = n => n.toLocaleString("vi-VN")
+    - const fmt = formatNumber
     - const pct = v => (v >= 0 ? `+${v.toFixed(1)}` : v.toFixed(1)) + "%"
     - const pctClass = v => v >= 0 ? "text-success" : "text-danger"
 
@@ -17,18 +17,18 @@ block main
                 .card.shadow-none.border.h-100.mb-0
                   .card-body.text-center
                     p.text-muted.small.mb-1 Total Revenue
-                    .fs-18.fw-semibold #{fmt(totalRevenue)} ₫
+                    .fs-18.fw-semibold #{formatPrice(totalRevenue)}
               .col-sm-6.col-lg-4
                 .card.shadow-none.border.h-100.mb-0
                   .card-body.text-center
                     p.text-muted.small.mb-1 Today
-                    .fs-18.fw-semibold #{fmt(todayRevenue)} ₫
+                    .fs-18.fw-semibold #{formatPrice(todayRevenue)}
                     small(class=pctClass(todayPercent)) #{pct(todayPercent)} vs yesterday
               .col-sm-6.col-lg-4
                 .card.shadow-none.border.h-100.mb-0
                   .card-body.text-center
                     p.text-muted.small.mb-1 This Month
-                    .fs-18.fw-semibold #{fmt(thisMonthRevenue)} ₫
+                    .fs-18.fw-semibold #{formatPrice(thisMonthRevenue)}
                     small(class=pctClass(monthPercent)) #{pct(monthPercent)} vs last month
 
     .row.mt-3

@@ -1,5 +1,5 @@
 doctype html
-html(lang="en")
+html(lang=storefront.language)
   head
     script.
       (function() {
@@ -26,6 +26,7 @@ html(lang="en")
       }
     script.
       const domainCDN = "#{domainCDN}";
+      window.storeLocale = !{safeJson({ currency: storefront.currency, displayCurrencies: storefront.displayCurrencies, locale: storefront.locale, timezone: storefront.timezone, digits: currencyDigits })};
     meta(charset="UTF-8")
     meta(
       content="width=device-width, initial-scale=1.0"
@@ -58,7 +59,7 @@ html(lang="en")
       )
     //- PWA
     link(rel="manifest" href="/manifest.webmanifest")
-    meta(name="theme-color" content="#0057B7")
+    meta(name="theme-color" content=safeColor(storefront.primaryColor))
     meta(name="apple-mobile-web-app-capable" content="yes")
     meta(name="apple-mobile-web-app-status-bar-style" content="default")
     meta(name="apple-mobile-web-app-title" content=`${settingGeneral && settingGeneral.websiteName ? settingGeneral.websiteName : 'Ecom Store'}`)
@@ -126,6 +127,18 @@ html(lang="en")
       href=`/client/assets/css/polish.css?v=${assetVersion}`
       rel="stylesheet"
       )
+    //- Theme from Settings > Storefront; overrides the variables declared in style.css.
+    - const themeFonts = [storefront.headingFont, storefront.bodyFont].filter(Boolean)
+    if (themeFonts.length)
+      link(rel="stylesheet" href=`https://fonts.googleapis.com/css2?${[...new Set(themeFonts)].map(f => "family=" + encodeURIComponent(f).replace(/%20/g, "+") + ":wght@400;500;600;700").join("&")}&display=swap`)
+    style.
+      :root {
+        --themeColorOne: #{safeColor(storefront.primaryColor)};
+        --themeColorTwo: #{safeColor(storefront.secondaryColor)};
+      #{storefront.primaryColor.toLowerCase() !== STOREFRONT_DEFAULTS.primaryColor.toLowerCase() ? "--lightBg: color-mix(in srgb, var(--themeColorOne) 7%, #fff);" : ""}
+      #{storefront.headingFont ? `--headingFont: "${storefront.headingFont}", sans-serif;` : ""}
+      #{storefront.bodyFont ? `--bodyFont: "${storefront.bodyFont}", sans-serif;` : ""}
+      }
   body(class="default_home")
     a.skip-to-main(href="#main-content") Skip to main content
     div#sr-live-region(aria-live="polite" aria-atomic="true" class="sr-only-live")
@@ -139,7 +152,8 @@ html(lang="en")
 
     include ../partials/footer.pug
 
-    include ../partials/chat.pug
+    if (FEATURES.CHAT)
+      include ../partials/chat.pug
 
     include ../partials/scroll-button.pug
 
@@ -164,13 +178,13 @@ html(lang="en")
         .modal-content(style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);")
           .modal-body.text-center.py-4(style="position: relative;")
             button.btn-close.position-absolute.top-0.end-0.m-3(type="button" data-bs-dismiss="modal" aria-label="Close")
-            .avatar-md.rounded-circle.mx-auto.mb-3.d-flex.align-items-center.justify-content-center(style="width: 60px; height: 60px; font-size: 24px; color: #0057B7; background-color: #e6f0fa; margin: 0 auto 15px;")
+            .avatar-md.rounded-circle.mx-auto.mb-3.d-flex.align-items-center.justify-content-center(style="width: 60px; height: 60px; font-size: 24px; color: var(--themeColorOne); background-color: var(--lightBg); margin: 0 auto 15px;")
               i.fas.fa-phone-alt(aria-hidden="true")
-            h2.fw-semibold.mb-2(style="color: #0057B7; font-weight: 600; font-size: 20px;") Contact Hotline
-            p.text-muted.small.mb-0#modalPhoneConfirmMessage(style="font-size: 14px;") Would you like to call (028) 372 52002?
+            h2.fw-semibold.mb-2(style="color: var(--themeColorOne); font-weight: 600; font-size: 20px;") Contact Hotline
+            p.text-muted.small.mb-0#modalPhoneConfirmMessage(style="font-size: 14px;") Would you like to call us?
           .modal-footer.border-0.justify-content-center.pt-0.pb-4
             button.btn.btn-light.px-4(type="button" data-bs-dismiss="modal" style="border-radius: 20px; font-weight: 500;") Cancel
-            a.btn.btn-primary.px-4#modalPhoneConfirmCall(href="" style="border-radius: 20px; font-weight: 500; background-color: #0057B7; border-color: #0057B7;") Call Now
+            a.btn.btn-primary.px-4#modalPhoneConfirmCall(href="" style="border-radius: 20px; font-weight: 500; background-color: var(--themeColorOne); border-color: var(--themeColorOne);") Call Now
 
     script(src=`/client/assets/js/jquery-3.7.1.min.js?v=${assetVersion}`)
     script(src=`/client/assets/js/bootstrap.bundle.min.js?v=${assetVersion}`)
@@ -188,12 +202,13 @@ html(lang="en")
     script(src=`/client/assets/js/multiple-image-video.js?v=${assetVersion}`)
     script(src=`/client/assets/js/notyf.min.js?v=${assetVersion}`)
     script(src=`/client/assets/js/just-validate.min.js?v=${assetVersion}`)
-    if allowThirdPartyWidgets
+    if (allowThirdPartyWidgets && FEATURES.TRANSLATE)
       script(src="https://cdn.gtranslate.net/widgets/latest/dwf.js" defer)
     script(src=`/client/assets/js/custom.js?v=${assetVersion}`)
     script(src=`/client/assets/js/main.js?v=${assetVersion}`)
-    script(src="/socket.io/socket.io.js")
-    script(src=`/client/assets/js/chat.js?v=${assetVersion}`)
+    if (FEATURES.CHAT)
+      script(src="/socket.io/socket.io.js")
+      script(src=`/client/assets/js/chat.js?v=${assetVersion}`)
 
     script(type="speculationrules").
       {
@@ -203,7 +218,7 @@ html(lang="en")
             "where": {
               "and": [
                 { "href_matches": "/*" },
-                { "not": { "href_matches": "/admin/*" } },
+                { "not": { "href_matches": "/#{pathAdmin}/*" } },
                 { "not": { "href_matches": "/auth/*" } },
                 { "not": { "href_matches": "/checkout/*" } },
                 { "not": { "href_matches": "/order/*" } }
@@ -229,14 +244,14 @@ html(lang="en")
           const a = e.target.closest('a');
           if (!a || !a.href || a.origin !== location.origin || a.target === '_blank') return;
           const p = a.pathname;
-          if (p.startsWith('/admin') || p.startsWith('/auth') || p.startsWith('/checkout') || p.startsWith('/order')) return;
+          if (p.startsWith('/#{pathAdmin}') || p.startsWith('/auth') || p.startsWith('/checkout') || p.startsWith('/order')) return;
           prefetch(p + a.search);
         }, { passive: true });
         document.addEventListener('touchstart', function(e) {
           const a = e.target.closest('a');
           if (!a || !a.href || a.origin !== location.origin || a.target === '_blank') return;
           const p = a.pathname;
-          if (p.startsWith('/admin') || p.startsWith('/auth') || p.startsWith('/checkout') || p.startsWith('/order')) return;
+          if (p.startsWith('/#{pathAdmin}') || p.startsWith('/auth') || p.startsWith('/checkout') || p.startsWith('/order')) return;
           prefetch(p + a.search);
         }, { passive: true });
       })();
@@ -244,6 +259,6 @@ html(lang="en")
     script.
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js').catch(function() {});
+          navigator.serviceWorker.register('/sw.js?admin=#{encodeURIComponent(pathAdmin)}').catch(function() {});
         });
       }

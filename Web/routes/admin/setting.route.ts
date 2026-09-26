@@ -15,6 +15,10 @@ router.get('/api-app-password', checkPermission("setting-view"), settingControll
 
 router.get('/general', checkPermission("setting-view"), settingController.general);
 
+router.get('/storefront', checkPermission("setting-view"), settingController.storefront);
+
+router.get('/pages', checkPermission("setting-view"), settingController.pages);
+
 export default router;
 
 export const settingApi = Router();
@@ -28,6 +32,10 @@ settingApi.patch('/social-login', checkPermission("setting-edit"), settingPatch(
 settingApi.patch('/email', checkPermission("setting-edit"), settingPatch("apiAppPassword"), settingController.apiAppPasswordPatch);
 
 settingApi.patch('/general', checkPermission("setting-edit"), settingPatch("general"), settingController.generalPatch);
+
+settingApi.patch('/storefront', checkPermission("setting-edit"), settingPatch("storefront"), settingController.storefrontPatch);
+
+settingApi.patch('/pages', checkPermission("setting-edit"), settingPatch("pages"), settingController.pagesPatch);
 
 export const cacheApi = Router();
 

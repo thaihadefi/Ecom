@@ -27,24 +27,25 @@ block main
                   span#admin-chat-online-dot.admin-chat-online-dot
                   span#admin-chat-status-text.admin-chat-status-text Offline
           .d-none.d-sm-inline-block.align-self-center
-            a.me-2.text-muted(
-              data-bs-custom-class="tooltip-primary"
-              data-bs-title="Customer Emotion"
-              data-bs-placement="top"
-              data-bs-toggle="tooltip"
-              href="javascript:;"
-              id="button-ai-customer-emotions"
-              )
-              i.iconoir-people-tag.fs-22
-            a.me-2.text-muted(
-              data-bs-custom-class="tooltip-primary"
-              data-bs-title="Chat Summary"
-              data-bs-placement="top"
-              data-bs-toggle="tooltip"
-              href="javascript:;"
-              id="button-ai-chat-summary"
-              )
-              i.iconoir-safe-arrow-left.fs-22
+            if (FEATURES.AI_ASSISTANT)
+              a.me-2.text-muted(
+                data-bs-custom-class="tooltip-primary"
+                data-bs-title="Customer Emotion"
+                data-bs-placement="top"
+                data-bs-toggle="tooltip"
+                href="javascript:;"
+                id="button-ai-customer-emotions"
+                )
+                i.iconoir-people-tag.fs-22
+              a.me-2.text-muted(
+                data-bs-custom-class="tooltip-primary"
+                data-bs-title="Chat Summary"
+                data-bs-placement="top"
+                data-bs-toggle="tooltip"
+                href="javascript:;"
+                id="button-ai-chat-summary"
+                )
+                i.iconoir-safe-arrow-left.fs-22
             a.me-2.text-muted(
               data-bs-custom-class="tooltip-primary"
               data-bs-title="View Rating"
@@ -104,24 +105,25 @@ block main
             div
               .d-none.d-sm-inline-block.chat-features
                 input#chat-file(type="file" multiple hidden)
-                a(
-                  data-bs-custom-class="tooltip-primary"
-                  data-bs-title="Edit Response"
-                  data-bs-placement="top"
-                  data-bs-toggle="tooltip"
-                  href="javascript:;"
-                  id="button-ai-edit-reply"
-                  )
-                  i.iconoir-page-edit.fs-22
-                a(
-                  data-bs-custom-class="tooltip-primary"
-                  data-bs-title="Suggest Response"
-                  data-bs-placement="top"
-                  data-bs-toggle="tooltip"
-                  href="javascript:;"
-                  id="button-ai-suggest-reply"
-                  )
-                  i.iconoir-suggestion.fs-22
+                if (FEATURES.AI_ASSISTANT)
+                  a(
+                    data-bs-custom-class="tooltip-primary"
+                    data-bs-title="Edit Response"
+                    data-bs-placement="top"
+                    data-bs-toggle="tooltip"
+                    href="javascript:;"
+                    id="button-ai-edit-reply"
+                    )
+                    i.iconoir-page-edit.fs-22
+                  a(
+                    data-bs-custom-class="tooltip-primary"
+                    data-bs-title="Suggest Response"
+                    data-bs-placement="top"
+                    data-bs-toggle="tooltip"
+                    href="javascript:;"
+                    id="button-ai-suggest-reply"
+                    )
+                    i.iconoir-suggestion.fs-22
                 a(href="javascript:;" id="chat-attach")
                   i.iconoir-attachment
                 a.text-primary(href="javascript:;" button-send)

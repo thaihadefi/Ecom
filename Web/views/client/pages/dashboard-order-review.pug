@@ -46,9 +46,9 @@ block main
                                   if (index < item.variant.length - 1)
                                     | ,
                                 | )
-                            td.text-nowrap #{(item.price || 0).toLocaleString("vi-VN")}&nbsp;₫
+                            td.text-nowrap !{priceHtml((item.price || 0))}
                             td #{item.quantity}
-                            td.text-nowrap #{((item.price || 0) * item.quantity).toLocaleString("vi-VN")}&nbsp;₫
+                            td.text-nowrap !{priceHtml(((item.price || 0) * item.quantity))}
                             td
                               if (item.review)
                                 div

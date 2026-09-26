@@ -7,7 +7,20 @@ block main
         .col
           h4 #{pageTitle}
     .card-body.pt-0
-      form(id="settingApiPaymentForm")
+      form(id="settingApiPaymentForm" data-setting-endpoint="payment")
+        h5 Methods offered at checkout
+        p.text-muted.small A method appears at checkout only when it is ticked here and its credentials below are filled in.
+        .mb-3(data-array-field="enabledMethods")
+          each option in paymentMethodOptions
+            .form-check
+              input.form-check-input(type="checkbox" id=`enabled-${option.id}` value=option.id checked=option.checked)
+              label.form-check-label(for=`enabled-${option.id}`)
+                | #{option.label}
+                if (!option.configured)
+                  span.badge.bg-warning.text-dark.ms-2 Credentials missing
+                if (option.unsupportedCurrency)
+                  span.badge.bg-secondary.ms-2 Only charges in #{option.unsupportedCurrency}
+        hr
         h5 ZaloPay
         .row
           .col-md-6.col-lg-6

@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as chatController from "../../controllers/admin/chat.controller";
 import { chatUpload } from "../../helpers/upload.helper";
 import { checkPermission } from "../../middlewares/admin/auth.middleware";
+import { requireFeature } from "../../middlewares/feature.middleware";
 
 const router = Router();
 
@@ -23,10 +24,10 @@ chatApi.post('/:roomId/attachments', checkPermission("chat-reply"), upload.array
 
 chatApi.patch('/:roomId', checkPermission("chat-reply"), chatController.changeStatusPatch);
 
-chatApi.get('/:id/reply-suggestion', checkPermission("chat-reply"), chatController.suggestReply);
+chatApi.get('/:id/reply-suggestion', requireFeature("AI_ASSISTANT"), checkPermission("chat-reply"), chatController.suggestReply);
 
-chatApi.post('/:id/reply-refinements', checkPermission("chat-reply"), chatController.editReplyPost);
+chatApi.post('/:id/reply-refinements', requireFeature("AI_ASSISTANT"), checkPermission("chat-reply"), chatController.editReplyPost);
 
-chatApi.get('/:id/summary', checkPermission("chat-list"), chatController.summary);
+chatApi.get('/:id/summary', requireFeature("AI_ASSISTANT"), checkPermission("chat-list"), chatController.summary);
 
-chatApi.get('/:id/customer-emotion', checkPermission("chat-list"), chatController.customerEmotions);
+chatApi.get('/:id/customer-emotion', requireFeature("AI_ASSISTANT"), checkPermission("chat-list"), chatController.customerEmotions);

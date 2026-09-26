@@ -1,12 +1,13 @@
 import { Router } from "express";
 import * as orderController from "../../controllers/admin/order.controller";
 import { checkAnyPermission, checkPermission } from "../../middlewares/admin/auth.middleware";
+import { requireFeature } from "../../middlewares/feature.middleware";
 
 import { permanentOnly } from "../../helpers/rest.helper";
 const router = Router();
 
 router.get('/list', checkAnyPermission("order-edit", "order-delete"), orderController.list);
-router.get('/flagged', checkPermission("order-edit"), orderController.flaggedList);
+router.get('/flagged', checkPermission("order-edit"), requireFeature("ML_FRAUD_DETECTION"), orderController.flaggedList);
 router.get('/trash', checkAnyPermission("order-edit", "order-delete"), orderController.trash);
 router.get('/edit/:id', checkAnyPermission("order-edit", "order-delete"), orderController.edit);
 

@@ -25,4 +25,9 @@ block main
           h2(style="color:#1C1917;font-weight:600;font-size:19px;margin:28px 0 12px;") 5. Contact
           p(style="color:#374151;line-height:1.8;")
             | For privacy-related questions, contact us at 
-            a(href="mailto:info@uit.edu.vn" style="color:#A16207;") info@uit.edu.vn.
+            if storeContact.email
+              a(href=`mailto:${storeContact.email}` style="color:#A16207;")= storeContact.email
+              | .
+            else
+              a(href="/contact" style="color:#A16207;") our contact page
+              | .

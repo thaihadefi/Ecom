@@ -1,6 +1,7 @@
-import cron from "node-cron";
+import { scheduleJob } from "./scheduler";
 import mongoose from "mongoose";
 import Order from "../models/order.model";
+import { ONLINE_PAYMENT_METHOD_IDS } from "../configs/payment-methods.config";
 import { releaseOrderResources, notifyOrderStatusChange } from "../helpers/order.helper";
 import { invalidateAdminDashboardCaches } from "../services/admin/dashboard.service";
 import { invalidateUserAuthCache } from "../services/client/auth.service";
@@ -8,12 +9,12 @@ import { invalidateUserDashboardCache } from "../services/client/dashboard.servi
 import { invalidateProductCaches } from "../helpers/metadata-cache.helper";
 
 export const autoCancelUnpaidOrders = () => {
-  cron.schedule("*/15 * * * *", async () => {
+  scheduleJob("cancel-unpaid-orders", "*/15 * * * *", async () => {
     const threshold = new Date(Date.now() - 30 * 60 * 1000);
 
     const staleOrders = await Order.find({
       paymentStatus: "unpaid",
-      paymentMethod: { $in: ["zalopay", "vnpay"] },
+      paymentMethod: { $in: ONLINE_PAYMENT_METHOD_IDS },
       orderStatus: "pending",
       deleted: false,
       createdAt: { $lt: threshold }

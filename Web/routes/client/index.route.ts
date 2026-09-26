@@ -19,6 +19,8 @@ import * as authMiddleware from "../../middlewares/client/auth.middleware";
 import * as seoMiddleware from "../../middlewares/client/seo.middleware";
 import * as settingMiddleware from "../../middlewares/client/setting.middleware";
 import * as chatMiddleware from "../../middlewares/client/chat.middleware";
+import * as priceFilterMiddleware from "../../middlewares/client/price-filter.middleware";
+import { requireFeature } from "../../middlewares/feature.middleware";
 
 const router = Router();
 
@@ -34,26 +36,27 @@ router.use(seoMiddleware.canonical);
 
 router.use(settingMiddleware.assetVersion);
 router.use(settingMiddleware.general);
+router.use(settingMiddleware.paymentMethods);
 
 router.use(chatMiddleware.getChatMessageTotal);
 
 router.use('/', homeRoutes);
 
-router.use('/article', articleRoutes);
+router.use('/article', requireFeature("BLOG"), articleRoutes);
 
-router.use('/product', productRoutes);
+router.use('/product', priceFilterMiddleware.priceFilterCeiling, productRoutes);
 
 router.use('/cart', cartRoutes);
 
-router.use('/compare', compareRoutes);
+router.use('/compare', requireFeature("COMPARE"), compareRoutes);
 
-router.use('/wishlist', wishlistRoutes);
+router.use('/wishlist', requireFeature("WISHLIST"), wishlistRoutes);
 
 router.use('/auth', authRoutes);
 
 router.use('/dashboard', authMiddleware.loggedIn, dashboardRoutes);
 
-router.use('/coupon', couponRoutes);
+router.use('/coupon', requireFeature("COUPONS"), couponRoutes);
 
 router.use('/checkout', checkoutRoutes);
 

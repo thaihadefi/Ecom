@@ -71,7 +71,7 @@ async function initUserRoom(
   const chatRoom = await ChatRoom.findOneAndUpdate(
     { userId },
     { $setOnInsert: { userId, adminId: '', unreadCount: { user: 0, admin: 0 }, status: 'open' } },
-    { new: true, upsert: true },
+    { returnDocument: "after", upsert: true },
   );
   if (!chatRoom) return null;
   
@@ -116,7 +116,7 @@ async function assignAdminToRoom(
   const updated = await ChatRoom.findOneAndUpdate(
     { _id: chatRoom._id, adminId: previousAdminId },
     { adminId: selectedAdminId },
-    { new: true },
+    { returnDocument: "after" },
   );
   if (!updated) return ChatRoom.findById(chatRoom._id);
   invalidateRoomList(selectedAdminId);
@@ -151,7 +151,7 @@ export async function getRoomStatus(roomId: string): Promise<string> {
 export async function sendMessage(
   roomId: string,
   senderId: string,
-  senderRole: string,
+  senderRole: "user" | "admin",
   content: string,
   files: string[],
 ): Promise<IServerSendMessagePayload> {
@@ -167,7 +167,7 @@ export async function sendMessage(
     const room = await ChatRoom.findOneAndUpdate(
       { _id: roomId },
       { $inc: { [unreadField]: 1 } },
-      { session, new: true }
+      { session, returnDocument: "after" }
     ).select('userId');
     targetUserId = room?.userId;
   });

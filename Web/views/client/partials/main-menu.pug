@@ -23,18 +23,22 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
               i.fas.fa-chevron-down(aria-hidden="true")
             +renderCategory(categoryProductList, 0)
           ul(class="menu_icon")
-            li
-              a(href="/compare" aria-label="Compare list")
-                b
-                  i.fas.fa-exchange-alt(aria-hidden="true")
-                span(mini-compare-quantity) 0
-            li
-              a(href="/wishlist" aria-label="Wishlist")
-                b
-                  i.far.fa-heart(aria-hidden="true")
-                span(mini-wishlist-quantity) 0
+            if (FEATURES.COMPARE)
+              li
+                a(href="/compare" aria-label="Compare list")
+                  b
+                    i.fas.fa-exchange-alt(aria-hidden="true")
+                  span(mini-compare-quantity) 0
+            if (FEATURES.WISHLIST)
+              li
+                a(href="/wishlist" aria-label="Wishlist")
+                  b
+                    i.far.fa-heart(aria-hidden="true")
+                  span(mini-wishlist-quantity) 0
             li
               a(
+                href="#offcanvasRight"
+                role="button"
                 aria-controls="offcanvasRight"
                 aria-label="Shopping cart"
                 data-bs-target="#offcanvasRight"

@@ -1,0 +1,16 @@
+extends ../layouts/default.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      p.text-muted.small Leave a page empty to keep its default text.
+      form(id="settingPagesForm" data-setting-endpoint="pages")
+        each page in pages
+          .mb-4
+            label.form-label(for=`page-${page.key}`) #{page.title}
+            textarea(id=`page-${page.key}` name=page.key textarea-mce) #{page.content}
+        button.btn.btn-primary(type="submit") Update

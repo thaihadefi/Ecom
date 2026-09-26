@@ -13,16 +13,16 @@ block main
         .row
           .col-md-6
             .mb-3
-              label.form-label Full Name
-              input.form-control(disabled value=orderDetail.fullName)
+              label.form-label(for="order-full-name") Full Name
+              input.form-control(id="order-full-name" disabled value=orderDetail.fullName)
           .col-md-6
             .mb-3
-              label.form-label Phone Number
-              input.form-control(disabled value=orderDetail.phone)
+              label.form-label(for="order-phone-number") Phone Number
+              input.form-control(id="order-phone-number" disabled value=orderDetail.phone)
           .col-md-12
             .mb-3
-              label.form-label Address
-              textarea.form-control(rows="2" disabled)= orderDetail.address
+              label.form-label(for="order-address") Address
+              textarea.form-control(id="order-address" rows="2" disabled)= orderDetail.address
         h5.mt-4 Products in Order
         .table-responsive
           table.table.table-bordered
@@ -47,26 +47,22 @@ block main
                     else
                       span.text-muted -
                   td #{p.quantity}
-                  td.text-nowrap #{(p.price || 0).toLocaleString('vi-VN')}&nbsp;₫
+                  td.text-nowrap #{formatPrice((p.price || 0))}
                   td.text-danger.text-nowrap
-                    b #{((p.price || 0) * p.quantity).toLocaleString('vi-VN')}&nbsp;₫
+                    b #{formatPrice(((p.price || 0) * p.quantity))}
         h5.mt-4 Payment & Shipping
         .row
           .col-md-4
             .mb-3
-              label.form-label Payment Method
-              input.form-control(
+              label.form-label(for="order-payment-method") Payment Method
+              input.form-control(id="order-payment-method" 
                 disabled
-                value=
-                  orderDetail.paymentMethod == 'money' ? 'Cash' :
-                  orderDetail.paymentMethod == 'vnpay' ? 'VNPay' :
-                  orderDetail.paymentMethod == 'zalopay' ? 'ZaloPay' :
-                  ''
+                value=paymentMethodLabel(orderDetail.paymentMethod)
               )
           .col-md-4
             .mb-3
-              label.form-label Payment Status
-              select.form-select(name="paymentStatus")
+              label.form-label(for="order-payment-status") Payment Status
+              select.form-select(id="order-payment-status" name="paymentStatus")
                 option(
                   value="unpaid"
                   selected=(orderDetail.paymentStatus == "unpaid")
@@ -81,60 +77,60 @@ block main
                 ) Refunded
           .col-md-4
             .mb-3
-              label.form-label Shipping Partner
-              input.form-control(
+              label.form-label(for="order-shipping-partner") Shipping Partner
+              input.form-control(id="order-shipping-partner" 
                 disabled
                 value=orderDetail.shipping ? orderDetail.shipping.carrierName : ''
               )
         .row
           .col-md-3
             .mb-3
-              label.form-label Subtotal
-              input.form-control(disabled value=(orderDetail.subTotal || 0).toLocaleString('vi-VN') + ' ₫')
+              label.form-label(for="order-subtotal") Subtotal
+              input.form-control(id="order-subtotal" disabled value=formatPrice((orderDetail.subTotal || 0)))
           .col-md-3
             .mb-3
-              label.form-label Coupon Code
-              input.form-control(disabled value=orderDetail.coupon || '-')
+              label.form-label(for="order-coupon-code") Coupon Code
+              input.form-control(id="order-coupon-code" disabled value=orderDetail.coupon || '-')
           .col-md-3
             .mb-3
-              label.form-label Discount
-              input.form-control(disabled value=(orderDetail.discount || 0).toLocaleString('vi-VN') + ' ₫')
+              label.form-label(for="order-discount") Discount
+              input.form-control(id="order-discount" disabled value=formatPrice((orderDetail.discount || 0)))
           .col-md-3
             .mb-3
-              label.form-label Shipping Fee
-              input.form-control(
+              label.form-label(for="order-shipping-fee") Shipping Fee
+              input.form-control(id="order-shipping-fee" 
                 disabled
                 value=
                   orderDetail.shipping && orderDetail.shipping.fee
-                    ? orderDetail.shipping.fee.toLocaleString('vi-VN') + ' ₫'
-                    : '0 ₫'
+                    ? formatPrice(orderDetail.shipping.fee)
+                    : formatPrice(0)
                 )
         .row
           .col-md-3
             .mb-3
-              label.form-label Points Used
-              input.form-control(disabled value=orderDetail.usedPoint)
+              label.form-label(for="order-points-used") Points Used
+              input.form-control(id="order-points-used" disabled value=orderDetail.usedPoint)
           .col-md-3
             .mb-3
-              label.form-label Points Discount
-              input.form-control(disabled value=(orderDetail.pointDiscount || 0).toLocaleString('vi-VN') + ' ₫')
+              label.form-label(for="order-points-discount") Points Discount
+              input.form-control(id="order-points-discount" disabled value=formatPrice((orderDetail.pointDiscount || 0)))
           .col-md-3
             .mb-3
-              label.form-label Points Earned
-              input.form-control(disabled value=(orderDetail.pointEarned || 0) + ' pts')
+              label.form-label(for="order-points-earned") Points Earned
+              input.form-control(id="order-points-earned" disabled value=(orderDetail.pointEarned || 0) + ' pts')
           .col-md-3
             .mb-3
-              label.form-label Total Payment
-              input.form-control.text-danger(
+              label.form-label(for="order-total-payment") Total Payment
+              input.form-control.text-danger(id="order-total-payment" 
                 disabled
-                value=(orderDetail.total || 0).toLocaleString('vi-VN') + ' ₫'
+                value=formatPrice((orderDetail.total || 0))
               )
         h5.mt-4 Order Status
         .row
           .col-md-6
             .mb-3
-              label.form-label Status
-              select.form-select(name="orderStatus")
+              label.form-label(for="order-status") Status
+              select.form-select(id="order-status" name="orderStatus")
                 option(value="pending" selected=(orderDetail.orderStatus=="pending")) Pending
                 option(value="confirmed" selected=(orderDetail.orderStatus=="confirmed")) Confirmed
                 option(value="shipping" selected=(orderDetail.orderStatus=="shipping")) Shipping
@@ -143,8 +139,8 @@ block main
                 option(value="cancelled" selected=(orderDetail.orderStatus=="cancelled")) Cancelled
           .col-md-6
             .mb-3
-              label.form-label Note
-              textarea.form-control(name="note" rows="2")= orderDetail.note
+              label.form-label(for="order-note") Note
+              textarea.form-control(id="order-note" name="note" rows="2")= orderDetail.note
         .mt-4
           button.btn.btn-primary(type="submit") Update Order
           a.btn.btn-danger.ms-2(href=`/${pathAdmin}/order/list`) Back

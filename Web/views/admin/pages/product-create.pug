@@ -18,7 +18,7 @@ block main
             .mb-3
               label.form-label(for="slug") Slug *
               .input-group
-                span.btn.btn-outline-info(
+                button.btn.btn-outline-info(type="button" 
                   btn-generate-slug="Product"
                   from="name"
                   to="slug"
@@ -52,12 +52,16 @@ block main
             .mb-3
               label.form-label(for="stock") Stock
               input.form-control(id="stock" type="number" name="stock")
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="weight") Weight per unit (grams)
+              input.form-control(id="weight" type="number" name="weight" min="0" placeholder="Default from Settings > Shipping")
           .col-md-12.col-lg-12
             .mb-3
               label.form-label Attributes List
               div(class="checkbox-list" checkbox-list="attributes")
                 +checkbox-list(attributeList)
-              span.btn.btn-outline-info.mt-1(
+              button.btn.btn-outline-info.mt-1(type="button" 
                 button-render-variant="attributes"
               ) Create Variant
               script.
@@ -75,11 +79,11 @@ block main
               label.form-label Images List
               div(class="form-multi-file")
                 .input-group
-                  span.btn.btn-outline-info(
+                  button.btn.btn-outline-info(type="button" 
                     data-bs-toggle="modal"
                     data-bs-target="#modalFileManager"
                   ) Select File
-                  span.btn.btn-outline-info(
+                  button.btn.btn-outline-info(type="button" 
                     button-paste
                   ) Paste File
                 .inner-list-image(multi-file="images")

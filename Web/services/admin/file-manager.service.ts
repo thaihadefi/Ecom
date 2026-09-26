@@ -1,6 +1,6 @@
+import { formatDateTime } from "../../helpers/format.helper";
 import axios from 'axios';
 import FormData from "form-data";
-import moment from "moment";
 import Media from '../../models/media.model';
 import { domainCDN } from '../../configs/variable.config';
 import { escapeRegex } from '../../helpers/generate.helper';
@@ -73,7 +73,7 @@ export const getFilesAndFolders = async (folderPath: string, rawKeyword?: unknow
       mimetype: item.mimetype,
       createdAt: item.createdAt,
       createdAtFormat: item.createdAt
-        ? moment(item.createdAt).format("HH:mm - DD/MM/YYYY")
+        ? formatDateTime(item.createdAt)
         : "",
       sizeFormat: formatFileSize(item.size || 0)
     }));
@@ -96,7 +96,7 @@ export const getFilesAndFolders = async (folderPath: string, rawKeyword?: unknow
     if (folderRes.data.code === "success") {
       folderList = (folderRes.data.folderList || []).map((item: { createdAt: string | Date }) => ({
         ...item,
-        createdAtFormat: moment(item.createdAt).format("HH:mm - DD/MM/YYYY")
+        createdAtFormat: formatDateTime(item.createdAt)
       }));
     }
   } catch (err: unknown) {

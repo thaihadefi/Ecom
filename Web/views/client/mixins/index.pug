@@ -140,24 +140,26 @@ mixin product-item(item)
             b -
             | #{disc}%
       ul(class="btn_list")
-        li
-          a(
-            href="javascript:;"
-            btn-compare-quick
-            data-product-id=item._id
-            title="Compare"
-            aria-label="Compare"
-            )
-            i.fas.fa-exchange-alt(aria-hidden="true")
-        li
-          a(
-            href="javascript:;"
-            btn-wishlist-quick
-            data-product-id=item._id
-            title="Add to Wishlist"
-            aria-label="Add to Wishlist"
-            )
-            i.far.fa-heart(aria-hidden="true")
+        if (FEATURES.COMPARE)
+          li
+            a(
+              href="javascript:;"
+              btn-compare-quick
+              data-product-id=item._id
+              title="Compare"
+              aria-label="Compare"
+              )
+              i.fas.fa-exchange-alt(aria-hidden="true")
+        if (FEATURES.WISHLIST)
+          li
+            a(
+              href="javascript:;"
+              btn-wishlist-quick
+              data-product-id=item._id
+              title="Add to Wishlist"
+              aria-label="Add to Wishlist"
+              )
+              i.far.fa-heart(aria-hidden="true")
         li
           - const hasVariants = item.variants && item.variants.length > 0;
           a(
@@ -174,12 +176,13 @@ mixin product-item(item)
       a.title(href=`/product/detail/${item.slug}`) #{item.name}
       p.price.d-flex.flex-wrap.align-items-baseline.gap-1
         if (item.priceNew)
-          span #{formatVND(item.priceNew)}
+          span !{priceHtml(item.priceNew)}
         if (item.priceOld)
-          del #{formatVND(item.priceOld)}
-      p.rating
-        +stars(item)
-        span (#{item.ratingCount || 0} #{item.ratingCount === 1 ? 'Review' : 'Reviews'})
+          del !{priceHtml(item.priceOld)}
+      if (FEATURES.REVIEWS)
+        p.rating
+          +stars(item)
+          span (#{item.ratingCount || 0} #{item.ratingCount === 1 ? 'Review' : 'Reviews'})
       if (item.colorList && item.colorList.length > 0)
         ul.color
           each color in item.colorList
@@ -207,36 +210,39 @@ mixin product-list-item(item)
                 b -
                 | #{disc}%
           ul(class="btn_list")
-            li
-              a(
-                href="javascript:;"
-                btn-compare-quick
-                data-product-id=item._id
-                title="Compare"
-                aria-label="Compare"
-                )
-                i.fas.fa-exchange-alt(aria-hidden="true")
-            li
-              a(
-                href="javascript:;"
-                btn-wishlist-quick
-                data-product-id=item._id
-                title="Add to Wishlist"
-                aria-label="Add to Wishlist"
-                )
-                i.far.fa-heart(aria-hidden="true")
+            if (FEATURES.COMPARE)
+              li
+                a(
+                  href="javascript:;"
+                  btn-compare-quick
+                  data-product-id=item._id
+                  title="Compare"
+                  aria-label="Compare"
+                  )
+                  i.fas.fa-exchange-alt(aria-hidden="true")
+            if (FEATURES.WISHLIST)
+              li
+                a(
+                  href="javascript:;"
+                  btn-wishlist-quick
+                  data-product-id=item._id
+                  title="Add to Wishlist"
+                  aria-label="Add to Wishlist"
+                  )
+                  i.far.fa-heart(aria-hidden="true")
       .col-md-7.col-sm-6.col-xxl-8
         div(class="product_text")
           a.title(href=`/product/detail/${item.slug}`)
             | #{item.name}
-          p.rating
-            +stars(item)
-            span (#{item.ratingCount || 0} #{item.ratingCount === 1 ? 'Review' : 'Reviews'})
+          if (FEATURES.REVIEWS)
+            p.rating
+              +stars(item)
+              span (#{item.ratingCount || 0} #{item.ratingCount === 1 ? 'Review' : 'Reviews'})
           p.price.d-flex.flex-wrap.align-items-baseline.gap-1
             if (item.priceNew)
-              span #{formatVND(item.priceNew)}
+              span !{priceHtml(item.priceNew)}
             if (item.priceOld)
-              del #{formatVND(item.priceOld)}
+              del !{priceHtml(item.priceOld)}
           if (item.colorList && item.colorList.length > 0)
             ul.color
               each color in item.colorList

@@ -40,7 +40,7 @@ form(class="checkout_form_area" id="checkoutAddressForm")
                   autocomplete="tel"
                   )
             .col-md-12.mt-4
-              label Select address on map *
+              label(for="mapSearchInput") Select address on map *
               div(class="input-group")
                 input(
                   class="form-control"
@@ -48,7 +48,8 @@ form(class="checkout_form_area" id="checkoutAddressForm")
                   type="text"
                   id="mapSearchInput"
                   )
-                span(
+                button(
+                  type="button"
                   class="btn btn-outline-secondary"
                   id="mapSearchBtn"
                   ) Search
@@ -73,8 +74,9 @@ form(class="checkout_form_area" id="checkoutAddressForm")
                   )
   .col-xl-12
     div(class="single_input")
-      label Note
+      label(for="checkoutNote") Note
       textarea(
         rows="2"
         name="note"
+        id="checkoutNote"
         )

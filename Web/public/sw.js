@@ -1,9 +1,12 @@
-const CACHE_VERSION = 'ecom-v2';
+const CACHE_VERSION = 'ecom-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 
 const STATIC_EXTENSIONS = /\.(css|js|woff2?|ttf|eot|svg|png|jpe?g|webp|gif|ico)$/i;
 const OFFLINE_URL = '/offline.html';
+
+// The page registers this worker as /sw.js?admin=<ADMIN_PATH> so the admin panel is never cached.
+const ADMIN_PREFIX = `/${new URL(self.location.href).searchParams.get('admin') || 'admin'}`;
 
 const SOCIAL_LOGIN_PATHS = /^\/auth\/(google|facebook)(\/|$)/;
 
@@ -36,7 +39,9 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (
-    url.pathname.startsWith('/admin') ||
+    url.pathname === ADMIN_PREFIX ||
+    url.pathname.startsWith(`${ADMIN_PREFIX}/`) ||
+    url.pathname.startsWith('/admin/') ||
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/socket.io') ||
     SOCIAL_LOGIN_PATHS.test(url.pathname) ||

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import querystring from 'qs';
-import moment from 'moment';
+import { formatInZone } from '../../helpers/timezone.helper';
 import Order from '../../models/order.model';
 import { getApiPayment, getGeneral } from '../../configs/setting.config';
 import { applyGatewayPayment } from './payment-order.helper';
@@ -23,8 +23,8 @@ export const createVNPayPaymentUrl = async (
     return { alreadyPaid: true };
   }
 
-  const date = new Date();
-  const createDate = moment(date).format('YYYYMMDDHHmmss');
+  // VNPay reads vnp_CreateDate as Vietnam time (GMT+7), whatever time zone the server runs in.
+  const createDate = formatInZone(new Date(), "Asia/Ho_Chi_Minh", "YYYYMMDDHHmmss");
 
   const [apiPayment, settingGeneral] = await Promise.all([
     getApiPayment(),
@@ -38,7 +38,7 @@ export const createVNPayPaymentUrl = async (
   const orderId = `${phone}-${orderCode}-${Date.now()}`;
   const amount = (orderDetail.total || 0) * 100;
 
-  let vnp_Params: Record<string, unknown> = {
+  const vnp_Params: Record<string, unknown> = {
     vnp_Version: '2.1.0',
     vnp_Command: 'pay',
     vnp_TmnCode: tmnCode,
@@ -53,15 +53,19 @@ export const createVNPayPaymentUrl = async (
     vnp_CreateDate: createDate
   };
 
-  vnp_Params = sortObject(vnp_Params);
-
-  const signData = querystring.stringify(vnp_Params, { encode: false });
-  const hmac = crypto.createHmac("sha512", secretKey);
-  const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
-  vnp_Params['vnp_SecureHash'] = signed;
-  vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
+  const signedParams: Record<string, string> = {
+    ...sortObject(vnp_Params),
+    vnp_SecureHash: signVNPayParams(vnp_Params, secretKey)
+  };
+  vnpUrl += '?' + querystring.stringify(signedParams, { encode: false });
 
   return { paymentUrl: vnpUrl };
+};
+
+// HMAC-SHA512 over the sorted, encoded parameters, as VNPay signs both requests and callbacks.
+export const signVNPayParams = (params: Record<string, unknown>, secretKey: string): string => {
+  const signData = querystring.stringify(sortObject(params), { encode: false });
+  return crypto.createHmac("sha512", secretKey).update(Buffer.from(signData, 'utf-8')).digest("hex");
 };
 
 const verifyVNPaySignature = async (queryParams: Record<string, unknown>): Promise<boolean> => {
@@ -72,8 +76,7 @@ const verifyVNPaySignature = async (queryParams: Record<string, unknown>): Promi
   delete vnp_Params['vnp_SecureHashType'];
 
   const apiPayment = await getApiPayment();
-  const signData = querystring.stringify(sortObject(vnp_Params), { encode: false });
-  const signed = crypto.createHmac("sha512", `${apiPayment.vnPayHashSecret}`).update(Buffer.from(signData, 'utf-8')).digest("hex");
+  const signed = signVNPayParams(vnp_Params, `${apiPayment.vnPayHashSecret}`);
 
   if (typeof secureHash !== "string" || secureHash.length !== signed.length) return false;
   return crypto.timingSafeEqual(Buffer.from(secureHash.toLowerCase()), Buffer.from(signed));

@@ -1,4 +1,4 @@
-import cron from "node-cron";
+import { scheduleJob } from "./scheduler";
 import mongoose from "mongoose";
 import ChatMessage from "../models/chat-message.model";
 import ChatRoom from "../models/chat-room.model";
@@ -6,7 +6,7 @@ import { fmDeleteFolder } from "../helpers/file-manager.client";
 import { invalidateRoomList, invalidateUserRoom, invalidateUnread, invalidateRoomStatus } from "../helpers/chat-cache.helper";
 
 export const autoDeleteChatRoom = () => {
-  cron.schedule("0 3 * * *", async () => {
+  scheduleJob("delete-idle-chat-rooms", "0 3 * * *", async () => {
     const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
 
     const staleRooms = await ChatMessage.aggregate([

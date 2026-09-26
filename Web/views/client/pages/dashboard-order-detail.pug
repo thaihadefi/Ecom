@@ -42,13 +42,7 @@ block main
                         | #{formatDateTime(orderDetail.createdAt)}
                       li
                         span Payment Method:
-                        case orderDetail.paymentMethod
-                          when "money"
-                            | Cash
-                          when "vnpay"
-                            | VNPay
-                          when "zalopay"
-                            | ZaloPay
+                        | #{paymentMethodLabel(orderDetail.paymentMethod)}
                       li
                         span Payment Status:
                         case orderDetail.paymentStatus
@@ -98,45 +92,46 @@ block main
                                   if (index < item.variant.length - 1)
                                     | ,
                                 | )
-                            td.text-nowrap #{(item.price || 0).toLocaleString("vi-VN")}&nbsp;₫
+                            td.text-nowrap !{priceHtml((item.price || 0))}
                             td #{item.quantity}
-                            td.text-nowrap #{((item.price || 0) * item.quantity).toLocaleString("vi-VN")}&nbsp;₫
+                            td.text-nowrap !{priceHtml(((item.price || 0) * item.quantity))}
                       tfoot
                         tr
                           td(colspan="3")
                             b Subtotal
                           td.text-nowrap
-                            b #{(orderDetail.subTotal || 0).toLocaleString("vi-VN")}&nbsp;₫
+                            b !{priceHtml((orderDetail.subTotal || 0))}
                         if (orderDetail.discount)
                           tr
                             td(colspan="3") Discount (#{orderDetail.coupon})
-                            td.text-nowrap -#{(orderDetail.discount || 0).toLocaleString("vi-VN")}&nbsp;₫
+                            td.text-nowrap -!{priceHtml((orderDetail.discount || 0))}
                         if (orderDetail.pointDiscount)
                           tr
                             td(colspan="3") Points Discount (#{orderDetail.usedPoint} pts)
-                            td.text-nowrap -#{(orderDetail.pointDiscount || 0).toLocaleString("vi-VN")}&nbsp;₫
+                            td.text-nowrap -!{priceHtml((orderDetail.pointDiscount || 0))}
                         tr
                           td(colspan="3") Shipping Fee
-                          td.text-nowrap #{(orderDetail.shipping && orderDetail.shipping.fee != null ? orderDetail.shipping.fee : 0).toLocaleString("vi-VN")}&nbsp;₫
+                          td.text-nowrap !{priceHtml((orderDetail.shipping && orderDetail.shipping.fee != null ? orderDetail.shipping.fee : 0))}
                         tr
                           td(colspan="3")
                             b Total
                           td.text-nowrap
-                            b #{(orderDetail.total || 0).toLocaleString("vi-VN")}&nbsp;₫
+                            b !{priceHtml((orderDetail.total || 0))}
                         if (orderDetail.pointEarned)
                           tr
                             td(colspan="3")
                               b Reward Points Earned
-                            td(style="color: #16a34a; font-weight: 600;") +#{orderDetail.pointEarned.toLocaleString("vi-VN")} pts
+                            td(style="color: #16a34a; font-weight: 600;") +#{formatNumber(orderDetail.pointEarned)} pts
                 div(class="dashboard_invoice_footer")
                   h2 Note
                   div #{orderDetail.note || 'No note'}
                   div(class="d-flex flex-wrap gap-3 align-items-center mt-4")
                     button.common_btn(type="button" onclick="window.print()") Download Invoice
                     if (orderDetail.orderStatus === "completed")
-                      a.common_btn(href=`/dashboard/order/review/${orderDetail.id}`)
-                        i.fas.fa-star.me-2
-                        | Review Products
+                      if (FEATURES.REVIEWS)
+                        a.common_btn(href=`/dashboard/order/review/${orderDetail.id}`)
+                          i.fas.fa-star.me-2
+                          | Review Products
                       button.btn.btn-outline-danger.py-2.px-4(
                         type="button"
                         onclick=`window.openSupportChat && window.openSupportChat("Hello Support, I would like to request a Return & Refund for my completed order #${orderDetail.code}. Please assist me with the process.")`

@@ -1,3 +1,30 @@
+// Store currency and locale from Settings > Storefront (injected by the layout).
+const storeLocale = Object.assign({ currency: "VND", locale: "vi-VN", digits: 0 }, window.storeLocale || {});
+
+const storeMoneyFormatter = (() => {
+  try {
+    return new Intl.NumberFormat(storeLocale.locale, { style: "currency", currency: storeLocale.currency, currencyDisplay: "narrowSymbol" });
+  } catch (error) {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: storeLocale.currency });
+  }
+})();
+
+// The coupon applied in this tab, ignored when the store has coupons switched off (no coupon form).
+const couponInSession = () => (document.querySelector("#applyCouponForm") ? sessionStorage.getItem("couponDetail") : null);
+
+// Rounds to the store currency's decimals, like the server does.
+const roundMoney = (amount) => {
+  const factor = 10 ** (Number(storeLocale.digits) || 0);
+  return Math.round((Number(amount) || 0) * factor) / factor;
+};
+
+// Plain text price in the store currency.
+const formatMoneyText = (amount) => storeMoneyFormatter.format(Number(amount) || 0);
+
+// Price markup the currency switcher can convert (see refreshCurrencyDisplay).
+const formatMoney = (amount) =>
+  `<span class="currency-amount" data-base-price="${Number(amount) || 0}">${formatMoneyText(amount)}</span>`;
+
 var notyf = new Notyf({
   duration: 3000,
   position: {
@@ -373,9 +400,9 @@ if(formSearch) {
                       <div class="inner-name">${esc(item.name)}</div>
                       <div class="inner-prices">
                         <div class="inner-price-new">
-                          ${(item.priceNew || 0).toLocaleString('vi-VN')} ₫
+                          ${formatMoney((item.priceNew || 0))}
                         </div>
-                        ${item.priceOld ? `<div class="inner-price-old">${item.priceOld.toLocaleString('vi-VN')} ₫</div>` : ''}
+                        ${item.priceOld ? `<div class="inner-price-old">${formatMoney(item.priceOld)}</div>` : ''}
                       </div>
                     </div>
                   </a>
@@ -417,18 +444,12 @@ if(formSearch) {
 
 const currencyConfig = (() => {
   const defaults = {
-    base: "VND",
-    defaultCurrency: "VND",
-    supported: ["VND", "USD", "EUR", "JPY", "GBP", "CNY"],
+    base: storeLocale.currency,
+    defaultCurrency: storeLocale.currency,
+    supported: [...new Set([storeLocale.currency, ...(storeLocale.displayCurrencies || [])])],
     rates: {},
-    digits: {
-      VND: 0,
-      JPY: 0,
-      USD: 2,
-      EUR: 2,
-      GBP: 2,
-      CNY: 2
-    }
+    // Decimals per currency come from Intl (VND 0, KRW 0, USD 2, ...); an entry here overrides one.
+    digits: {}
   };
 
   const override = window.currencySettings || {};
@@ -545,20 +566,18 @@ const loadLiveRates = async ({ force = false } = {}) => {
   return false;
 };
 
-const PRICE_TEXT_REGEX = /^\s*(-?[\d.,]+)\s*(VND|₫)\s*(?:×\s*(\d+))?\s*$/i;
 const currencyFormatters = new Map();
 
 const getCurrencyFormatter = (currency) => {
   if(!currencyFormatters.has(currency)) {
-    const digits = currencyConfig.digits[currency] ?? 2;
+    const digits = currencyConfig.digits[currency];
     currencyFormatters.set(
       currency,
       new Intl.NumberFormat("en-US", {
         style: "currency",
         currency,
         currencyDisplay: "code",
-        minimumFractionDigits: digits,
-        maximumFractionDigits: digits
+        ...(digits === undefined ? {} : { minimumFractionDigits: digits, maximumFractionDigits: digits })
       })
     );
   }
@@ -566,6 +585,7 @@ const getCurrencyFormatter = (currency) => {
 };
 
 const formatCurrencyAmount = (amountVnd, currency) => {
+  if(currency === currencyConfig.base) return formatMoneyText(amountVnd);
   const rate = currency === currencyConfig.base ? 1 : currencyConfig.rates[currency];
   if(!rate && currency !== currencyConfig.base) {
     return getCurrencyFormatter(currencyConfig.base).format(amountVnd);
@@ -574,43 +594,12 @@ const formatCurrencyAmount = (amountVnd, currency) => {
   return getCurrencyFormatter(currency).format(value);
 };
 
-const wrapBasePriceNodes = (root = document.body) => {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      if(!node.parentElement) return NodeFilter.FILTER_REJECT;
-      const text = node.textContent;
-      if(!text || !PRICE_TEXT_REGEX.test(text)) return NodeFilter.FILTER_REJECT;
-      return NodeFilter.FILTER_ACCEPT;
-    }
-  });
-
-  const nodes = [];
-  while(walker.nextNode()) {
-    nodes.push(walker.currentNode);
-  }
-
-  nodes.forEach(node => {
-    const text = node.textContent;
-    const match = text.match(PRICE_TEXT_REGEX);
-    if(!match) return;
-    const amount = parseFloat(match[1].replace(/[.,]/g, ""));
-    if(Number.isNaN(amount)) return;
-
-    const span = document.createElement("span");
-    span.className = "currency-amount";
-    span.dataset.basePrice = amount;
-    span.dataset.baseCurrency = currencyConfig.base;
-    if(match[3]) {
-      span.dataset.baseSuffix = match[3];
-    }
-
-    node.parentNode.replaceChild(span, node);
-  });
-};
-
 const refreshCurrencyDisplay = (root = document.body) => {
-  wrapBasePriceNodes(root);
   const currency = currencyState.current;
+  // Orders are always charged in the store currency; say so while another one is shown.
+  document.querySelectorAll("[data-charge-currency-note]").forEach(note => {
+    note.hidden = currency === currencyConfig.base;
+  });
   root.querySelectorAll("[data-base-price]").forEach(el => {
     const basePrice = parseFloat(el.dataset.basePrice);
     if(Number.isNaN(basePrice)) return;
@@ -919,8 +908,8 @@ const drawCart = () => {
                     ${esc(detail.name)}
                   </a>
                   <p>
-                    ${priceNew.toLocaleString('vi-VN')} ₫
-                    <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
+                    ${formatMoney(priceNew)}
+                    <del>${formatMoney(priceOld)}</del>
                   </p>
                   <span>
                     <b>Quantity:</b> ${item.quantity}
@@ -952,13 +941,13 @@ const drawCart = () => {
                 <td class="cart_page_details">
                   <a class="title" href="/product/detail/${esc(detail.slug)}">${esc(detail.name)}</a>
                   <p>
-                    ${priceNew.toLocaleString('vi-VN')} ₫
-                    <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
+                    ${formatMoney(priceNew)}
+                    <del>${formatMoney(priceOld)}</del>
                   </p>
                   ${htmlVariant}
                 </td>
                 <td class="cart_page_price">
-                  <h3>${priceNew.toLocaleString('vi-VN')} ₫</h3>
+                  <h3>${formatMoney(priceNew)}</h3>
                 </td>
                 <td class="cart_page_quantity">
                   <div class="details_qty_input">
@@ -978,7 +967,7 @@ const drawCart = () => {
                   </div>
                 </td>
                 <td class="cart_page_total">
-                  <h3>${(priceNew * item.quantity).toLocaleString('vi-VN')} ₫</h3>
+                  <h3>${formatMoney((priceNew * item.quantity))}</h3>
                 </td>
                 <td class="cart_page_action">
                   <a href="javascript:;" button-remove-item>
@@ -998,7 +987,7 @@ const drawCart = () => {
                     <a class="title" href="/product/detail/${esc(detail.slug)}">
                       ${esc(detail.name)}
                     </a>
-                    <p>${priceNew.toLocaleString('vi-VN')} ₫ × ${item.quantity}</p>
+                    <p>${formatMoney(priceNew)} × ${item.quantity}</p>
                     ${htmlVariantSummary}
                   </div>
                 </li>
@@ -1006,15 +995,14 @@ const drawCart = () => {
             }
           })
 
-          if(data.shippingOptions) {
+          if(Array.isArray(data.shippingOptions)) {
+            // Keep the customer's choice by rate id; options are re-quoted when the address changes.
             const inputChecked = document.querySelector(`[shipping-list] [name="shippingMethod"]:checked`);
-            let idInputChecked = null;
-            if(inputChecked) {
-              idInputChecked = inputChecked.id;
-            }
+            const checkedRateId = inputChecked ? inputChecked.value : null;
+            const onlyOption = data.shippingOptions.length === 1;
 
             data.shippingOptions.forEach((item, index) => {
-              const checked = idInputChecked == `shippingMethod${index}` ? "checked" : "";
+              const checked = (item.id === checkedRateId || onlyOption) ? "checked" : "";
 
               htmlShipping += `
                 <div class="form-check">
@@ -1027,29 +1015,33 @@ const drawCart = () => {
                     value="${esc(item.id)}"
                   >
                   <label class="form-check-label" for="shippingMethod${index}">
-                    <small>${esc(item.carrier_name)} (${esc(item.service)} - ${esc(item.expected)}):</small>
+                    <small>${esc(item.carrierName)}${[item.service, item.expected].filter(Boolean).length ? ` (${esc([item.service, item.expected].filter(Boolean).join(" - "))})` : ""}:</small>
                     <span>
                       <span>(+) </span>
-                      <span>${item.total_fee.toLocaleString('vi-VN')} ₫</span>
+                      <span>${formatMoney(item.fee)}</span>
                     </span>
                   </label>
                 </div>
               `;
 
               if(checked == "checked") {
-                shippingFee = item.total_fee;
+                shippingFee = item.fee;
               }
             });
+
+            if(data.shippingOptions.length === 0) {
+              htmlShipping = `<p class="small text-muted mb-0">${userAddress ? "No shipping method is available for this address." : "Choose your delivery location to see shipping options."}</p>`;
+            }
           }
 
           let discount = 0;
-          let couponDetail = sessionStorage.getItem("couponDetail");
+          let couponDetail = couponInSession();
           if(couponDetail) {
             couponDetail = JSON.parse(couponDetail);
 
             if (subTotal >= couponDetail.minOrderValue) {
               if (couponDetail.typeDiscount === "percentage") {
-                discount = Math.round((subTotal * couponDetail.value) / 100);
+                discount = roundMoney((subTotal * couponDetail.value) / 100);
 
                 if (couponDetail.maxDiscountValue > 0 && discount > couponDetail.maxDiscountValue) {
                   discount = couponDetail.maxDiscountValue;
@@ -1066,7 +1058,7 @@ const drawCart = () => {
                 elementCoupon.textContent = couponDetail.code;
               }
             } else {
-              notyf.error(`Order has not reached minimum value: ${(couponDetail.minOrderValue || 0).toLocaleString('vi-VN')} ₫`);
+              notyf.error(`Order has not reached minimum value: ${formatMoneyText(couponDetail.minOrderValue || 0)}`);
               sessionStorage.removeItem("couponDetail");
             }
           }
@@ -1205,8 +1197,9 @@ if(!existCompareList) {
 
 const miniCompareQuantity = () => {
   const compareList = JSON.parse(localStorage.getItem("compare"));
-  const miniCompareQuantity = document.querySelector("[mini-compare-quantity]");
-  miniCompareQuantity.innerHTML = compareList.length;
+  document.querySelectorAll("[mini-compare-quantity]").forEach(element => {
+    element.innerHTML = compareList.length;
+  });
 }
 miniCompareQuantity();
 
@@ -1217,8 +1210,9 @@ if(!existWishlist) {
 
 const miniWishlistQuantity = () => {
   const wishlist = JSON.parse(localStorage.getItem("wishlist"));
-  const miniWishlistQuantity = document.querySelector("[mini-wishlist-quantity]");
-  miniWishlistQuantity.innerHTML = wishlist.length;
+  document.querySelectorAll("[mini-wishlist-quantity]").forEach(element => {
+    element.innerHTML = wishlist.length;
+  });
 }
 miniWishlistQuantity();
 
@@ -1434,7 +1428,7 @@ if(shopDetailsText) {
   })
 
   const buttonAddCompare = shopDetailsText.querySelector("[button-add-compare]");
-  buttonAddCompare.addEventListener("click", () => {
+  buttonAddCompare?.addEventListener("click", () => {
     const productId = buttonAddCompare.getAttribute("product-id");
     if(productId) {
       if (typeof productVariants !== "undefined" && productVariants && productVariants.length > 0 && !variantSelected) {
@@ -1494,7 +1488,7 @@ if(shopDetailsText) {
   })
 
   const buttonAddWishlist = shopDetailsText.querySelector("[button-add-wishlist]");
-  buttonAddWishlist.addEventListener("click", () => {
+  buttonAddWishlist?.addEventListener("click", () => {
     const productId = buttonAddWishlist.getAttribute("product-id");
     const quantity = Math.max(1, parseInt(inputQuantity.value) || 1);
     if(productId) {
@@ -1712,8 +1706,8 @@ const drawComparePage = () => {
             html3 += `
               <td>
                 <p>
-                  ${priceNew.toLocaleString('vi-VN')} ₫
-                  <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
+                  ${formatMoney(priceNew)}
+                  <del>${formatMoney(priceOld)}</del>
                 </p>
               </td>
             `;
@@ -1987,13 +1981,13 @@ const drawWishlistPage = () => {
                 <td class="cart_page_details">
                   <a class="title" href="/product/detail/${esc(detail.slug)}">${esc(detail.name)}</a>
                   <p>
-                    ${priceNew.toLocaleString('vi-VN')} ₫
-                    <del>${priceOld.toLocaleString('vi-VN')} ₫</del>
+                    ${formatMoney(priceNew)}
+                    <del>${formatMoney(priceOld)}</del>
                   </p>
                   ${htmlVariant}
                 </td>
                 <td class="cart_page_price">
-                  <h3>${priceNew.toLocaleString('vi-VN')} ₫</h3>
+                  <h3>${formatMoney(priceNew)}</h3>
                 </td>
                 <td class="cart_page_quantity">
                   <div class="details_qty_input">
@@ -2013,7 +2007,7 @@ const drawWishlistPage = () => {
                   </div>
                 </td>
                 <td class="cart_page_price">
-                  <h3>${(item.quantity*priceNew).toLocaleString('vi-VN')} ₫</h3>
+                  <h3>${formatMoney((item.quantity*priceNew))}</h3>
                 </td>
                 <td class="cart_page_action">
                   ${
@@ -2668,6 +2662,11 @@ if(boxMap) {
     const searchInput = document.querySelector("#mapSearchInput");
     const searchBtn = document.querySelector("#mapSearchBtn");
     if (searchBtn && searchInput) {
+      searchInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        searchBtn.click();
+      });
       searchBtn.addEventListener("click", () => {
         const keyword = searchInput.value;
         if(!keyword) {
@@ -2959,14 +2958,18 @@ if(buttonOrder) {
     });
 
     let dataCoupon = "";
-    let coupon = sessionStorage.getItem("couponDetail");
+    let coupon = couponInSession();
     if(coupon) {
       coupon = JSON.parse(coupon);
       dataCoupon = coupon.code;
     }
 
     const inputPaymentMethodChecked = document.querySelector(`input[name="paymentMethod"]:checked`);
-    const dataPaymentMethod = inputPaymentMethodChecked.value;
+    const dataPaymentMethod = inputPaymentMethodChecked?.value;
+    if(!dataPaymentMethod) {
+      notyf.error("Please select a payment method!");
+      return;
+    }
 
     const inputShippingMethodChecked = document.querySelector(`input[name="shippingMethod"]:checked`);
     const dataShippingMethod = inputShippingMethodChecked?.value;
@@ -3016,21 +3019,9 @@ if(buttonOrder) {
             return;
           }
 
-          switch (dataPaymentMethod) {
-            case "money":
-              drawNotify(data.code, data.message);
-              window.location.href = `/order/success?orderCode=${data.orderCode}&phone=${data.phone}`;
-              break;
-            case "zalopay":
-              window.location.href = `/order/payment-zalopay?orderCode=${data.orderCode}&phone=${data.phone}`;
-              break;
-            case "vnpay":
-              window.location.href = `/order/payment-vnpay?orderCode=${data.orderCode}&phone=${data.phone}`;
-              break;
-            default:
-              window.location.href = "/";
-              break;
-          }
+          // The server decides the next page: the order summary, or the payment gateway.
+          drawNotify(data.code, data.message);
+          window.location.href = data.redirectUrl || `/order/success?orderCode=${data.orderCode}&phone=${data.phone}`;
         }
       })
       .catch(() => {

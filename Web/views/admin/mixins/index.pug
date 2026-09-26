@@ -8,15 +8,15 @@ mixin box-option(name, options = [])
               <i class="fa-solid fa-up-down-left-right"></i>
             input(type="text" class="form-control option-label" placeholder="Label" value=option.label)
             input(type="text" class="form-control option-value" placeholder="Value" value=option.value)
-            span(class="btn btn-danger option-remove") Delete
+            button(type="button" class="btn btn-danger option-remove") Delete
       else
         div(class="option-item")
           span(class="btn btn-secondary option-move")
             <i class="fa-solid fa-up-down-left-right"></i>
           input(type="text" class="form-control option-label" placeholder="Label")
           input(type="text" class="form-control option-value" placeholder="Value")
-          span(class="btn btn-danger option-remove") Delete
-    span(class="btn btn-outline-info mt-2 option-create") Add Option
+          button(type="button" class="btn btn-danger option-remove") Delete
+    button(type="button" class="btn btn-outline-info mt-2 option-create") Add Option
 
 mixin checkbox-list(list = [], level = 0, listChecked = [])
   each item in list
@@ -36,13 +36,13 @@ mixin form-group-file(label="", name="", id="", value="", placeholder="File path
   div(form-group-file)
     label.form-label(for=id) #{label}
     .input-group
-      span.btn.btn-outline-info(
+      button.btn.btn-outline-info(type="button" 
         data-bs-toggle="modal"
         data-bs-target="#modalFileManager"
         ) Select File
       input.form-control(id=id type="text" name=name value=value placeholder=placeholder input-file)
     .preview-file(preview-file)
-      img
+      img(alt=`${label} preview`)
 
 mixin form-search()
   form.input-group.mb-3(form-search)

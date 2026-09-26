@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { PAYMENT_METHOD_IDS, DEFAULT_PAYMENT_METHOD } from "../configs/payment-methods.config";
 
 const schema = new mongoose.Schema(
   {
@@ -34,12 +35,8 @@ const schema = new mongoose.Schema(
     total: Number,
     paymentMethod: {
       type: String,
-      enum: [
-        "money",
-        "vnpay",
-        "zalopay"
-      ],
-      default: "money"
+      enum: PAYMENT_METHOD_IDS,
+      default: DEFAULT_PAYMENT_METHOD
     },
     paymentStatus: {
       type: String,
@@ -63,6 +60,9 @@ const schema = new mongoose.Schema(
       default: "pending",
     },
     shipping: {
+      provider: String,
+      externalId: String,
+      // Shipment id of orders placed before shipping providers were pluggable (GoShip).
       goshipOrderId: String,
       carrierName: String,
       carrierCode: String,

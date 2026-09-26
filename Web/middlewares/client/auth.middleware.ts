@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import * as clientAuthService from "../../services/client/auth.service";
-import { bearerTokenOf, isApiRequest, usesAuthorizationHeader } from "../../helpers/access-token.helper";
+import { bearerTokenOf, isApiRequest, usesAuthorizationHeader, verifyAccessToken } from "../../helpers/access-token.helper";
 import { tokenIssuedAtMs } from "../../helpers/token-rotation.helper";
 
 const paths = [
@@ -27,7 +26,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
       const bearer = bearerTokenOf(req);
       if (bearer) {
         try {
-          const decoded = jwt.verify(bearer, `${process.env.JWT_SECRET}`) as JwtPayload;
+          const decoded = verifyAccessToken(bearer);
           await loadAccountIntoLocals(res, decoded.id, decoded.email, tokenIssuedAtMs(decoded));
         } catch {
           // an invalid or expired token leaves the request anonymous, so protected routes answer 401
@@ -40,7 +39,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 
     if (token) {
       try {
-        const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as JwtPayload;
+        const decoded = verifyAccessToken(token);
         if (await loadAccountIntoLocals(res, decoded.id, decoded.email, tokenIssuedAtMs(decoded))) {
           return next();
         }

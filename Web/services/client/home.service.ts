@@ -1,6 +1,7 @@
 import { getGeneral } from '../../configs/setting.config';
 import Product from '../../models/product.model';
 import Blog from '../../models/blog.model';
+import { FEATURES } from '../../configs/features.config';
 import { pathAdmin } from '../../configs/variable.config';
 import { getBlockListByTemplate } from '../../helpers/block.helper';
 
@@ -27,7 +28,7 @@ export const generateSitemapXml = async (): Promise<string> => {
 
   const [productList, blogList] = await Promise.all([
     Product.find({ deleted: false, status: "active" }).select("slug updatedAt"),
-    Blog.find({ deleted: false, status: "published" }).select("slug updatedAt")
+    FEATURES.BLOG ? Blog.find({ deleted: false, status: "published" }).select("slug updatedAt") : []
   ]);
 
   productList.forEach(item => {

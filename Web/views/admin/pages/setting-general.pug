@@ -8,7 +8,7 @@ block main
         .col
           h4 #{pageTitle}
     .card-body.pt-0
-      form(id="settingGeneralForm")
+      form(id="settingGeneralForm" data-setting-endpoint="general")
         .row
           .col-md-6.col-lg-6
             .mb-3
@@ -34,22 +34,41 @@ block main
                 "favicon",
                 record ? record.data.favicon : ''
               )
+          .col-md-12
+            .mb-3
+              label.form-label(for="storeDescription") Store description
+              textarea.form-control(id="storeDescription" name="storeDescription" rows="2" maxlength="300" placeholder="Shown under the logo in the footer") #{record && record.data.storeDescription ? record.data.storeDescription : ''}
 
         hr.my-4
-        h5.mb-3 Shop Sender Info
+        h5.mb-1 Social Profiles
+        p.text-muted.small.mb-3 The footer links only the profiles filled in here.
+        .row
+          each link in socialLinks
+            .col-md-6.col-lg-4
+              .mb-3
+                label.form-label(for=link.key) #{link.label}
+                input.form-control(id=link.key name=link.key type="url" placeholder="https://..." value=(record && record.data[link.key]) || '')
+
+        hr.my-4
+        h5.mb-1 Store Contact
+        p.text-muted.small.mb-3 Shown in the store header, footer and contact page. Name, phone and address are also the sender details for GoShip shipments.
         .row
           .col-md-6.col-lg-6
             .mb-3
-              label.form-label(for="shopSenderName") Sender Name
+              label.form-label(for="shopSenderName") Store Name
               input(id="shopSenderName" name="shopSenderName" class="form-control" value=`${record ? record.data.shopSenderName : ''}`)
           .col-md-6.col-lg-6
             .mb-3
-              label.form-label(for="shopSenderPhone") Sender Phone
+              label.form-label(for="shopSenderPhone") Phone
               input(id="shopSenderPhone" name="shopSenderPhone" class="form-control" value=`${record ? record.data.shopSenderPhone : ''}`)
           .col-md-12.col-lg-12
             .mb-3
-              label.form-label(for="shopSenderAddress") Sender Address
+              label.form-label(for="shopSenderAddress") Address
               input(id="shopSenderAddress" name="shopSenderAddress" class="form-control" value=`${record ? record.data.shopSenderAddress : ''}`)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="contactEmail") Contact Email
+              input(id="contactEmail" name="contactEmail" type="email" class="form-control" value=`${record && record.data.contactEmail ? record.data.contactEmail : ''}`)
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="shopLat") Latitude

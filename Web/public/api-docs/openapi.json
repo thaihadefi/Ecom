@@ -7,7 +7,7 @@
       "name": "MIT",
       "url": "https://github.com/thaihadefi/Ecom/blob/main/LICENSE"
     },
-    "description": "Documentation of every API endpoint of the Ecom web application (port 3000) and the FileManager microservice (port 4000). Server-rendered HTML pages are out of scope, apart from the few read-only ones described under Response conventions.\n\n### Base URLs\n- Web application: `http://localhost:3000`\n- FileManager microservice: `http://localhost:4000` (operations under `/files` and `/folders` are served only there)\n\n### Authentication\n- **Customer** and **admin** JSON endpoints (`/api`, `/admin/api`) accept either the HTTP-only cookie (`tokenUser`, `tokenAdmin`), which browsers use, or `Authorization: Bearer <accessToken>`, which API clients use. The login endpoints return `accessToken` in the body and set the cookie; a request that carries an `Authorization` header is authenticated by it alone and its cookies are ignored. The token lasts one day (`expiresIn` says how long); there is no refresh for Bearer clients, so log in again on 401.\n- **FileManager** `/files` and `/folders` endpoints use `Authorization: Bearer <FILE_MANAGER_SECRET>`. `/media` is public. Use a random secret of at least 32 characters; repeated wrong secrets from one address are answered with HTTP 429.\n- Admin endpoints also check a permission (shown on each operation). Every admin write is recorded in the admin activity log.\n\n### Trying requests\nThe Web application serves this documentation itself at `/api-docs/`, which is the place to try customer and admin endpoints: log in through the login endpoint (the cookie is then sent automatically), or paste the returned `accessToken` under \"Authorize\". The Web application sends no CORS headers, so the copy on GitHub Pages cannot call it; the FileManager bearer endpoints work from that copy when FileManager lists its origin in `FILE_MANAGER_CORS_ORIGINS`.\n\n### Response conventions\n- A successful JSON response has HTTP 200 and `{ \"code\": \"success\", \"message\": \"...\", ...data }`.\n- An error has the matching HTTP status and `{ \"code\": \"error\", \"message\": \"...\" }`: **400** invalid request, **401** not logged in, **403** no permission or not allowed, **404** record not found, **409** conflict with the current state (duplicate value, missing stock, a change that is not allowed), **429** too many attempts (see `Retry-After`), **500** unexpected failure and **502** a service the application depends on (FileManager, email, GoShip) failed.\n- JSON endpoints (`/api`, `/admin/api`) never redirect: without a valid login they answer 401, and without the permission 403, whatever the method. Server-rendered page requests are redirected (302) to the login page, unless they send an `Authorization` header, `Accept: application/json` without `text/html`, or `X-Requested-With: XMLHttpRequest`, which get the same 401 or 403 as the JSON endpoints. FileManager answers 401 when the bearer secret is missing or wrong.\n- The storefront is server-rendered. The few page routes that act as read endpoints (catalog, articles, cart, flagged orders, payment and OAuth redirects) are documented with `text/html` or redirect responses; the other pages are not part of the API.\n- JSON endpoints are plural resources under `/api` (storefront) and `/admin/api` (admin). The HTTP method states the action: `POST` creates, `PUT` and `PATCH` change, `DELETE` removes, and `GET` never changes data. Payment-gateway and OAuth callbacks keep the URLs their providers call.\n- Trash lifecycle of admin resources: `DELETE /{id}` moves a record to the trash, `POST /{id}/restore` restores it and `DELETE /{id}?permanent=true` deletes it for good. The bulk variants take `{ \"ids\": [...] }` on the collection: `POST /trash`, `POST /restore` and `DELETE /`.\n\n### Real-time chat (Socket.IO, same origin as the Web app)\nConnect with the auth cookie and `auth: { role: \"user\" | \"admin\", roomId? }`.\n- Client to server: `CLIENT_SEND_MESSAGE`, `CLIENT_TYPING`, `CLIENT_OPEN_CHAT`, `CLIENT_DELETE_MESSAGE`, `ADMIN_OPEN_CHAT`, `ADMIN_TYPING`, `ADMIN_DELETE_ROOM`.\n- Server to client: `SERVER_SEND_MESSAGE`, `SERVER_SEND_STATUS`, `SERVER_MESSAGE_DELIVERED`, `SERVER_DELETE_MESSAGE`, `SERVER_DELETE_ROOM`, `SERVER_ROOM_ASSIGNED`, `SERVER_SEND_CLIENT_TYPING`, `SERVER_SEND_ADMIN_TYPING`, `SERVER_CLIENT_READ`, `SERVER_ADMIN_READ`, `SERVER_ADMIN_STATUS`, `USER_STATUS_ONLINE`, `LIST_USER_ONLINE`."
+    "description": "Documentation of every API endpoint of the Ecom web application (port 3000) and the FileManager microservice (port 4000). Server-rendered HTML pages are out of scope, apart from the few read-only ones described under Response conventions.\n\n### Base URLs\n- Web application: `http://localhost:3000`\n- FileManager microservice: `http://localhost:4000` (operations under `/files` and `/folders` are served only there)\n\n### Authentication\n- **Customer** and **admin** JSON endpoints (`/api`, `/admin/api`) accept either the HTTP-only cookie (`tokenUser`, `tokenAdmin`), which browsers use, or `Authorization: Bearer <accessToken>`, which API clients use. The login endpoints return `accessToken` in the body and set the cookie; a request that carries an `Authorization` header is authenticated by it alone and its cookies are ignored. The token lasts one day (`expiresIn` says how long); there is no refresh for Bearer clients, so log in again on 401.\n- **FileManager** `/files` and `/folders` endpoints use `Authorization: Bearer <FILE_MANAGER_SECRET>`. `/media` is public. Use a random secret of at least 32 characters; repeated wrong secrets from one address are answered with HTTP 429.\n- Admin endpoints also check a permission (shown on each operation). Every admin write is recorded in the admin activity log.\n\n### Trying requests\nThe Web application serves this documentation itself at `/api-docs/`, which is the place to try customer and admin endpoints: log in through the login endpoint (the cookie is then sent automatically), or paste the returned `accessToken` under \"Authorize\". The Web application sends CORS headers on non-admin routes, so the Vercel copy can reach storefront endpoints with a Bearer token; admin endpoints skip CORS on purpose, so try those from this same-origin copy instead. The FileManager bearer endpoints also work from the Vercel copy when FileManager lists its origin in `FILE_MANAGER_CORS_ORIGINS`.\n\n### Response conventions\n- A successful JSON response has HTTP 200 and `{ \"code\": \"success\", \"message\": \"...\", ...data }`.\n- An error has the matching HTTP status and `{ \"code\": \"error\", \"message\": \"...\" }`: **400** invalid request, **401** not logged in, **403** no permission or not allowed, **404** record not found, **409** conflict with the current state (duplicate value, missing stock, a change that is not allowed), **429** too many attempts (see `Retry-After`), **500** unexpected failure, **502** a service the application depends on (FileManager, email, the shipping carrier) failed, and **503** the store is not fully configured yet for the request (for example, checkout without a warehouse location set).\n- JSON endpoints (`/api`, `/admin/api`) never redirect: without a valid login they answer 401, and without the permission 403, whatever the method. Server-rendered page requests are redirected (302) to the login page, unless they send an `Authorization` header, `Accept: application/json` without `text/html`, or `X-Requested-With: XMLHttpRequest`, which get the same 401 or 403 as the JSON endpoints. FileManager answers 401 when the bearer secret is missing or wrong.\n- The storefront is server-rendered. The few page routes that act as read endpoints (catalog, articles, cart, flagged orders, payment and OAuth redirects) are documented with `text/html` or redirect responses; the other pages are not part of the API.\n- JSON endpoints are plural resources under `/api` (storefront) and `/admin/api` (admin). The HTTP method states the action: `POST` creates, `PUT` and `PATCH` change, `DELETE` removes, and `GET` never changes data. Payment-gateway and OAuth callbacks keep the URLs their providers call.\n- Trash lifecycle of admin resources: `DELETE /{id}` moves a record to the trash, `POST /{id}/restore` restores it and `DELETE /{id}?permanent=true` deletes it for good. The bulk variants take `{ \"ids\": [...] }` on the collection: `POST /trash`, `POST /restore` and `DELETE /`.\n\n### Optional modules\nEach store switches optional modules on or off with `FEATURE_*` environment variables (see the Ecom README). An endpoint of a switched-off module answers **404** like a route that does not exist: chat (`/api/chat-rooms`, `/admin/api/chat-rooms`), AI chat helpers, flagged orders, recommendation jobs, blog (`/api/articles`, `/api/article-categories`, `/admin/api/articles`, `/admin/api/article-categories`), wishlist, compare, reviews (`/api/reviews`, `/admin/api/reviews`), coupons (`/api/coupon-checks`, `/admin/api/coupons`; checkout then refuses a coupon with 400) and loyalty points (checkout ignores `usePoint`).\n\n### Real-time chat (Socket.IO, same origin as the Web app)\nConnect with the auth cookie and `auth: { role: \"user\" | \"admin\", roomId? }`.\n- Client to server: `CLIENT_SEND_MESSAGE`, `CLIENT_TYPING`, `CLIENT_OPEN_CHAT`, `CLIENT_DELETE_MESSAGE`, `ADMIN_OPEN_CHAT`, `ADMIN_TYPING`, `ADMIN_DELETE_ROOM`.\n- Server to client: `SERVER_SEND_MESSAGE`, `SERVER_SEND_STATUS`, `SERVER_MESSAGE_DELIVERED`, `SERVER_DELETE_MESSAGE`, `SERVER_DELETE_ROOM`, `SERVER_ROOM_ASSIGNED`, `SERVER_SEND_CLIENT_TYPING`, `SERVER_SEND_ADMIN_TYPING`, `SERVER_CLIENT_READ`, `SERVER_ADMIN_READ`, `SERVER_ADMIN_STATUS`, `USER_STATUS_ONLINE`, `LIST_USER_ONLINE`."
   },
   "servers": [
     {
@@ -487,11 +487,14 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "500": {
             "$ref": "#/components/responses/ServerError"
           }
         },
-        "description": "Requires the admin permission `account-admin-change-password`.\n\nThe password of a superadmin account can only be changed by that superadmin.",
+        "description": "Requires the admin permission `account-admin-change-password`. Rate limited (HTTP 429 when exceeded).\n\nThe password of a superadmin account can only be changed by that superadmin.",
         "requestBody": {
           "required": true,
           "content": {
@@ -5823,7 +5826,7 @@
           "Admin Settings & Ops",
           "Payment & Logistics (VNPAY, ZaloPay, GoShip)"
         ],
-        "summary": "Configure VNPAY and ZaloPay gateway credentials",
+        "summary": "Choose checkout payment methods and configure VNPAY and ZaloPay credentials",
         "requestBody": {
           "required": true,
           "content": {
@@ -5873,7 +5876,7 @@
           "Admin Settings & Ops",
           "Payment & Logistics (VNPAY, ZaloPay, GoShip)"
         ],
-        "summary": "Configure GoShip token",
+        "summary": "Configure GoShip and the default parcel weight",
         "responses": {
           "200": {
             "description": "Saved.",
@@ -5903,6 +5906,22 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "defaultItemWeight": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 10000000
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      }
+                    ],
+                    "description": "Grams per unit for products without their own weight; an empty string clears it."
+                  },
                   "goshipApiUrl": {
                     "type": "string",
                     "format": "uri",
@@ -5926,6 +5945,104 @@
           }
         ],
         "operationId": "patchAdminApiSettingsShipping"
+      }
+    },
+    "/admin/api/settings/storefront": {
+      "patch": {
+        "tags": [
+          "Admin Settings & Ops"
+        ],
+        "summary": "Set the theme, currency, locale, time zone and loyalty point rates",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchAdminSettingStorefrontBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/PermissionDenied"
+          }
+        },
+        "description": "Requires the admin permission `setting-edit`. The store currency is what prices are entered in and orders are charged in; changing it does not convert existing prices.",
+        "security": [
+          {
+            "AdminCookie": []
+          },
+          {
+            "AdminBearer": []
+          }
+        ],
+        "operationId": "patchAdminApiSettingsStorefront"
+      }
+    },
+    "/admin/api/settings/pages": {
+      "patch": {
+        "tags": [
+          "Admin Settings & Ops"
+        ],
+        "summary": "Set the text of the About, FAQ and policy pages",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchAdminSettingPagesBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/PermissionDenied"
+          }
+        },
+        "description": "Requires the admin permission `setting-edit`. The HTML is sanitized when shown; an empty page keeps its default text.",
+        "security": [
+          {
+            "AdminCookie": []
+          },
+          {
+            "AdminBearer": []
+          }
+        ],
+        "operationId": "patchAdminApiSettingsPages"
       }
     },
     "/admin/api/settings/social-login": {
@@ -6458,14 +6575,14 @@
           "Client Cart & Checkout",
           "Payment & Logistics (VNPAY, ZaloPay, GoShip)"
         ],
-        "summary": "Get verified cart lines, subtotal and GoShip delivery options",
+        "summary": "Get verified cart lines and shipping options",
         "responses": {
           "200": {
             "description": "Cart quote with verified prices and shipping options.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StandardResponse"
+                  "$ref": "#/components/schemas/CartQuoteResponse"
                 }
               }
             }
@@ -6481,6 +6598,9 @@
           },
           "502": {
             "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
           }
         },
         "description": "Rate limited (HTTP 429 when exceeded).",
@@ -7428,10 +7548,14 @@
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "500": {
             "$ref": "#/components/responses/ServerError"
           }
         },
+        "description": "Rate limited (HTTP 429 when exceeded).",
         "requestBody": {
           "required": true,
           "content": {
@@ -7462,11 +7586,11 @@
         "description": "The order is rejected when an item is no longer available or when the coupon has reached its usage limit.",
         "responses": {
           "200": {
-            "description": "Order created with payment URL or confirmation.",
+            "description": "Order created; `redirectUrl` says where the customer goes next.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StandardResponse"
+                  "$ref": "#/components/schemas/OrderCreatedResponse"
                 }
               }
             }
@@ -7485,6 +7609,9 @@
           },
           "502": {
             "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
           }
         },
         "requestBody": {
@@ -7578,7 +7705,8 @@
                     ]
                   },
                   "shippingMethod": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The `id` of a rate from the cart quote's `shippingOptions`."
                   },
                   "usePoint": {
                     "type": "boolean"
@@ -9060,20 +9188,33 @@
         "security": []
       }
     },
-    "/order/payment-vnpay": {
+    "/order/payment-{method}": {
       "get": {
         "tags": [
           "Payment & Logistics (VNPAY, ZaloPay, GoShip)"
         ],
-        "summary": "Generate VNPAY payment gateway URL and redirect customer",
+        "summary": "Start (or retry) the payment of an order on an online gateway",
         "parameters": [
+          {
+            "name": "method",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vnpay",
+                "zalopay"
+              ]
+            },
+            "description": "An online payment method that is enabled at checkout"
+          },
           {
             "name": "orderCode",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
-              "example": "ORD-123456"
+              "example": "AB123456"
             },
             "description": "Order tracking code"
           },
@@ -9089,18 +9230,15 @@
           }
         ],
         "responses": {
-          "200": {
-            "$ref": "#/components/responses/HtmlPage"
-          },
           "302": {
-            "description": "Redirect (record not found, not signed in, or wrong state)"
+            "description": "Redirect to the gateway, to the order summary when it is already paid, or home when the order or method is not available"
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
         },
-        "description": "Rate limited (HTTP 429 when exceeded).",
-        "operationId": "getOrderPaymentVnpay",
+        "description": "Rate limited (HTTP 429 when exceeded). The checkout response's `redirectUrl` points here for online methods.",
+        "operationId": "getOrderPaymentByMethod",
         "security": []
       }
     },
@@ -9247,51 +9385,6 @@
           }
         },
         "operationId": "getOrderPaymentVnpayResult",
-        "security": []
-      }
-    },
-    "/order/payment-zalopay": {
-      "get": {
-        "tags": [
-          "Payment & Logistics (VNPAY, ZaloPay, GoShip)"
-        ],
-        "summary": "Create ZaloPay gateway payment URL with HMAC-SHA256 signature and redirect",
-        "parameters": [
-          {
-            "name": "orderCode",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "ORD-123456"
-            }
-          },
-          {
-            "name": "phone",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "0901234567"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/HtmlPage"
-          },
-          "302": {
-            "description": "Redirect (record not found, not signed in, or wrong state)"
-          },
-          "429": {
-            "$ref": "#/components/responses/RateLimited"
-          },
-          "502": {
-            "$ref": "#/components/responses/BadGateway"
-          }
-        },
-        "description": "Rate limited (HTTP 429 when exceeded).",
-        "operationId": "getOrderPaymentZalopay",
         "security": []
       }
     },
@@ -10254,14 +10347,14 @@
             "description": "Empty string allowed."
           },
           "priceOld": {
-            "type": "integer",
+            "type": "number",
             "minimum": 0,
-            "description": "Accepts both integer and string-encoded integer via multipart."
+            "description": "In the store currency, rounded to its decimals. Accepts a number or a string-encoded number via multipart."
           },
           "priceNew": {
-            "type": "integer",
+            "type": "number",
             "minimum": 0,
-            "description": "Accepts both integer and string-encoded integer via multipart."
+            "description": "In the store currency, rounded to its decimals. Accepts a number or a string-encoded number via multipart."
           },
           "attributes": {
             "type": "string",
@@ -10275,6 +10368,12 @@
             "type": "integer",
             "minimum": 0,
             "description": "Accepts both integer and string-encoded integer via multipart."
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000000,
+            "description": "Shipping weight of one unit in grams; empty uses the store default."
           },
           "tags": {
             "type": "string",
@@ -10439,6 +10538,11 @@
             "type": "string",
             "maxLength": 300
           },
+          "contactEmail": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
           "shopLat": {
             "oneOf": [
               {
@@ -10470,6 +10574,41 @@
               }
             ],
             "description": "A number, or an empty string to clear it."
+          },
+          "storeDescription": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Short text under the footer logo."
+          },
+          "facebookUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500
+          },
+          "instagramUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500
+          },
+          "youtubeUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500
+          },
+          "tiktokUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500
+          },
+          "xUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500
           }
         }
       },
@@ -10513,8 +10652,216 @@
             "type": "string",
             "format": "uri",
             "maxLength": 500
+          },
+          "enabledMethods": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Payment methods offered at checkout. Unset means every method whose keys are filled in; a method whose keys are missing, or that cannot charge the store currency, is never offered.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "money",
+                "vnpay",
+                "zalopay"
+              ]
+            }
           }
         }
+      },
+      "PatchAdminSettingStorefrontBody": {
+        "type": "object",
+        "properties": {
+          "primaryColor": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "secondaryColor": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "headingFont": {
+            "type": "string",
+            "maxLength": 60,
+            "pattern": "^[A-Za-z0-9 ]*$",
+            "description": "A Google Fonts family name; empty keeps the theme font."
+          },
+          "bodyFont": {
+            "type": "string",
+            "maxLength": 60,
+            "pattern": "^[A-Za-z0-9 ]*$",
+            "description": "A Google Fonts family name; empty keeps the theme font."
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 code, e.g. VND."
+          },
+          "displayCurrencies": {
+            "oneOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "ISO 4217 codes shoppers may view prices in, as a list or comma-separated text."
+          },
+          "locale": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "BCP 47 locale for numbers and dates, e.g. vi-VN."
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 60,
+            "description": "IANA time zone, e.g. Asia/Ho_Chi_Minh."
+          },
+          "language": {
+            "type": "string",
+            "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})?$",
+            "description": "The storefront html lang attribute."
+          },
+          "moneyPerPoint": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "minimum": 0,
+            "maximum": 1000000000000,
+            "description": "Order value that earns one loyalty point."
+          },
+          "pointValue": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "minimum": 0,
+            "maximum": 1000000000000,
+            "description": "Discount one loyalty point is worth."
+          }
+        }
+      },
+      "PatchAdminSettingPagesBody": {
+        "type": "object",
+        "properties": {
+          "about": {
+            "type": "string",
+            "maxLength": 60000
+          },
+          "faq": {
+            "type": "string",
+            "maxLength": 60000
+          },
+          "privacyPolicy": {
+            "type": "string",
+            "maxLength": 60000
+          },
+          "termsAndConditions": {
+            "type": "string",
+            "maxLength": 60000
+          },
+          "returnPolicy": {
+            "type": "string",
+            "maxLength": 60000
+          }
+        }
+      },
+      "ShippingRate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Pass it back as `shippingMethod` when placing the order (\"<provider>:<rate>\").",
+            "example": "goship:12345"
+          },
+          "provider": {
+            "type": "string",
+            "example": "goship"
+          },
+          "carrierName": {
+            "type": "string",
+            "example": "J&T Express"
+          },
+          "service": {
+            "type": "string"
+          },
+          "expected": {
+            "type": "string",
+            "description": "Expected delivery time as the carrier words it."
+          },
+          "fee": {
+            "type": "number"
+          }
+        }
+      },
+      "CartQuoteResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/StandardResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "cart": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "description": "The cart lines with current product details and quantities capped at the stock."
+              },
+              "shippingOptions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ShippingRate"
+                },
+                "description": "Cheapest first. Carriers that price by address (GoShip) appear only once `userAddress` is sent."
+              },
+              "point": {
+                "type": "object",
+                "properties": {
+                  "canUsePoint": {
+                    "type": "integer"
+                  },
+                  "POINT_TO_MONEY": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "OrderCreatedResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/StandardResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "orderCode": {
+                "type": "string"
+              },
+              "phone": {
+                "type": "string"
+              },
+              "total": {
+                "type": "number"
+              },
+              "paymentStatus": {
+                "type": "string",
+                "enum": [
+                  "unpaid",
+                  "paid"
+                ]
+              },
+              "redirectUrl": {
+                "type": "string",
+                "description": "Where to send the customer next, the order summary or the payment gateway start page.",
+                "example": "/order/payment-vnpay?orderCode=AB123456&phone=0901234567"
+              }
+            }
+          }
+        ]
       },
       "PatchAdminSettingApiLoginSocialBody": {
         "type": "object",
@@ -10791,6 +11138,16 @@
       },
       "FileManagerConflict": {
         "description": "A file or folder with that name already exists.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "The store is not fully configured yet (warehouse location, sender phone or address missing in Settings > General), so the request cannot be completed.",
         "content": {
           "application/json": {
             "schema": {

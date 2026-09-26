@@ -11,19 +11,16 @@ footer(class="footer_main pt_100")
               alt="Logo"
               src=`${settingGeneral && settingGeneral.logo ? domainCDN + settingGeneral.logo : '/images/logo.png'}`
               )
-          p
-            | Your one-stop destination for quality products delivered fast. Shop with confidence every day.
-          .footer_social_follow
-            span Follow :
-            a.footer_social_icon(href="https://www.facebook.com/UIT.Fanpage" target="_blank" rel="noopener noreferrer" aria-label="Facebook")
-              i.fab.fa-facebook-f(aria-hidden="true")
-            a.footer_social_icon(href="https://www.youtube.com/@uitchannel" target="_blank" rel="noopener noreferrer" aria-label="YouTube")
-              i.fab.fa-youtube(aria-hidden="true")
-            a.footer_social_icon(href="https://www.instagram.com/uituniversity" target="_blank" rel="noopener noreferrer" aria-label="Instagram")
-              i.fab.fa-instagram(aria-hidden="true")
-            a.footer_social_icon(href="https://www.linkedin.com/school/university-of-information-technology" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn")
-              i.fab.fa-linkedin-in(aria-hidden="true")
-      .col-xl-2.col-lg-2.col-md-3.col-sm-6
+          if (settingGeneral.storeDescription)
+            p= settingGeneral.storeDescription
+          - const socialProfiles = SOCIAL_LINKS.filter(link => settingGeneral[link.key])
+          if (socialProfiles.length)
+            .footer_social_follow
+              span Follow :
+              each link in socialProfiles
+                a.footer_social_icon(href=safeUrl(settingGeneral[link.key]) target="_blank" rel="noopener noreferrer" aria-label=link.label)
+                  i(class=link.icon aria-hidden="true")
+      .col-xl-2.col-lg-2.col-md-3.col-6
         div(class="footer_link")
           h2 Company
           ul
@@ -31,7 +28,7 @@ footer(class="footer_main pt_100")
               a(href="/about" target="_self") About Us
             li
               a(href="/contact" target="_self") Contact Us
-      .col-xl-2.col-lg-2.col-md-3.col-sm-6
+      .col-xl-2.col-lg-2.col-md-3.col-6
         div(class="footer_link")
           h2 Category
           ul
@@ -42,7 +39,7 @@ footer(class="footer_main pt_100")
             else
               li
                 a(href="javascript:void(0)") No categories yet
-      .col-xl-2.col-lg-2.col-md-3.col-sm-6
+      .col-xl-2.col-lg-2.col-md-3.col-6
         div(class="footer_link")
           h2 Quick Links
           ul
@@ -59,18 +56,21 @@ footer(class="footer_main pt_100")
           h2 Get In Touch
           p
             | Have questions? We're here to help you every step of the way.
-          span
-            b
-              i.fas.fa-map-marker-alt.text-white.me-2(aria-hidden="true")
-            a(href="https://maps.google.com/?q=Quarter+34,+Linh+Xuan+Ward,+Ho+Chi+Minh+City,+Vietnam" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;") Quarter 34, Linh Xuan Ward, Ho Chi Minh City, Vietnam
-          span
-            b
-              i.fas.fa-phone-alt.text-white.me-2(aria-hidden="true")
-            a(href="tel:02837252002") (028) 372 52002
-          span
-            b
-              i.fas.fa-envelope.text-white.me-2(aria-hidden="true")
-            a(href="mailto:info@uit.edu.vn") info@uit.edu.vn
+          if storeContact.address
+            span
+              b
+                i.fas.fa-map-marker-alt.text-white.me-2(aria-hidden="true")
+              a(href=storeContact.mapUrl target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;")= storeContact.address
+          if storeContact.phone
+            span
+              b
+                i.fas.fa-phone-alt.text-white.me-2(aria-hidden="true")
+              a(href=storeContact.phoneHref)= storeContact.phone
+          if storeContact.email
+            span
+              b
+                i.fas.fa-envelope.text-white.me-2(aria-hidden="true")
+              a(href=`mailto:${storeContact.email}`)= storeContact.email
     .row
       .col-12
         div(class="footer_copyright mt_75")
@@ -80,12 +80,7 @@ footer(class="footer_main pt_100")
             |   #{new Date().getFullYear()}. All right reserved.
           ul.payment
             li Payment by:
-            li(title="Cash on Delivery")
-              i.fas.fa-money-bill-wave(aria-hidden="true")
-              span  Cash
-            li(title="ZaloPay")
-              i.fas.fa-wallet(aria-hidden="true")
-              span  ZaloPay
-            li(title="VNPay")
-              i.fas.fa-credit-card(aria-hidden="true")
-              span  VNPay
+            each method in (paymentMethods || [])
+              li(title=method.label)
+                i(class=method.icon.replace(/ text-\S+/g, "") aria-hidden="true")
+                span  #{method.label}

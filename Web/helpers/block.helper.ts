@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import path from "path";
 import pug from "pug";
 import { mediaBase, flashSaleConfig } from "../configs/variable.config";
-import { formatDateTime, formatVND } from "./format.helper";
+import { FEATURES } from "../configs/features.config";
+import { formatDate, formatDateTime, formatPrice, formatNumber, priceHtml } from "./format.helper";
 import { safeHtml, safeUrl, safeColor } from "./html-sanitize.helper";
 import Template from "../models/template.model";
 import Block from "../models/block.model";
@@ -22,6 +23,8 @@ export const renderHTML = async (_req: Request, res: Response, blockList: Array<
 
   const blocksPromises = blockList.map(async (block) => {
     if (!block || !block.fileName) return null;
+    // A block that belongs to a switched-off module is skipped.
+    if (!FEATURES.BLOG && block.fileName === "blog.pug") return null;
     const blocksDir = path.join(process.cwd(), "views", "client", "blocks");
     const blockPath = path.join(blocksDir, path.basename(`${block.fileName}`));
     if (!blockPath.endsWith(".pug")) return null;
@@ -60,15 +63,19 @@ export const renderHTML = async (_req: Request, res: Response, blockList: Array<
       ]);
 
       const renderedBlockData = block.fileName === "flash-sale.pug" && blockData
-        ? { ...blockData, endTime: flashSaleConfig.endTime }
+        ? { ...blockData, endTime: blockData.endTime || flashSaleConfig.endTime }
         : blockData;
 
       const html = pug.renderFile(blockPath, {
         cache: true,
         categoryProductList: res.locals.categoryProductList,
         domainCDN: mediaBase,
+        FEATURES,
+        formatDate,
         formatDateTime,
-        formatVND,
+        formatPrice,
+        formatNumber,
+        priceHtml,
         safeHtml,
         safeUrl,
         safeColor,

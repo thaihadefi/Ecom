@@ -1,30 +1,35 @@
 import { Request, Response } from "express";
 import * as contactInquiryService from "../../services/admin/contact-inquiry.service";
 import { sendCaughtError } from "../../helpers/http-response.helper";
+import { getCachedSetting } from "../../configs/setting.config";
+import { CONTENT_PAGES, ContentPageKey } from "../../configs/content-pages.config";
+import { safeHtml } from "../../helpers/html-sanitize.helper";
 
-export const about = (_req: Request, res: Response) => {
-  res.render("client/pages/about", { pageTitle: "About Us" });
+// Shows the text saved in Settings > Page Content, or the page's default copy.
+const renderContentPage = (key: ContentPageKey) => async (req: Request, res: Response) => {
+  const page = CONTENT_PAGES.find((p) => p.key === key)!;
+  const saved = (await getCachedSetting<Partial<Record<ContentPageKey, string>>>("pages"))[key];
+  const content = safeHtml(saved);
+  if (content) {
+    res.render("client/pages/content-page", { pageTitle: page.title, pagePath: req.path, content });
+    return;
+  }
+  res.render(page.view, { pageTitle: page.title });
 };
+
+export const about = renderContentPage("about");
 
 export const contact = (_req: Request, res: Response) => {
   res.render("client/pages/contact", { pageTitle: "Contact Us" });
 };
 
-export const privacyPolicy = (_req: Request, res: Response) => {
-  res.render("client/pages/privacy-policy", { pageTitle: "Privacy Policy" });
-};
+export const privacyPolicy = renderContentPage("privacyPolicy");
 
-export const termsAndConditions = (_req: Request, res: Response) => {
-  res.render("client/pages/terms-and-conditions", { pageTitle: "Terms & Conditions" });
-};
+export const termsAndConditions = renderContentPage("termsAndConditions");
 
-export const returnPolicy = (_req: Request, res: Response) => {
-  res.render("client/pages/return-policy", { pageTitle: "Return Policy" });
-};
+export const returnPolicy = renderContentPage("returnPolicy");
 
-export const faq = (_req: Request, res: Response) => {
-  res.render("client/pages/faq", { pageTitle: "FAQ" });
-};
+export const faq = renderContentPage("faq");
 
 export const contactPost = async (req: Request, res: Response) => {
   try {

@@ -1,6 +1,6 @@
 const fmtTime = (date) => {
   const d = date ? new Date(date) : new Date();
-  return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString((window.storeLocale && window.storeLocale.locale) || undefined, { hour: "2-digit", minute: "2-digit" });
 };
 
 const fmtDateDivider = (date) => {
@@ -56,7 +56,7 @@ const fmtLastSeen = (ts, offset = 0) => {
   if (diff < 3600)   return `Last seen ${Math.floor(diff / 60)}m ago`;
   if (diff < 86400)  return `Last seen ${Math.floor(diff / 3600)}h ago`;
   if (diff < 604800) return `Last seen ${Math.floor(diff / 86400)}d ago`;
-  return `Last seen ${new Date(ts).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+  return `Last seen ${new Date(ts).toLocaleDateString((window.storeLocale && window.storeLocale.locale) || undefined, { day: "2-digit", month: "2-digit", year: "numeric" })}`;
 };
 
 const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => (

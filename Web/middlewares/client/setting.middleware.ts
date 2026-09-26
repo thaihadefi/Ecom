@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import fs from "fs";
 import path from "path";
-import { getGeneral, getAssetVersion } from "../../configs/setting.config";
+import { getGeneral, getAssetVersion, getApiPayment } from "../../configs/setting.config";
+import { enabledPaymentMethods } from "../../configs/payment-methods.config";
+import { formatPhone } from "../../helpers/format.helper";
 
 const computeAssetBuildId = (): string => {
   let latestMtime = 0;
@@ -33,5 +35,22 @@ export const assetVersion = async (_req: Request, res: Response, next: NextFunct
 export const general = async (_req: Request, res: Response, next: NextFunction) => {
   const data = await getGeneral();
   res.locals.settingGeneral = data || {};
+
+  // Contact details shown in the header, footer and pages come from Settings > General; empty fields are hidden.
+  const phone = (data?.shopSenderPhone || "").trim();
+  const address = (data?.shopSenderAddress || "").trim();
+  res.locals.storeContact = {
+    phone: formatPhone(phone),
+    phoneHref: phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : "",
+    address,
+    mapUrl: address ? `https://maps.google.com/?q=${encodeURIComponent(address)}` : "",
+    email: (data?.contactEmail || "").trim(),
+  };
+  next();
+};
+
+// Payment methods the storefront offers (checkout options and footer icons).
+export const paymentMethods = async (_req: Request, res: Response, next: NextFunction) => {
+  res.locals.paymentMethods = enabledPaymentMethods(await getApiPayment());
   next();
 };

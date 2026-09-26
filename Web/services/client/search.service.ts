@@ -1,5 +1,6 @@
 import Product from '../../models/product.model';
 import Blog from '../../models/blog.model';
+import { FEATURES } from '../../configs/features.config';
 import { findIdsByKeyword } from '../../helpers/atlas-search.helper';
 import { formatProductItem } from '../../helpers/product.helper';
 import { PAGINATION } from '../../configs/pagination.config';
@@ -45,7 +46,9 @@ export const searchProductsAndArticles = async (keyword: string, rawPage: unknow
 
   const [productIds, articleIds] = await Promise.all([
     findIdsByKeyword({ model: Product, keyword: trimmed, atlasPaths: ["name", "description"], limit: 2000 }).catch(() => [] as string[]),
-    findIdsByKeyword({ model: Blog, keyword: trimmed, atlasPaths: ["name", "description", "content"], limit: 2000 }).catch(() => [] as string[]),
+    FEATURES.BLOG
+      ? findIdsByKeyword({ model: Blog, keyword: trimmed, atlasPaths: ["name", "description", "content"], limit: 2000 }).catch(() => [] as string[])
+      : Promise.resolve([] as string[]),
   ]);
 
   const productFind: Record<string, unknown> = {

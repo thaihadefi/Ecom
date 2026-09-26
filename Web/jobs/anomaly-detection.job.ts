@@ -1,8 +1,8 @@
-import cron from "node-cron";
+import { scheduleJob } from "./scheduler";
 import { trainAnomalyModel, backfillMissedScoring } from "../services/admin/anomaly-detection.service";
 
 export const autoRetrainAnomalyModel = () => {
-  cron.schedule("30 3 * * *", async () => {
+  scheduleJob("retrain-anomaly-model", "30 3 * * *", async () => {
     try {
       const result = await trainAnomalyModel();
       console.log(`[anomaly-detection.job] Retrained Isolation Forest on ${result.ordersUsed} orders (trained=${result.trained}).`);
@@ -13,7 +13,7 @@ export const autoRetrainAnomalyModel = () => {
 };
 
 export const autoBackfillMissedScoring = () => {
-  cron.schedule("5,20,35,50 * * * *", async () => {
+  scheduleJob("backfill-anomaly-scoring", "5,20,35,50 * * * *", async () => {
     try {
       const result = await backfillMissedScoring();
       if (result.backfilled > 0) {

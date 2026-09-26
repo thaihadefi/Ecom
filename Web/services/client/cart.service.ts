@@ -1,9 +1,9 @@
 import Product from '../../models/product.model';
 import { getActiveAttributes } from '../admin/attribute-product.service';
-import axios from 'axios';
-import { getInfoAddress } from '../../helpers/location.helper';
-import { pointConfig } from '../../configs/variable.config';
-import { getApiShipping, getGeneral } from '../../configs/setting.config';
+import { getStorefront } from '../../configs/storefront.config';
+import { FEATURES } from '../../configs/features.config';
+import { getShippingContext, quoteShippingRates, unitWeight } from '../shipping/shipping.service';
+import { ShippingRate } from '../shipping/shipping-provider';
 import { IProduct } from '../../interfaces/models/product.interface';
 
 export interface CartItemInput {
@@ -23,13 +23,15 @@ export const getCartDetailAndShipping = async (
   accountUser?: { totalPoint?: number; usedPoint?: number }
 ) => {
   const cartDetail: unknown[] = [];
+  // Items ticked for checkout, for the shipping quote.
+  const shippingLines: Array<{ quantity: number; unitPrice: number; weight?: number | null }> = [];
 
   const productIds = cart.map((i) => i.productId);
   const products: IProduct[] = await Product.find({
     _id: { $in: productIds },
     deleted: false,
     status: "active"
-  }).select("_id slug name priceNew priceOld stock images attributes variants");
+  }).select("_id slug name priceNew priceOld stock weight images attributes variants");
   const productMap = new Map(products.map((p) => [String(p._id), p]));
 
   const attrList = await getActiveAttributes();
@@ -41,6 +43,7 @@ export const getCartDetailAndShipping = async (
       const attributeList = (productDetail.attributes || []).map((id) => attrMap.get(String(id))).filter(Boolean);
 
       let availableStock = productDetail.stock;
+      let unitPrice = productDetail.priceNew || 0;
       const itemVariant = item.variant as Array<{ attrId?: string; value?: string }> | undefined;
       if (itemVariant && Array.isArray(itemVariant) && itemVariant.length > 0 && productDetail.variants) {
         const variantMatched = (productDetail.variants as Array<{ attributeValue?: Array<{ attrId?: string; value?: string }>; stock?: number }>).find((v) =>
@@ -54,11 +57,17 @@ export const getCartDetailAndShipping = async (
         if (variantMatched && typeof variantMatched.stock === "number") {
           availableStock = variantMatched.stock;
         }
+        const variantPrice = (variantMatched as { priceNew?: number } | undefined)?.priceNew;
+        if (typeof variantPrice === "number") unitPrice = variantPrice;
       }
 
       let quantity = item.quantity;
       if (availableStock !== undefined && quantity > availableStock) {
         quantity = Math.max(0, availableStock);
+      }
+
+      if (item.checked !== false) {
+        shippingLines.push({ quantity: quantity || 1, unitPrice, weight: productDetail.weight });
       }
 
       cartDetail.push({
@@ -78,61 +87,23 @@ export const getCartDetailAndShipping = async (
     }
   }
 
-  let shippingOptions = null;
-  if (userAddress) {
-    const general = await getGeneral();
-    const shopLocation = {
-      lat: parseFloat(String(general.shopLat || "10.8700089")),
-      lng: parseFloat(String(general.shopLng || "106.8030541"))
-    };
-
-    const [shopInfoAddress, userInfoAddress] = await Promise.all([
-      getInfoAddress(shopLocation.lat, shopLocation.lng),
-      getInfoAddress(userAddress.latitude, userAddress.longitude)
-    ]);
-
-    const totalWeight = cartDetail.reduce((total: number, item) => total + ((item as CartItemInput).quantity || 1) * 500, 0);
-
-    const dataGoShip = {
-      shipment: {
-        address_from: {
-          city: shopInfoAddress.city,
-          district: shopInfoAddress.district,
-          ward: shopInfoAddress.ward
-        },
-        address_to: {
-          city: userInfoAddress.city,
-          district: userInfoAddress.district,
-          ward: userInfoAddress.ward
-        },
-        parcel: {
-          cod: "0",
-          amount: "0",
-          weight: totalWeight,
-          width: "10",
-          height: "10",
-          length: "10"
-        }
-      }
-    };
-
-    const apiShipping = await getApiShipping();
-    const goshipBase = String(apiShipping.goshipApiUrl || "https://sandbox.goship.io/api/v2");
-    const goshipRes = await axios.post(`${goshipBase}/rates`, dataGoShip, {
-      headers: {
-        Authorization: `Bearer ${apiShipping.tokenGoShip}`,
-        "Content-Type": "application/json"
-      }
-    });
-
-    shippingOptions = goshipRes.data.data;
-  }
+  // Providers that need the customer's location quote once it is picked; the others quote right away.
+  const ctx = await getShippingContext();
+  const shippingOptions: ShippingRate[] = await quoteShippingRates({
+    destination: userAddress ? { lat: userAddress.latitude, lng: userAddress.longitude } : undefined,
+    parcel: {
+      weightGrams: shippingLines.reduce((total, line) => total + line.quantity * unitWeight(line.weight, ctx), 0),
+      orderValue: shippingLines.reduce((total, line) => total + line.quantity * line.unitPrice, 0),
+      declaredValue: 0,
+      codAmount: 0
+    }
+  }, ctx);
 
   const point = {
     canUsePoint: 0,
-    POINT_TO_MONEY: pointConfig.POINT_TO_MONEY
+    POINT_TO_MONEY: getStorefront().pointValue
   };
-  if (accountUser) {
+  if (accountUser && FEATURES.LOYALTY_POINTS) {
     point.canUsePoint = Math.max(0, (accountUser.totalPoint || 0) - (accountUser.usedPoint || 0));
   }
 
