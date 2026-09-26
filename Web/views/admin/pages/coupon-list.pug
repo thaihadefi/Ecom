@@ -34,7 +34,7 @@ block main
               thead.table-light
                 tr
                   th(scope="col")
-                    input.form-check-input.checkbox-all(type="checkbox")
+                    input.form-check-input.checkbox-all(type="checkbox" aria-label="Select all rows")
                   th(scope="col") No.
                   th(scope="col") Coupon Code
                   th(scope="col") Coupon Name
@@ -53,7 +53,7 @@ block main
                   each item, index in recordList
                     tr
                       td
-                        input.form-check-input.checkbox-input(type="checkbox" value=item.id)
+                        input.form-check-input.checkbox-input(type="checkbox" aria-label="Select this row" value=item.id)
                       td #{pagination.skip + index + 1}
                       td #{item.code}
                       td #{item.name}
@@ -66,7 +66,7 @@ block main
                         if (item.typeDiscount == "percentage")
                           | #{item.value}%
                         else if (item.typeDiscount == "fixed")
-                          | #{(item.value || 0).toLocaleString("vi-VN")}&nbsp;₫
+                          | #{formatPrice((item.value || 0))}
                       td #{item.usageLimit}
                       td #{item.usedCount}
                       td

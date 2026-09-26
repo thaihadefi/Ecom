@@ -20,13 +20,14 @@ block main
               )
                 i.fa-solid.fa-trash.me-1
                 | Move to Trash
-              button#recompute-recommendations-btn.btn.btn-outline-primary.me-1(
-                data-recompute-api=`/${pathAdmin}/api/recommendation-jobs`
-                data-status-api=`/${pathAdmin}/api/recommendation-jobs/latest`
-                title="Recompute item-based collaborative filtering recommendations from order history"
-              )
-                i.fa-solid.fa-wand-magic-sparkles.me-1
-                span#recompute-recommendations-btn-label Recompute Recommendations
+              if (FEATURES.RECOMMENDATIONS)
+                button#recompute-recommendations-btn.btn.btn-outline-primary.me-1(
+                  data-recompute-api=`/${pathAdmin}/api/recommendation-jobs`
+                  data-status-api=`/${pathAdmin}/api/recommendation-jobs/latest`
+                  title="Recompute item-based collaborative filtering recommendations from order history"
+                )
+                  i.fa-solid.fa-wand-magic-sparkles.me-1
+                  span#recompute-recommendations-btn-label Recompute Recommendations
               a.btn.btn-primary(
                 href=`/${pathAdmin}/product/create`
                 )
@@ -51,6 +52,7 @@ block main
                   name="file"
                   id="file"
                   accept=".csv"
+                  aria-label="CSV file to import"
                 )
                 button.btn.btn-secondary Import Excel
           .table-responsive
@@ -58,12 +60,12 @@ block main
               thead.table-light
                 tr
                   th(scope="col")
-                    input.form-check-input.checkbox-all(type="checkbox")
+                    input.form-check-input.checkbox-all(type="checkbox" aria-label="Select all rows")
                   th(scope="col") No.
                   th(scope="col") Avatar
                   th(scope="col") Product Name
-                  th.text-nowrap(scope="col") Old Price (₫)
-                  th.text-nowrap(scope="col") New Price (₫)
+                  th.text-nowrap(scope="col") Old Price
+                  th.text-nowrap(scope="col") New Price
                   th(scope="col") Stock
                   th(scope="col") Variants Count
                   th(scope="col") Position
@@ -77,7 +79,7 @@ block main
                   each item, index in recordList
                     tr
                       td
-                        input.form-check-input.checkbox-input(type="checkbox" value=item.id)
+                        input.form-check-input.checkbox-input(type="checkbox" aria-label="Select this row" value=item.id)
                       td #{pagination.skip + index + 1}
                       td
                         if(item.images && item.images.length > 0)
@@ -90,10 +92,10 @@ block main
                       td #{item.name}
                       td
                         if(item.priceOld)
-                          | #{item.priceOld.toLocaleString("vi-VN")}
+                          | #{formatPrice(item.priceOld)}
                       td
                         if(item.priceNew)
-                          | #{item.priceNew.toLocaleString("vi-VN")}
+                          | #{formatPrice(item.priceNew)}
                       td #{item.stock}
                       td #{item.variants ? item.variants.length : 0}
                       td #{item.position}

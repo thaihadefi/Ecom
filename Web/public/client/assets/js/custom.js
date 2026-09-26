@@ -289,12 +289,13 @@ $(function () {
 
         const url = new URL(window.location.href);
 
+        const baseCurrency = (window.storeLocale && window.storeLocale.currency) || "VND";
         const currentCurrency = (window.currencyState && window.currencyState.current)
             || localStorage.getItem("currency")
-            || "VND";
+            || baseCurrency;
 
         let rate = 1;
-        if (currentCurrency !== "VND") {
+        if (currentCurrency !== baseCurrency) {
             const rates = (window.currencyConfig && window.currencyConfig.rates) || {};
             if (rates[currentCurrency]) {
                 rate = rates[currentCurrency];
@@ -308,9 +309,10 @@ $(function () {
             }
         }
 
+        // Range in the store currency; the page sets the ceiling from its most expensive product.
         const MIN_VND = 0;
-        const MAX_VND = 50000000;
-        const STEP_VND = 10000;
+        const MAX_VND = Math.max(1, Number(rangeSlider.dataset.max) || 50000000);
+        const STEP_VND = Math.max(Number(rangeSlider.dataset.step) || 0, MAX_VND / 1000);
 
         let currencyFormatter;
         try {

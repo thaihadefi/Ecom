@@ -1,0 +1,11 @@
+extends ../layouts/default.pug
+include ../mixins/index.pug
+
+block main
+  +page-banner({ name: pageTitle }, pagePath)
+
+  section.mt_80.mb_100
+    .container
+      .row.justify-content-center
+        .col-lg-8
+          .content-page !{content}

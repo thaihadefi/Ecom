@@ -1,3 +1,4 @@
+import { FEATURES } from "../configs/features.config";
 import { AI_CONFIG } from "../configs/ai.config";
 
 class GroqError extends Error {
@@ -134,6 +135,7 @@ const describeFailure = (error: unknown): string => {
 };
 
 export const aiGenerateAnswer = async (prompt: string): Promise<string> => {
+  if (!FEATURES.AI_ASSISTANT) throw new Error("AI assistant is not enabled");
   if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured");
 
   const chain = await getModelChain();

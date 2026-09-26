@@ -1,9 +1,21 @@
 import nodemailer from "nodemailer";
 import { getApiAppPassword, getGeneral } from "../configs/setting.config";
-import { formatVND } from "./format.helper";
+import { formatPrice } from "./format.helper";
+import { getStorefront } from "../configs/storefront.config";
+import { paymentMethodLabel } from "../configs/payment-methods.config";
 
-const BRAND_BLUE = "#0057B7";
-const BRAND_YELLOW = "#FFD700";
+// Email colors follow the storefront theme (Settings > Storefront).
+const brandPrimary = () => getStorefront().primaryColor;
+const brandSecondary = () => getStorefront().secondaryColor;
+
+// A light tint of the primary color for backgrounds; email clients do not support CSS color-mix().
+const brandTint = (): string => {
+  const hex = getStorefront().primaryColor.replace("#", "");
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return "#f3f4f6";
+  const mix = (offset: number) => Math.round(parseInt(hex.slice(offset, offset + 2), 16) * 0.08 + 255 * 0.92)
+    .toString(16).padStart(2, "0");
+  return `#${mix(0)}${mix(2)}${mix(4)}`;
+};
 
 function htmlEscape(str: string): string {
   return str
@@ -18,12 +30,6 @@ async function getStoreName(): Promise<string> {
   return String(general.websiteName || "Store");
 }
 
-const PAYMENT_METHOD_LABEL: Record<string, string> = {
-  money: "Cash on Delivery (COD)",
-  zalopay: "ZaloPay",
-  vnpay: "VNPay"
-};
-
 const ORDER_STATUS_LABEL: Record<string, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
@@ -36,16 +42,16 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
 function buildEmailHtml(storeName: string, title: string, bodyHtml: string): string {
   const year = new Date().getFullYear();
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${htmlEscape(getStorefront().language)}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 16px;">
     <tr><td align="center">
       <table width="100%" style="max-width:560px;" cellpadding="0" cellspacing="0">
-        <tr><td style="background:${BRAND_BLUE};padding:20px 32px;border-radius:8px 8px 0 0;">
+        <tr><td style="background:${brandPrimary()};padding:20px 32px;border-radius:8px 8px 0 0;">
           <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.5px;">${storeName}</span>
         </td></tr>
-        <tr><td style="background:${BRAND_YELLOW};height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
+        <tr><td style="background:${brandSecondary()};height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
         <tr><td style="background:#ffffff;padding:28px 32px 8px;">
           <h2 style="margin:0;color:#111827;font-size:18px;font-weight:600;line-height:1.4;">${title}</h2>
         </td></tr>
@@ -67,8 +73,8 @@ function buildEmailHtml(storeName: string, title: string, bodyHtml: string): str
 }
 
 function otpBlock(otp: string): string {
-  return `<div style="background:#eff6ff;border:2px dashed ${BRAND_BLUE};border-radius:8px;padding:24px;text-align:center;margin:20px 0;">
-  <span style="font-size:38px;font-weight:700;letter-spacing:12px;color:${BRAND_BLUE};font-family:monospace;">${htmlEscape(otp)}</span>
+  return `<div style="background:${brandTint()};border:2px dashed ${brandPrimary()};border-radius:8px;padding:24px;text-align:center;margin:20px 0;">
+  <span style="font-size:38px;font-weight:700;letter-spacing:12px;color:${brandPrimary()};font-family:monospace;">${htmlEscape(otp)}</span>
 </div>`;
 }
 
@@ -171,15 +177,15 @@ export const emailTemplates = {
           ${item.variant?.length ? `<br><span style="color:#6b7280;font-size:13px;">${item.variant.map(htmlEscape).join(", ")}</span>` : ""}
         </td>
         <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;text-align:center;">x${item.quantity}</td>
-        <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;text-align:right;">${formatVND(item.price * item.quantity)}</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;text-align:right;">${formatPrice(item.price * item.quantity)}</td>
       </tr>`).join("");
 
     const discountRow = order.discount > 0
-      ? `<tr><td colspan="2" style="padding:4px 0;color:#6b7280;">Discount${order.coupon ? ` (${htmlEscape(order.coupon)})` : ""}</td><td style="padding:4px 0;text-align:right;color:#16a34a;">-${formatVND(order.discount)}</td></tr>`
+      ? `<tr><td colspan="2" style="padding:4px 0;color:#6b7280;">Discount${order.coupon ? ` (${htmlEscape(order.coupon)})` : ""}</td><td style="padding:4px 0;text-align:right;color:#16a34a;">-${formatPrice(order.discount)}</td></tr>`
       : "";
 
     const pointDiscountRow = (order.pointDiscount && order.pointDiscount > 0)
-      ? `<tr><td colspan="2" style="padding:4px 0;color:#6b7280;">Points Discount${order.usedPoint ? ` (${order.usedPoint} pts)` : ""}</td><td style="padding:4px 0;text-align:right;color:#16a34a;">-${formatVND(order.pointDiscount)}</td></tr>`
+      ? `<tr><td colspan="2" style="padding:4px 0;color:#6b7280;">Points Discount${order.usedPoint ? ` (${order.usedPoint} pts)` : ""}</td><td style="padding:4px 0;text-align:right;color:#16a34a;">-${formatPrice(order.pointDiscount)}</td></tr>`
       : "";
 
     return {
@@ -191,17 +197,17 @@ export const emailTemplates = {
         <table cellpadding="0" cellspacing="0" style="width:100%;margin:16px 0;background:#f9fafb;border-radius:6px;padding:12px 16px;">
           <tr><td style="color:#6b7280;font-size:13px;">Order number</td><td style="text-align:right;font-weight:700;color:#111827;">#${htmlEscape(order.code)}</td></tr>
           <tr><td style="color:#6b7280;font-size:13px;padding-top:4px;">Delivery address</td><td style="text-align:right;color:#111827;font-size:14px;">${htmlEscape(order.address)}</td></tr>
-          <tr><td style="color:#6b7280;font-size:13px;padding-top:4px;">Payment</td><td style="text-align:right;color:#111827;">${htmlEscape(PAYMENT_METHOD_LABEL[order.paymentMethod] || order.paymentMethod)}</td></tr>
+          <tr><td style="color:#6b7280;font-size:13px;padding-top:4px;">Payment</td><td style="text-align:right;color:#111827;">${htmlEscape(paymentMethodLabel(order.paymentMethod))}</td></tr>
         </table>
 
         <table cellpadding="0" cellspacing="0" style="width:100%;margin:16px 0;">
           <tr><th style="text-align:left;color:#6b7280;font-size:13px;font-weight:600;padding-bottom:8px;">Item</th><th style="color:#6b7280;font-size:13px;font-weight:600;padding-bottom:8px;text-align:center;">Qty</th><th style="color:#6b7280;font-size:13px;font-weight:600;padding-bottom:8px;text-align:right;">Amount</th></tr>
           ${itemRows}
-          <tr><td colspan="2" style="padding:8px 0;color:#6b7280;">Subtotal</td><td style="padding:8px 0;text-align:right;">${formatVND(order.subTotal)}</td></tr>
-          <tr><td colspan="2" style="padding:4px 0;color:#6b7280;">Shipping</td><td style="padding:4px 0;text-align:right;">${formatVND(order.shipping.fee)}</td></tr>
+          <tr><td colspan="2" style="padding:8px 0;color:#6b7280;">Subtotal</td><td style="padding:8px 0;text-align:right;">${formatPrice(order.subTotal)}</td></tr>
+          <tr><td colspan="2" style="padding:4px 0;color:#6b7280;">Shipping</td><td style="padding:4px 0;text-align:right;">${formatPrice(order.shipping.fee)}</td></tr>
           ${discountRow}
           ${pointDiscountRow}
-          <tr><td colspan="2" style="padding:8px 0;font-weight:700;font-size:16px;border-top:2px solid #e5e7eb;">Total</td><td style="padding:8px 0;text-align:right;font-weight:700;font-size:16px;border-top:2px solid #e5e7eb;color:#0057B7;">${formatVND(order.total)}</td></tr>
+          <tr><td colspan="2" style="padding:8px 0;font-weight:700;font-size:16px;border-top:2px solid #e5e7eb;">Total</td><td style="padding:8px 0;text-align:right;font-weight:700;font-size:16px;border-top:2px solid #e5e7eb;color:${brandPrimary()};">${formatPrice(order.total)}</td></tr>
         </table>
 
         <p style="color:#6b7280;font-size:14px;">We'll notify you when your order status changes.</p>`
@@ -284,7 +290,7 @@ export const sendMail = async (email: string, title: string, content: string) =>
       user: gmailUser,
       pass: gmailPassword,
     }
-  } as nodemailer.TransportOptions);
+  });
 
   const info = await transporter.sendMail({
     from: gmailUser,

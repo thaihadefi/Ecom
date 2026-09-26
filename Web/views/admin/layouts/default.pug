@@ -9,6 +9,7 @@ html(
     script.
       const pathAdmin = "#{pathAdmin}";
       const domainCDN = "#{domainCDN}";
+      window.storeLocale = !{safeJson({ currency: storefront.currency, displayCurrencies: storefront.displayCurrencies, locale: storefront.locale, timezone: storefront.timezone, digits: currencyDigits })};
     meta(charset="utf-8")
     title #{pageTitle}
     meta(
@@ -17,11 +18,11 @@ html(
       )
     meta(
       name="description"
-      content="Ecom - Enterprise Store Administration Panel"
+      content=`${(settingGeneral && settingGeneral.websiteName) || "Store"} administration`
       )
     meta(
       name="author"
-      content="Ecom Platform"
+      content=(settingGeneral && settingGeneral.websiteName) || "Store"
       )
     meta(
       content="IE=edge"
@@ -91,5 +92,6 @@ html(
     script(src=`/admin/assets/js/app.js?v=${assetVersion || 0}`)
     script(src=`/admin/assets/js/main.js?v=${assetVersion || 0}`)
     script(src=`/admin/assets/js/uppy.js?v=${assetVersion || 0}` type="module")
-    script(src="/socket.io/socket.io.js")
-    script(src=`/admin/assets/js/chat.js?v=${assetVersion || 0}`)
+    if (FEATURES.CHAT)
+      script(src="/socket.io/socket.io.js")
+      script(src=`/admin/assets/js/chat.js?v=${assetVersion || 0}`)

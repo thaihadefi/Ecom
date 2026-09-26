@@ -8,6 +8,7 @@ import { formatProductItem } from '../../helpers/product.helper';
 import { PAGINATION } from '../../configs/pagination.config';
 import { PRODUCT_DISPLAY_CONFIG } from '../../configs/product-display.config';
 import { RECOMMENDATION_CONFIG } from '../../configs/recommendation.config';
+import { FEATURES } from '../../configs/features.config';
 import { getPagination } from '../../helpers/pagination.helper';
 import { IAccountUser } from '../../interfaces/models/account-user.interface';
 import { ICategoryProduct } from '../../interfaces/models/category-product.interface';
@@ -99,7 +100,7 @@ export const getProductsByCategory = async (
   }
 
   if (query.price) {
-    const [priceMin, priceMax] = `${query.price}`.split("-").map(item => parseInt(item));
+    const [priceMin, priceMax] = `${query.price}`.split("-").map(item => parseFloat(item));
     find.priceNew = {
       $gte: priceMin,
       $lte: priceMax
@@ -261,7 +262,7 @@ export const getProductSuggestions = async (rawKeyword?: unknown) => {
   if (cached) return cached;
 
   const find: {
-    status: string;
+    status: "active";
     deleted: boolean;
     priceNew: { $gt: number };
     stock: { $gt: number };
@@ -350,7 +351,7 @@ export const getProductDetailBySlug = async (slug: string, productViewHistory: s
     }));
 
     const usingCfFallback = !productDetail.boughtTogether || productDetail.boughtTogether.length === 0;
-    const cfIdsByScore = usingCfFallback
+    const cfIdsByScore = usingCfFallback && FEATURES.RECOMMENDATIONS
       ? [...(productDetail.cfRecommendations || [])]
           .sort((a, b) => b.score - a.score)
           .map((r) => r.productId)
@@ -505,4 +506,20 @@ export const incrementCategoryProductView = async (categoryId: string) => {
     { _id: categoryId, deleted: false, status: "active" },
     { $inc: { view: 1 } }
   );
+};
+
+// Upper bound of the storefront price filter: the most expensive active product, rounded up
+// to a round number so the slider has sensible steps. Cleared with the other catalog caches.
+export const getPriceFilterCeiling = async (): Promise<number> => {
+  const cacheKey = "catalog:price_ceiling";
+  const cached = metadataCache.get<number>(cacheKey);
+  if (cached !== undefined) return cached;
+
+  const top = await Product.findOne({ deleted: false, status: "active" }).sort({ priceNew: -1 }).select("priceNew");
+  const highest = Math.max(0, top?.priceNew || 0);
+  const magnitude = highest > 0 ? 10 ** Math.floor(Math.log10(highest)) : 1;
+  const ceiling = highest > 0 ? Math.ceil(highest / magnitude) * magnitude : 0;
+
+  metadataCache.set(cacheKey, ceiling, 600);
+  return ceiling;
 };

@@ -23,6 +23,10 @@ const initialTinyMCE = () => {
       }
     },
     init_instance_callback: (editor) => {
+      // TinyMCE leaves the editor iframe without a title; name it after the field's label.
+      const label = document.querySelector(`label[for="${editor.id}"]`);
+      editor.iframeElement?.setAttribute('title', `${label ? label.textContent.trim() : 'Rich text'} editor`);
+
       editor.on("OpenWindow", () => {
         const title = document.querySelector(".tox .tox-dialog__title")?.innerHTML;
         if(title == "Insert/Edit Media" || title == "Insert/Edit Image") {
@@ -1535,6 +1539,7 @@ if(productCreateForm) {
       const priceOld = event.target.priceOld.value;
       const priceNew = event.target.priceNew.value;
       const stock = event.target.stock.value;
+      const weight = event.target.weight ? event.target.weight.value : "";
       const attributes = getCheckboxList("attributes");
 
       const variants = [];
@@ -1585,6 +1590,7 @@ if(productCreateForm) {
       formData.append("priceOld", priceOld);
       formData.append("priceNew", priceNew);
       formData.append("stock", stock);
+      formData.append("weight", weight);
       formData.append("attributes", JSON.stringify(attributes));
       formData.append("variants", JSON.stringify(variants));
       formData.append("tags", JSON.stringify(tags));
@@ -1639,6 +1645,7 @@ if(productEditForm) {
       const priceOld = event.target.priceOld.value;
       const priceNew = event.target.priceNew.value;
       const stock = event.target.stock.value;
+      const weight = event.target.weight ? event.target.weight.value : "";
       const attributes = getCheckboxList("attributes");
 
       const variants = [];
@@ -1689,6 +1696,7 @@ if(productEditForm) {
       formData.append("priceOld", priceOld);
       formData.append("priceNew", priceNew);
       formData.append("stock", stock);
+      formData.append("weight", weight);
       formData.append("attributes", JSON.stringify(attributes));
       formData.append("variants", JSON.stringify(variants));
       formData.append("tags", JSON.stringify(tags));
@@ -1870,7 +1878,7 @@ if(boxOption) {
         </span>
         <input class="form-control option-label" type="text" placeholder="Label">
         <input class="form-control option-value" type="text" placeholder="Value">
-        <span class="btn btn-danger option-remove">Delete</span>
+        <button type="button" class="btn btn-danger option-remove">Delete</button>
       </div>
     `;
     optionList.insertAdjacentHTML("beforeend", newItem);
@@ -2019,11 +2027,12 @@ if(buttonRenderVariant) {
     let variantBodyHTML = "";
     variantList.forEach(variant => {
       const variantJSON = JSON.stringify(variant).replaceAll(`"`, `&quot;`);
+      const variantName = escHtml(variant.map(item => item.label).join(" / "));
       let tr = "<tr>";
       tr += `
         <td>
           <div class="form-check form-switch form-switch-success">
-            <input class="form-check-input" type="checkbox" checked="">
+            <input class="form-check-input" type="checkbox" checked="" aria-label="Sell ${variantName}">
           </div>
           <input class="d-none" attribute-value value="${variantJSON}" />
         </td>
@@ -2035,13 +2044,13 @@ if(buttonRenderVariant) {
       })
       tr += `
         <td>
-          <input class="form-control" type="number" value="${priceOld}" price-old>
+          <input class="form-control" type="number" value="${priceOld}" price-old aria-label="Old price, ${variantName}">
         </td>
         <td>
-          <input class="form-control" type="number" value="${priceNew}" price-new>
+          <input class="form-control" type="number" value="${priceNew}" price-new aria-label="New price, ${variantName}">
         </td>
         <td>
-          <input class="form-control" type="number" stock>
+          <input class="form-control" type="number" stock aria-label="Stock, ${variantName}">
         </td>
       `;
       tr += "</tr>";
@@ -2060,7 +2069,28 @@ if(listSelectTag.length > 0) {
       taggable: taggable == "false" ? false : true
     });
 
-    const inputTag = selectTag.closest(".selectr-container").querySelector(".selectr-tag-input");
+    // Selectr renders its trigger as a focusable div with aria-expanded but no role, plus a stray
+    // disabled="undefined"; give it the combobox role and the original select's label.
+    const container = selectTag.closest(".selectr-container");
+    const trigger = container.querySelector(".selectr-selected");
+    if(trigger) {
+      if(trigger.getAttribute("disabled") === "undefined") trigger.removeAttribute("disabled");
+      trigger.setAttribute("role", "combobox");
+      trigger.setAttribute("aria-haspopup", "listbox");
+      const label = (selectTag.id && document.querySelector(`label[for="${selectTag.id}"]`))
+        || (container.previousElementSibling?.tagName === "LABEL" ? container.previousElementSibling : null);
+      trigger.setAttribute("aria-label", label ? label.textContent.trim() : (selectTag.name || "Options"));
+
+      // Tag remove buttons are created as tags are added; name each one after its tag.
+      const nameRemoveButtons = () => container.querySelectorAll(".selectr-tag-remove:not([aria-label])").forEach(button => {
+        const tagText = button.parentElement ? button.parentElement.firstChild?.textContent?.trim() : "";
+        button.setAttribute("aria-label", `Remove ${tagText || "tag"}`);
+      });
+      nameRemoveButtons();
+      new MutationObserver(nameRemoveButtons).observe(container, { childList: true, subtree: true });
+    }
+
+    const inputTag = container.querySelector(".selectr-tag-input");
     if(inputTag) {
       inputTag.addEventListener("keydown", (event) => {
         if(event.key == "Enter") {
@@ -2255,96 +2285,39 @@ if(couponEditForm) {
   ;
 }
 
-const listFormatMoney = document.querySelectorAll("[format-money]");
-if(listFormatMoney.length > 0) {
-  listFormatMoney.forEach(input => {
-    input.addEventListener("input", () => {
-      let value = input.value;
-      value = value.replace(/\./g, '');
-      value = parseInt(value);
-      const valueFomat = value.toLocaleString('vi-VN');
-      input.value = valueFomat;
+// Settings forms marked with data-setting-endpoint send every named field as JSON:
+// number inputs as numbers, and checkbox groups ([data-array-field="name"]) as arrays.
+document.querySelectorAll("form[data-setting-endpoint]").forEach((form) => {
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (window.tinymce) window.tinymce.triggerSave();
+
+    const dataFinal = {};
+    form.querySelectorAll("input[name], select[name], textarea[name]").forEach((field) => {
+      if (field.type === "checkbox" || field.closest("[data-array-field]")) return;
+      if (field.type === "number") {
+        dataFinal[field.name] = field.value === "" ? "" : Number(field.value);
+      } else {
+        dataFinal[field.name] = field.value;
+      }
+    });
+    form.querySelectorAll("[data-array-field]").forEach((group) => {
+      dataFinal[group.dataset.arrayField] = [...group.querySelectorAll("input[type=checkbox]:checked")].map((box) => box.value);
+    });
+
+    fetch(`/${pathAdmin}/api/settings/${form.dataset.settingEndpoint}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dataFinal),
     })
-  })
-}
-
-const settingApiShippingForm = document.querySelector("#settingApiShippingForm");
-if(settingApiShippingForm) {
-  const validation = new JustValidate('#settingApiShippingForm');
-
-  validation
-    .onSuccess((event) => {
-      const tokenGoShip = event.target.tokenGoShip.value;
-
-      const dataFinal = {
-        tokenGoShip: tokenGoShip
-      };
-
-      fetch(`/${pathAdmin}/api/settings/shipping`, {
-        method: "PATCH",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(dataFinal),
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.code == "success") notyf.success(data.message);
+        else notyf.error(data.message || "Update failed!");
       })
-        .then(res => res.json())
-        .then(data => {
-          if(data.code == "error") {
-            notyf.error(data.message);
-          }
-
-          if(data.code == "success") {
-            notyf.success(data.message);
-          }
-        })
-    })
-  ;
-}
-
-const settingApiPaymentForm = document.querySelector("#settingApiPaymentForm");
-if(settingApiPaymentForm) {
-  const validation = new JustValidate('#settingApiPaymentForm');
-
-  validation
-    .onSuccess((event) => {
-      const zaloPayAppId = event.target.zaloPayAppId.value;
-      const zaloPayKey1 = event.target.zaloPayKey1.value;
-      const zaloPayKey2 = event.target.zaloPayKey2.value;
-      const zaloPayDomain = event.target.zaloPayDomain.value;
-      const vnPayTmnCode = event.target.vnPayTmnCode.value;
-      const vnPayHashSecret = event.target.vnPayHashSecret.value;
-      const vnPayURL = event.target.vnPayURL.value;
-
-      const dataFinal = {
-        zaloPayAppId: zaloPayAppId,
-        zaloPayKey1: zaloPayKey1,
-        zaloPayKey2: zaloPayKey2,
-        zaloPayDomain: zaloPayDomain,
-        vnPayTmnCode: vnPayTmnCode,
-        vnPayHashSecret: vnPayHashSecret,
-        vnPayURL: vnPayURL,
-      };
-
-      fetch(`/${pathAdmin}/api/settings/payment`, {
-        method: "PATCH",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(dataFinal),
-      })
-        .then(res => res.json())
-        .then(data => {
-          if(data.code == "error") {
-            notyf.error(data.message);
-          }
-
-          if(data.code == "success") {
-            notyf.success(data.message);
-          }
-        })
-    })
-  ;
-}
+      .catch(() => notyf.error("Update failed!"));
+  });
+});
 
 const settingApiLoginSocialForm = document.querySelector("#settingApiLoginSocialForm");
 if(settingApiLoginSocialForm) {
@@ -2404,55 +2377,6 @@ if(settingApiAppPasswordForm) {
       };
 
       fetch(`/${pathAdmin}/api/settings/email`, {
-        method: "PATCH",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(dataFinal),
-      })
-        .then(res => res.json())
-        .then(data => {
-          if(data.code == "error") {
-            notyf.error(data.message);
-          }
-
-          if(data.code == "success") {
-            notyf.success(data.message);
-          }
-        })
-    })
-  ;
-}
-
-const settingGeneralForm = document.querySelector("#settingGeneralForm");
-if(settingGeneralForm) {
-  const validation = new JustValidate('#settingGeneralForm');
-
-  validation
-    .onSuccess((event) => {
-      const domainWebsite = event.target.domainWebsite.value;
-      const logo = event.target.logo.value;
-      const favicon = event.target.favicon.value;
-      const websiteName = event.target.websiteName.value;
-      const shopSenderName = event.target.shopSenderName.value;
-      const shopSenderPhone = event.target.shopSenderPhone.value;
-      const shopSenderAddress = event.target.shopSenderAddress.value;
-      const shopLat = event.target.shopLat.value;
-      const shopLng = event.target.shopLng.value;
-
-      const dataFinal = {
-        websiteName: websiteName,
-        shopSenderName: shopSenderName,
-        shopSenderPhone: shopSenderPhone,
-        shopSenderAddress: shopSenderAddress,
-        shopLat: shopLat,
-        shopLng: shopLng,
-        domainWebsite: domainWebsite,
-        logo: logo,
-        favicon: favicon,
-      };
-
-      fetch(`/${pathAdmin}/api/settings/general`, {
         method: "PATCH",
         headers: {
           'Content-Type': 'application/json'

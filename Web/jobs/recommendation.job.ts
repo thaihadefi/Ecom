@@ -1,8 +1,8 @@
-import cron from "node-cron";
+import { scheduleJob } from "./scheduler";
 import { recomputeProductRecommendations } from "../services/admin/recommendation.service";
 
 export const autoRecomputeRecommendations = () => {
-  cron.schedule("15 3 * * *", async () => {
+  scheduleJob("recompute-recommendations", "15 3 * * *", async () => {
     try {
       const result = await recomputeProductRecommendations();
       console.log(`[recommendation.job] Recomputed CF recommendations for ${result.productsUpdated} products from ${result.ordersScanned} orders.`);

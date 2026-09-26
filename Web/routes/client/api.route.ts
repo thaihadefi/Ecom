@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as authMiddleware from "../../middlewares/client/auth.middleware";
+import { requireFeature } from "../../middlewares/feature.middleware";
 import { sessionApi, customerApi, passwordResetApi, passwordApi } from "./auth.route";
 import { meApi, reviewApi } from "./dashboard.route";
 import { sessionStateApi, chatApi } from "./chat.route";
@@ -25,21 +26,21 @@ router.use('/customers/me/password', authMiddleware.loggedIn, passwordApi);
 router.use('/customers/me', authMiddleware.loggedIn, meApi);
 
 router.use('/cart', cartApi);
-router.use('/compare', compareApi);
-router.use('/wishlist', wishlistApi);
-router.use('/coupon-checks', couponCheckApi);
+router.use('/compare', requireFeature("COMPARE"), compareApi);
+router.use('/wishlist', requireFeature("WISHLIST"), wishlistApi);
+router.use('/coupon-checks', requireFeature("COUPONS"), couponCheckApi);
 router.use('/orders', orderApi);
 router.use('/contact-inquiries', contactInquiryApi);
-router.use('/chat-rooms', chatApi);
+router.use('/chat-rooms', requireFeature("CHAT"), chatApi);
 
-router.use('/reviews/:id/reports', reviewReportApi);
-router.use('/reviews', authMiddleware.loggedIn, reviewApi);
+router.use('/reviews/:id/reports', requireFeature("REVIEWS"), reviewReportApi);
+router.use('/reviews', requireFeature("REVIEWS"), authMiddleware.loggedIn, reviewApi);
 
 router.use('/product-suggestions', productSuggestionApi);
 router.use('/products', productApi);
 router.use('/product-categories', productCategoryApi);
-router.use('/articles', articleApi);
-router.use('/article-categories', articleCategoryApi);
+router.use('/articles', requireFeature("BLOG"), articleApi);
+router.use('/article-categories', requireFeature("BLOG"), articleCategoryApi);
 
 router.use((_req, res) => {
   res.status(404).json({ code: "error", message: "Not found!" });

@@ -36,6 +36,7 @@ export interface IProduct extends Document {
   priceNew?: number;
   discount: number;
   stock?: number;
+  weight?: number;
   attributes: string[];
   variants: IProductVariant[];
   description?: string;
@@ -68,6 +69,7 @@ export interface IProductInput {
   priceNew?: number | string;
   discount?: number | string;
   stock?: number | string;
+  weight?: number | string | null;
   attributes?: string | string[] | Array<{ _id: string; name?: string; type?: string }>;
   variants?: string | IProductVariant[];
   tags?: string | string[];

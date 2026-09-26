@@ -22,7 +22,7 @@ block main
             .mb-3
               label.form-label(for="slug") Slug *
               .input-group
-                span.btn.btn-outline-info(
+                button.btn.btn-outline-info(type="button" 
                   btn-generate-slug="Product"
                   from="name"
                   to="slug"
@@ -65,12 +65,16 @@ block main
             .mb-3
               label.form-label(for="stock") Stock
               input.form-control(id="stock" type="number" name="stock" value=productDetail.stock)
+          .col-md-6.col-lg-6
+            .mb-3
+              label.form-label(for="weight") Weight per unit (grams)
+              input.form-control(id="weight" type="number" name="weight" min="0" value=productDetail.weight placeholder="Default from Settings > Shipping")
           .col-md-12.col-lg-12
             .mb-3
               label.form-label Attributes List
               div(class="checkbox-list" checkbox-list="attributes")
                 +checkbox-list(attributeList, 0, productDetail.attributes)
-              span.btn.btn-outline-info.mt-1(
+              button.btn.btn-outline-info.mt-1(type="button" 
                 button-render-variant="attributes"
               ) Create Variant
               script.
@@ -90,29 +94,30 @@ block main
                       th(scope="col") Stock
                   tbody
                     each item in productDetail.variants
+                      - const variantName = (item.attributeValue || []).map(attr => attr.label).join(" / ")
                       tr
                         td
                           .form-check.form-switch.form-switch-success
-                            input.form-check-input(type="checkbox" checked=item.status)
+                            input.form-check-input(type="checkbox" checked=item.status aria-label=`Sell ${variantName}`)
                           input(class="d-none" attribute-value value=JSON.stringify(item.attributeValue))
                         each attr in item.attributeValue
                           td #{attr.label}
                         td
-                          input.form-control(type="number" value=item.priceOld price-old)
+                          input.form-control(type="number" value=item.priceOld price-old aria-label=`Old price, ${variantName}`)
                         td
-                          input.form-control(type="number" value=item.priceNew price-new)
+                          input.form-control(type="number" value=item.priceNew price-new aria-label=`New price, ${variantName}`)
                         td
-                          input.form-control(type="number" value=item.stock stock)
+                          input.form-control(type="number" value=item.stock stock aria-label=`Stock, ${variantName}`)
           .col-md-12.col-lg-12
             .mb-3
               label.form-label Images List
               div(class="form-multi-file")
                 .input-group
-                  span.btn.btn-outline-info(
+                  button.btn.btn-outline-info(type="button" 
                     data-bs-toggle="modal"
                     data-bs-target="#modalFileManager"
                   ) Select File
-                  span.btn.btn-outline-info(
+                  button.btn.btn-outline-info(type="button" 
                     button-paste
                   ) Paste File
                 .inner-list-image(multi-file="images")

@@ -22,7 +22,7 @@ block main
                       td.text-center #{index + 1}
                       td #{item.name}
                       td.text-center #{item.totalQuantity}
-                      td.text-end.text-nowrap #{formatVND(item.totalRevenue)}
+                      td.text-end.text-nowrap #{formatPrice(item.totalRevenue)}
                 else
                   tr
                     td(colspan="4" class="text-center text-muted")

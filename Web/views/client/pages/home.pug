@@ -1,6 +1,6 @@
 extends ../layouts/default.pug
 
 block main
-  h1.visually-hidden= (settingGeneral && settingGeneral.name) ? settingGeneral.name : pageTitle
+  h1.visually-hidden= (settingGeneral && settingGeneral.websiteName) ? settingGeneral.websiteName : pageTitle
   each html in blocksHtml
     != html

@@ -40,6 +40,8 @@ const schema = new mongoose.Schema(
       default: 0
     },
     stock: Number,
+    /** Shipping weight of one unit in grams; empty uses the default in Settings > Shipping */
+    weight: Number,
     attributes: [String],
     variants: [VariantSchema],
     description: String,

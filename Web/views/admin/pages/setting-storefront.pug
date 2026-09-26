@@ -1,0 +1,67 @@
+extends ../layouts/default.pug
+
+block main
+  .card
+    .card-header
+      .row.align-items-center
+        .col
+          h4.card-title #{pageTitle}
+    .card-body.pt-0
+      form(id="settingStorefrontForm" data-setting-endpoint="storefront")
+        h5 Theme
+        .row
+          .col-md-6
+            .mb-3
+              label.form-label(for="primaryColor") Primary color
+              input.form-control.form-control-color.w-100(id="primaryColor" name="primaryColor" type="color" value=values.primaryColor)
+          .col-md-6
+            .mb-3
+              label.form-label(for="secondaryColor") Secondary color
+              input.form-control.form-control-color.w-100(id="secondaryColor" name="secondaryColor" type="color" value=values.secondaryColor)
+          .col-md-6
+            .mb-3
+              label.form-label(for="headingFont") Heading font (Google Fonts)
+              input.form-control(id="headingFont" name="headingFont" value=values.headingFont placeholder="Keep the theme font")
+          .col-md-6
+            .mb-3
+              label.form-label(for="bodyFont") Body font (Google Fonts)
+              input.form-control(id="bodyFont" name="bodyFont" value=values.bodyFont placeholder="Keep the theme font")
+        hr
+        h5 Currency and locale
+        p.text-muted.small Prices are entered, stored and charged in the store currency. Choose it when setting up the store: changing it later does not convert existing prices. Payment methods that cannot charge in it are hidden from checkout (VNPay and ZaloPay only charge in VND).
+        .row
+          .col-md-3
+            .mb-3
+              label.form-label(for="currency") Store currency (ISO code)
+              input.form-control(id="currency" name="currency" value=values.currency maxlength="3" placeholder="VND")
+          .col-md-3
+            .mb-3
+              label.form-label(for="locale") Number and date format
+              input.form-control(id="locale" name="locale" value=values.locale placeholder="vi-VN")
+          .col-md-3
+            .mb-3
+              label.form-label(for="timezone") Time zone
+              select.form-select(id="timezone" name="timezone")
+                each zone in timeZones
+                  option(value=zone selected=zone === values.timezone) #{zone}
+          .col-md-3
+            .mb-3
+              label.form-label(for="language") Page language (html lang)
+              input.form-control(id="language" name="language" value=values.language placeholder="en")
+          .col-md-12
+            .mb-3
+              label.form-label(for="displayCurrencies") Display currencies
+              input.form-control(id="displayCurrencies" name="displayCurrencies" value=values.displayCurrencies.join(", ") placeholder="USD, EUR")
+              .form-text Shoppers can view prices in these currencies with live exchange rates, for reference only. Leave only the store currency to hide the switcher.
+        hr
+        h5 Loyalty points
+        .row
+          .col-md-6
+            .mb-3
+              label.form-label(for="moneyPerPoint") Order value that earns 1 point
+              input.form-control(id="moneyPerPoint" name="moneyPerPoint" type="number" min="0" step="any" value=values.moneyPerPoint)
+          .col-md-6
+            .mb-3
+              label.form-label(for="pointValue") Discount 1 point is worth
+              input.form-control(id="pointValue" name="pointValue" type="number" min="0" step="any" value=values.pointValue)
+        button.btn.btn-primary(type="submit") Update

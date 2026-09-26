@@ -34,7 +34,7 @@ block main
               thead.table-light
                 tr
                   th(scope="col")
-                    input.checkbox-all(type="checkbox")
+                    input.checkbox-all(type="checkbox" aria-label="Select all rows")
                   th(scope="col") No.
                   th(scope="col") Avatar
                   th(scope="col") Category Name
@@ -49,7 +49,7 @@ block main
                   each item, index in recordList
                     tr
                       td
-                        input.checkbox-input(type="checkbox" value=`${item.id}`)
+                        input.checkbox-input(type="checkbox" aria-label="Select this row" value=`${item.id}`)
                       td #{pagination.skip + index + 1}
                       td
                         if(item.avatar)

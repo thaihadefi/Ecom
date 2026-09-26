@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
+import { PAYMENT_METHOD_IDS } from "../../configs/payment-methods.config";
 
 export const createPost = (req: Request, res: Response, next: NextFunction) => {
   const schema = Joi.object({
@@ -69,7 +70,7 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
       }),
     coupon: Joi.string().allow(''),
     paymentMethod: Joi.string()
-      .valid("money", "vnpay", "zalopay")
+      .valid(...PAYMENT_METHOD_IDS)
       .required()
       .messages({
         "any.only": "Invalid payment method!",

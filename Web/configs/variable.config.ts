@@ -1,4 +1,5 @@
-export const pathAdmin = "admin";
+// URL prefix of the admin panel, e.g. ADMIN_PATH=backoffice serves it at /backoffice.
+export const pathAdmin = (process.env.ADMIN_PATH || "admin").trim().replace(/^\/+|\/+$/g, "") || "admin";
 
 export const domainCDN = (process.env.FILE_MANAGER_URL || "http://localhost:4000").replace(/\/+$/, "");
 
@@ -211,11 +212,7 @@ export const permissionList = [
   },
 ];
 
-export const pointConfig = {
-  MONEY_PER_POINT: 10000,
-  POINT_TO_MONEY: 100,
-};
-
+// Countdown end for a flash-sale block whose Block Data has no "endTime".
 export const flashSaleConfig = {
   endTime: "2026-12-31T23:59:59",
 };

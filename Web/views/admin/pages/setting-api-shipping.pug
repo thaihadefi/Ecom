@@ -1,20 +1,29 @@
 extends ../layouts/default.pug
 
 block main
+  - const data = (record && record.data) || {}
   .card
     .card-header
       .row.align-items-center
         .col
           h4.card-title #{pageTitle}
     .card-body.pt-0
-      form(id="settingApiShippingForm")
+      form(id="settingApiShippingForm" data-setting-endpoint="shipping")
         .row
-          .col-md-12.col-lg-12
+          .col-md-6
+            .mb-3
+              label.form-label(for="defaultItemWeight") Default weight per unit (grams)
+              input.form-control(id="defaultItemWeight" name="defaultItemWeight" type="number" min="0" value=data.defaultItemWeight placeholder=`${defaultItemWeight}`)
+              .form-text Used for products without their own weight.
+        hr
+        h5 GoShip
+        .row
+          .col-md-12
             .mb-3
               label.form-label(for="goshipApiUrl") GoShip API URL
-              input(id="goshipApiUrl" name="goshipApiUrl" class="form-control" placeholder="https://sandbox.goship.io/api/v2" value=`${record ? record.data.goshipApiUrl : ''}`)
-          .col-md-12.col-lg-12
+              input(id="goshipApiUrl" name="goshipApiUrl" class="form-control" placeholder="https://sandbox.goship.io/api/v2" value=data.goshipApiUrl || "")
+          .col-md-12
             .mb-3
               label.form-label(for="tokenGoShip") Token GoShip
-              textarea(id="tokenGoShip" name="tokenGoShip" class="form-control") #{record ? record.data.tokenGoShip : ''}
+              textarea(id="tokenGoShip" name="tokenGoShip" class="form-control") #{data.tokenGoShip || ""}
         button.btn.btn-primary(type="submit") Update

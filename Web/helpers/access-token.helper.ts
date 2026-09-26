@@ -22,3 +22,10 @@ export const accessTokenBody = (token: string) => {
     expiresIn: exp ? Math.max(0, exp - Math.floor(Date.now() / 1000)) : undefined,
   };
 };
+
+// Every token is signed with HS256 (token-rotation.helper.ts); accepting only that algorithm rules out
+// algorithm-confusion tokens even if the key handling changes later.
+export const JWT_ALGORITHM = "HS256" as const;
+
+export const verifyAccessToken = (token: string): jwt.JwtPayload =>
+  jwt.verify(token, `${process.env.JWT_SECRET}`, { algorithms: [JWT_ALGORITHM] }) as jwt.JwtPayload;

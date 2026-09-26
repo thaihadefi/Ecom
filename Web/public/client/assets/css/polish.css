@@ -12,7 +12,7 @@ html { overflow-x: clip; }
     --ink:       #1C1917;   
     --ink-2:     #0C0A09;   
     --muted:     #6B6560;   
-    --faint:     #A8A29E;   
+    --faint:     #736C67;   /* lightest text colour that still meets WCAG AA (4.5:1) on every page background */   
 
     
     --gold:      #A16207;
@@ -41,7 +41,7 @@ html { overflow-x: clip; }
     
     --colorBlack:   #1C1917;
     --paraColor:    #6B6560;
-    --muted2:       #A8A29E;
+    --muted2:       var(--faint);
     --colorWhite:   #FFFFFF;
     --lightBg:      #FAFAF9;
     --lightBg2:     #F4F2EF;
@@ -2879,6 +2879,9 @@ section.category { margin-top: 64px !important; }
 .page_banner_overlay { background: transparent !important; }
 .page_banner_text h1 { color: var(--ink-2) !important; font-family: var(--headingFont) !important; font-weight: 500 !important; text-transform: none; letter-spacing: 0; }
 .page_banner_text ul li a, .page_banner_text ul li a::after { color: var(--muted) !important; }
+/* The template fades breadcrumb links (opacity .9), which drops them below AA contrast; use a colour change for hover instead. */
+.page_banner_text ul li a { opacity: 1 !important; }
+.page_banner_text ul li a:hover, .page_banner_text ul li a:focus-visible { color: var(--ink) !important; }
 .page_banner_text ul li:last-child a { color: var(--gold-dim) !important; }
 
 .shop_filter_area .sidebar_category, .shop_filter_area .sidebar_range,
@@ -3435,7 +3438,6 @@ a.category_item, .category_item, .category_item.color_1, .category_item[class*="
 .cart_table_area .cart_page_action a:hover { color: var(--colorRed) !important; }
 
 .checkout_shipping,
-.checkout_point_row,
 .cart_page_summary,
 .cart-summary {
     background: transparent !important;
@@ -4235,9 +4237,14 @@ a[href^="tel:"], a[href^="mailto:"] { display: inline-block; padding: 8px 0; }
     margin-left: 0 !important;
 }
 
-.cart_page_summary form input {
-    padding-right: 95px !important;
-}
+/* Points row is a regular summary line, not a boxed card, so its label stays on one line. */
+.checkout_point_row label { white-space: nowrap; }
+
+/* Coupon field: input and button side by side at the same height (the template overlays an
+   absolutely positioned button, which spills out of the field when the input height changes). */
+.cart_page_summary form { display: flex !important; align-items: stretch; gap: 8px; }
+.cart_page_summary form input { flex: 1 1 auto; min-width: 0; padding-right: 16px !important; }
+.cart_page_summary form button { position: static !important; flex: 0 0 auto; }
 
 @media (max-width: 991.98px) {
     .dashboard_sidebar {

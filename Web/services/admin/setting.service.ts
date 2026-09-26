@@ -15,7 +15,7 @@ export const updateSettingByKey = async <T = Record<string, unknown>>(key: strin
   const result = await Setting.findOneAndUpdate(
     { key },
     { $set: { ...changes, updatedBy: adminId } },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: "after" }
   ) as unknown as Promise<ISetting<T> | null>;
   invalidateSettingCache(key);
   return result;
@@ -31,7 +31,7 @@ export const clearAssetCache = async (adminId?: string): Promise<ISetting | null
       },
       updatedBy: adminId
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: "after" }
   );
   invalidateSettingCache("assetVersion");
   return result;

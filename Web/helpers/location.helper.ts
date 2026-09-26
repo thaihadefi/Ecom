@@ -116,3 +116,13 @@ export const getInfoAddress = async (latitude: number, longitude: number) => {
   }
   return result;
 };
+
+// Warehouse coordinates from Settings > General; null until both are set, so shipping never
+// silently falls back to a stale location.
+export const getShopLocation = (general: { shopLat?: string | number; shopLng?: string | number }): { lat: number; lng: number } | null => {
+  const lat = parseFloat(String(general.shopLat ?? ""));
+  const lng = parseFloat(String(general.shopLng ?? ""));
+  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+};
+
+export const SHOP_NOT_CONFIGURED_MESSAGE = "The store is not ready to ship orders yet. Please try again later.";

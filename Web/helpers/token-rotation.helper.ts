@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { Response } from "express";
 import RefreshToken from "../models/refresh-token.model";
 import { COOKIE_OPTS } from "../configs/cookie.config";
+import { JWT_ALGORITHM } from "./access-token.helper";
 
 export const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 export const ACCESS_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -23,7 +24,7 @@ export const issueRefreshToken = async (userId: string, role: "user" | "admin"):
 // iatMs carries the issue time in milliseconds: the standard iat claim is whole seconds, so a token
 // issued earlier in the same second as a password change could not be told apart from a newer one.
 export const signAccessToken = (account: { id: string; email?: string | null }, expiresIn: "1d" | "7d" = "1d"): string =>
-  jwt.sign({ id: account.id, email: account.email, iatMs: Date.now() }, `${process.env.JWT_SECRET}`, { expiresIn });
+  jwt.sign({ id: account.id, email: account.email, iatMs: Date.now() }, `${process.env.JWT_SECRET}`, { expiresIn, algorithm: JWT_ALGORITHM });
 
 // Tokens signed before iatMs existed fall back to iat, keeping their old whole-second comparison.
 export const tokenIssuedAtMs = (decoded: JwtPayload): number | undefined => {

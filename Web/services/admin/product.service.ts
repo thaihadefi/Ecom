@@ -1,3 +1,4 @@
+import { toMoney } from '../../configs/storefront.config';
 import mongoose, { AnyBulkWriteOperation } from 'mongoose';
 import Papa from 'papaparse';
 import Product from '../../models/product.model';
@@ -63,8 +64,8 @@ export const createProduct = async (data: IProductInput): Promise<{ success: boo
   if (typeof data.variants === "string") data.variants = JSON.parse(data.variants);
   if (Array.isArray(data.variants)) {
     data.variants = (data.variants as unknown as Array<Record<string, unknown>>).map((v) => {
-      const pNew = v.priceNew !== undefined ? Number(v.priceNew) : (v.price !== undefined ? Number(v.price) : 0);
-      const pOld = v.priceOld !== undefined ? Number(v.priceOld) : pNew;
+      const pNew = toMoney(v.priceNew !== undefined ? v.priceNew : v.price);
+      const pOld = v.priceOld !== undefined ? toMoney(v.priceOld) : pNew;
       return {
         status: Boolean(v.status),
         attributeValue: (Array.isArray(v.attributeValue) ? v.attributeValue : []) as IProductVariant["attributeValue"],
@@ -82,8 +83,8 @@ export const createProduct = async (data: IProductInput): Promise<{ success: boo
 
   data.search = toSearchText(`${data.name}`);
 
-  const priceOld = data.priceOld ? parseInt(String(data.priceOld)) : 0;
-  const priceNew = data.priceNew ? parseInt(String(data.priceNew)) : priceOld;
+  const priceOld = toMoney(data.priceOld);
+  const priceNew = data.priceNew ? toMoney(data.priceNew) : priceOld;
   data.priceOld = priceOld;
   data.priceNew = priceNew;
   data.discount = (priceOld > 0 && priceNew > 0 && priceOld > priceNew)
@@ -93,6 +94,7 @@ export const createProduct = async (data: IProductInput): Promise<{ success: boo
   if (data.stock !== undefined && data.stock !== "") {
     data.stock = parseInt(String(data.stock));
   }
+  data.weight = data.weight !== undefined && data.weight !== "" && data.weight !== null ? parseInt(String(data.weight)) : null;
   if (Array.isArray(data.variants) && data.variants.length > 0) {
     const totalVariantStock = data.variants.filter((v: IProductVariant) => v.status).reduce((sum: number, v: IProductVariant) => sum + (v.stock || 0), 0);
     if (data.stock === undefined || isNaN(Number(data.stock)) || Number(data.stock) === 0) {
@@ -194,8 +196,8 @@ export const updateProduct = async (id: string, data: IProductInput): Promise<{ 
   if (typeof data.variants === "string") data.variants = JSON.parse(data.variants);
   if (Array.isArray(data.variants)) {
     data.variants = (data.variants as unknown as Array<Record<string, unknown>>).map((v) => {
-      const pNew = v.priceNew !== undefined ? Number(v.priceNew) : (v.price !== undefined ? Number(v.price) : 0);
-      const pOld = v.priceOld !== undefined ? Number(v.priceOld) : pNew;
+      const pNew = toMoney(v.priceNew !== undefined ? v.priceNew : v.price);
+      const pOld = v.priceOld !== undefined ? toMoney(v.priceOld) : pNew;
       return {
         status: Boolean(v.status),
         attributeValue: (Array.isArray(v.attributeValue) ? v.attributeValue : []) as IProductVariant["attributeValue"],
@@ -213,8 +215,8 @@ export const updateProduct = async (id: string, data: IProductInput): Promise<{ 
 
   data.search = toSearchText(`${data.name}`);
 
-  const priceOld = data.priceOld !== undefined ? parseInt(String(data.priceOld)) : productDetail.priceOld;
-  const priceNew = data.priceNew !== undefined ? parseInt(String(data.priceNew)) : (data.priceOld ?? productDetail.priceNew);
+  const priceOld = data.priceOld !== undefined ? toMoney(data.priceOld) : productDetail.priceOld;
+  const priceNew = data.priceNew !== undefined ? toMoney(data.priceNew) : (data.priceOld ?? productDetail.priceNew);
   if (priceOld !== undefined) data.priceOld = priceOld;
   if (priceNew !== undefined) data.priceNew = priceNew;
   const pOld = typeof data.priceOld === "number" ? data.priceOld : (Number(productDetail.priceOld) || 0);
@@ -226,6 +228,7 @@ export const updateProduct = async (id: string, data: IProductInput): Promise<{ 
   if (data.stock !== undefined && data.stock !== "") {
     data.stock = parseInt(String(data.stock));
   }
+  data.weight = data.weight !== undefined && data.weight !== "" && data.weight !== null ? parseInt(String(data.weight)) : null;
   if (Array.isArray(data.variants) && data.variants.length > 0) {
     const totalVariantStock = data.variants.filter((v: IProductVariant) => v.status).reduce((sum: number, v: IProductVariant) => sum + (v.stock || 0), 0);
     if (data.stock === undefined || isNaN(Number(data.stock)) || Number(data.stock) === 0) {
@@ -341,17 +344,18 @@ export const bulkImportProductsFromCsv = async (csvBufferString: string) => {
     .map((item) => {
       const position = nonNegativeInt(item.position);
       const category = item.category ? JSON.parse(String(item.category)) : [];
-      const priceOld = nonNegativeInt(item.priceOld);
-      const priceNew = nonNegativeInt(item.priceNew);
+      const priceOld = toMoney(item.priceOld);
+      const priceNew = toMoney(item.priceNew);
       const discount = (priceOld > 0 && priceNew > 0 && priceOld > priceNew)
         ? Number((((priceOld - priceNew) / priceOld) * 100).toFixed(2))
         : 0;
       const stock = nonNegativeInt(item.stock);
+      const weight = item.weight !== undefined && item.weight !== "" ? nonNegativeInt(item.weight) : undefined;
       const attributes = item.attributes ? JSON.parse(String(item.attributes)) : [];
       const rawVariants = item.variants ? JSON.parse(String(item.variants)) : [];
       const variants = Array.isArray(rawVariants) ? rawVariants.map((v: Record<string, unknown>) => {
-        const pNew = v.priceNew !== undefined ? nonNegativeInt(v.priceNew) : nonNegativeInt(v.price);
-        const pOld = v.priceOld !== undefined ? nonNegativeInt(v.priceOld) : pNew;
+        const pNew = toMoney(v.priceNew !== undefined ? v.priceNew : v.price);
+        const pOld = v.priceOld !== undefined ? toMoney(v.priceOld) : pNew;
         return {
           status: v.status !== undefined ? Boolean(v.status) : true,
           attributeValue: (Array.isArray(v.attributeValue) ? v.attributeValue : []) as IProductVariant["attributeValue"],
@@ -379,6 +383,7 @@ export const bulkImportProductsFromCsv = async (csvBufferString: string) => {
         priceNew,
         discount,
         stock,
+        weight,
         attributes,
         variants,
         tags,

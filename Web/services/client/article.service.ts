@@ -1,7 +1,7 @@
+import { formatDate } from "../../helpers/format.helper";
 import CategoryBlog from '../../models/category-blog.model';
 import Blog from '../../models/blog.model';
 import AccountAdmin from '../../models/account-admin.model';
-import moment from 'moment';
 import { PAGINATION } from '../../configs/pagination.config';
 import { PRODUCT_DISPLAY_CONFIG } from '../../configs/product-display.config';
 import { getPagination } from '../../helpers/pagination.helper';
@@ -9,7 +9,8 @@ import { IAccountAdmin } from '../../interfaces/models/account-admin.interface';
 import { IBlog } from '../../interfaces/models/blog.interface';
 import { metadataCache } from '../../helpers/metadata-cache.helper';
 
-export const populateAuthors = async (articles: IBlog[]) => {
+// Adds authorName and date to each article from the admin who last edited or created it.
+export const populateAuthors = async (articles: Array<Pick<IBlog, "createdBy" | "updatedBy" | "createdAt" | "updatedAt" | "authorName" | "date">>) => {
   const adminIds = [...new Set(articles.map((i) => String(i.updatedBy || i.createdBy)).filter(Boolean))];
   const adminMap = new Map<string, string>();
   if (adminIds.length > 0) {
@@ -21,7 +22,7 @@ export const populateAuthors = async (articles: IBlog[]) => {
     const name = id ? adminMap.get(String(id)) : undefined;
     if (name) {
       item.authorName = name;
-      item.date = moment(item.updatedBy ? item.updatedAt : item.createdAt).format("DD/MM/YYYY");
+      item.date = formatDate(item.updatedBy ? item.updatedAt : item.createdAt);
     }
   }
 };
@@ -33,7 +34,7 @@ export const getArticleList = async (page: unknown) => {
   if (cachedList) return cachedList;
 
   const find = {
-    status: "published",
+    status: "published" as const,
     deleted: false
   };
 
@@ -82,7 +83,7 @@ export const getArticlesByCategory = async (slug: string, page: unknown) => {
 
   const find = {
     category: categoryDetail.id,
-    status: "published",
+    status: "published" as const,
     deleted: false
   };
 
@@ -128,13 +129,13 @@ export const getArticleDetail = async (slug: string) => {
     const accountInfo = await AccountAdmin.findOne({ _id: articleDetail.updatedBy }).select("_id fullName");
     if (accountInfo) {
       articleDetail.authorName = accountInfo.fullName;
-      articleDetail.date = moment(articleDetail.updatedAt).format("DD/MM/YYYY");
+      articleDetail.date = formatDate(articleDetail.updatedAt);
     }
   } else if (articleDetail.createdBy) {
     const accountInfo = await AccountAdmin.findOne({ _id: articleDetail.createdBy }).select("_id fullName");
     if (accountInfo) {
       articleDetail.authorName = accountInfo.fullName;
-      articleDetail.date = moment(articleDetail.createdAt).format("DD/MM/YYYY");
+      articleDetail.date = formatDate(articleDetail.createdAt);
     }
   }
 
@@ -183,7 +184,7 @@ export const getPopularArticles = async (limit: number = PRODUCT_DISPLAY_CONFIG.
 
   for (const item of blogList) {
     if (item.createdAt) {
-      item.createdAtFormat = moment(item.createdAt).format("DD/MM/YYYY");
+      item.createdAtFormat = formatDate(item.createdAt);
     }
   }
 

@@ -1,3 +1,4 @@
+import { PaymentMethodId } from "../../configs/payment-methods.config";
 import { Document, Types } from "mongoose";
 import { IReview } from "./review.interface";
 
@@ -15,6 +16,8 @@ export interface IOrderItem {
 }
 
 export interface IOrderShipping {
+  provider?: string;
+  externalId?: string;
   goshipOrderId?: string;
   carrierName?: string;
   carrierCode?: string;
@@ -39,7 +42,7 @@ export interface IOrder extends Document {
   coupon?: string;
   discount?: number;
   total?: number;
-  paymentMethod: "money" | "vnpay" | "zalopay";
+  paymentMethod: PaymentMethodId;
   paymentStatus: OrderPaymentStatus;
   orderStatus: OrderStatus;
   shipping?: IOrderShipping;

@@ -23,14 +23,14 @@ const hit = async (bucketKey: string, windowMs: number, now: number): Promise<{ 
     const counted = await RateLimit.findOneAndUpdate(
       { key: bucketKey, resetAt: { $gt: new Date(now) } },
       { $inc: { count: 1 } },
-      { new: true }
+      { returnDocument: "after" }
     );
     if (counted) return { count: counted.count, resetAt: counted.resetAt.getTime() };
 
     const restarted = await RateLimit.findOneAndUpdate(
       { key: bucketKey, resetAt: { $lte: new Date(now) } },
       { $set: { count: 1, resetAt: new Date(now + windowMs) } },
-      { new: true }
+      { returnDocument: "after" }
     );
     if (restarted) return { count: 1, resetAt: restarted.resetAt.getTime() };
 

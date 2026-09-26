@@ -1,5 +1,5 @@
 import axios from 'axios';
-import moment from 'moment';
+import { formatInZone } from '../../helpers/timezone.helper';
 import hmacSHA256 from 'crypto-js/hmac-sha256';
 import Order from '../../models/order.model';
 import { getApiPayment, getGeneral } from '../../configs/setting.config';
@@ -50,7 +50,8 @@ export const createZaloPayPaymentUrl = async (orderCode: string, phone: string) 
   const transID = Math.floor(Math.random() * 1000000);
   const order = {
     app_id: config.app_id,
-    app_trans_id: `${moment().format('YYMMDD')}_${transID}`,
+    // ZaloPay requires the yymmdd prefix in Vietnam time (GMT+7).
+    app_trans_id: `${formatInZone(new Date(), "Asia/Ho_Chi_Minh", "YYMMDD")}_${transID}`,
     app_user: `${phone}-${orderCode}`,
     app_time: Date.now(),
     item: JSON.stringify(items),

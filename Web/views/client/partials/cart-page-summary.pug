@@ -12,35 +12,39 @@ div(class="cart_page_summary")
     | Discount
     span
       span(discount) 0
-  p.summary_row(class="checkout_point_row" style="display: none;" point-row)
-    label(style="display: flex; align-items: center; gap: 6px; cursor: pointer;")
-      input(type="checkbox" id="usePointCheckbox" use-point-checkbox)
-      | Use Points
-      span(style="font-weight: normal; font-size: 13px;" available-point)
-    span
-      span(point-discount) 0
+  if (FEATURES.LOYALTY_POINTS)
+    p.summary_row(class="checkout_point_row" style="display: none;" point-row)
+      label(style="display: flex; align-items: center; gap: 6px; cursor: pointer;")
+        input(type="checkbox" id="usePointCheckbox" use-point-checkbox)
+        | Use Points
+        span(style="font-weight: normal; font-size: 13px;" available-point)
+      span
+        span(point-discount) 0
   p.summary_total
     | Total
     span
       span(total) 0
-  form(id="applyCouponForm")
-    label.visually-hidden(for="couponCode") Coupon Code
-    input(
-      placeholder="Coupon Code"
-      type="text"
-      class="inner-input"
-      name="coupon"
-      id="couponCode"
-      autocomplete="off"
-      )
-    button(
-      class="common_btn"
-      type="submit"
-      class="inner-button"
-      ) Apply
-    p(class="inner-view-coupon" style="display: none;")
-      span
-        | Coupon:
-        b(class="inner-coupon")
-      a(href="javascript:;" class="inner-remove" aria-label="Remove coupon")
-        i.fas.fa-times(aria-hidden="true")
+  p.small.text-muted.mt-2(data-charge-currency-note hidden)
+    | Prices in other currencies are estimates. You will be charged in #{storefront.currency}.
+  if (FEATURES.COUPONS)
+    form(id="applyCouponForm")
+      label.visually-hidden(for="couponCode") Coupon Code
+      input(
+        placeholder="Coupon Code"
+        type="text"
+        class="inner-input"
+        name="coupon"
+        id="couponCode"
+        autocomplete="off"
+        )
+      button(
+        class="common_btn"
+        type="submit"
+        class="inner-button"
+        ) Apply
+      p(class="inner-view-coupon" style="display: none;")
+        span
+          | Coupon:
+          b(class="inner-coupon")
+        a(href="javascript:;" class="inner-remove" aria-label="Remove coupon")
+          i.fas.fa-times(aria-hidden="true")

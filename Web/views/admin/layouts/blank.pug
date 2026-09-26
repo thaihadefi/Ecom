@@ -16,11 +16,11 @@ html(
       )
     meta(
       name="description"
-      content="Ecom - Enterprise Store Administration Panel"
+      content=`${(settingGeneral && settingGeneral.websiteName) || "Store"} administration`
       )
     meta(
       name="author"
-      content="Ecom Platform"
+      content=(settingGeneral && settingGeneral.websiteName) || "Store"
       )
     meta(
       content="IE=edge"

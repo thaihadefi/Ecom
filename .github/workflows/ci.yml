@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: Web/yarn.lock
+      # MongoDB binary used by the in-memory test database.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('Web/yarn.lock') }}
+      - run: yarn install --frozen-lockfile
+      - run: yarn typecheck
+      - run: yarn lint:any
+      - run: yarn test
+      - run: yarn build
+
+  file-manager:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FileManager
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: FileManager/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - run: yarn typecheck
+      - run: yarn lint:any
+      - run: yarn build

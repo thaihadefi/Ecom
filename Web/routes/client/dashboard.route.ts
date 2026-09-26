@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { requireFeature } from "../../middlewares/feature.middleware";
 import * as dashboardController from "../../controllers/client/dashboard.controller";
 import * as dashboardValidate from "../../validates/client/dashboard.validate";
 import { imageUpload, requireRealImages } from "../../helpers/upload.helper";
@@ -24,7 +25,7 @@ router.get('/order/list', dashboardController.orderList);
 
 router.get('/order/detail/:id', dashboardController.orderDetail);
 
-router.get('/order/review/:id', dashboardController.orderReview);
+router.get('/order/review/:id', requireFeature("REVIEWS"), dashboardController.orderReview);
 
 export default router;
 

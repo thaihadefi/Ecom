@@ -33,7 +33,7 @@ block main
               thead.table-light
                 tr
                   th(scope="col")
-                    input.form-check-input.checkbox-all(type="checkbox")
+                    input.form-check-input.checkbox-all(type="checkbox" aria-label="Select all rows")
                   th(scope="col") No.
                   th(scope="col") Order Code
                   th(scope="col") Customer
@@ -50,7 +50,7 @@ block main
                   each item, index in recordList
                     tr
                       td
-                        input.form-check-input.checkbox-input(type="checkbox" value=item.id)
+                        input.form-check-input.checkbox-input(type="checkbox" aria-label="Select this row" value=item.id)
                       td #{pagination.skip + index + 1}
                       td
                         b #{item.code}
@@ -58,15 +58,9 @@ block main
                         div #{item.fullName}
                         small.text-muted #{item.phone}
                       td.text-nowrap
-                        b.text-danger #{(item.total || 0).toLocaleString('vi-VN')}&nbsp;₫
+                        b.text-danger #{formatPrice((item.total || 0))}
                       td
-                        case item.paymentMethod
-                          when "money"
-                            span.badge.bg-secondary Cash
-                          when "vnpay"
-                            span.badge.bg-danger VNPay
-                          when "zalopay"
-                            span.badge.bg-primary ZaloPay
+                        span.badge(class=isOnlinePayment(item.paymentMethod) ? "bg-primary" : "bg-secondary") #{paymentMethodLabel(item.paymentMethod)}
                       td
                         case item.paymentStatus
                           when "unpaid"

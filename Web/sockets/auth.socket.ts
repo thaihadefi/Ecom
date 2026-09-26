@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
 import * as cookie from 'cookie';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import { verifyAccessToken } from '../helpers/access-token.helper';
 import AccountAdmin from "../models/account-admin.model";
 import AccountUser from "../models/account-user.model";
 import RefreshToken from "../models/refresh-token.model";
@@ -23,7 +23,7 @@ interface ActiveAccount {
 }
 
 const loadActiveAccount = async (identity: ResolvedIdentity): Promise<ActiveAccount | null> => {
-  const filter = { _id: identity.id, email: identity.email, deleted: false, status: "active" };
+  const filter = { _id: identity.id, email: identity.email, deleted: false, status: "active" as const };
   if (identity.role === "admin") {
     const admin = await AccountAdmin.findOne(filter).select("_id roles isSuperAdmin passwordChangedAt");
     if (!admin || isIssuedBeforePasswordChange(identity.issuedAtMs, admin.passwordChangedAt)) return null;
@@ -37,7 +37,7 @@ const loadActiveAccount = async (identity: ResolvedIdentity): Promise<ActiveAcco
 const identityFromAccessToken = (token: string | undefined, role: SocketRole): ResolvedIdentity | null => {
   if (!token) return null;
   try {
-    const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`) as JwtPayload;
+    const decoded = verifyAccessToken(token);
     if (!decoded?.id || !decoded?.email) return null;
     return { id: decoded.id, email: decoded.email, role, issuedAtMs: tokenIssuedAtMs(decoded) };
   } catch {
@@ -60,10 +60,10 @@ const identityFromRefreshToken = async (
   }).select("userId");
   if (!stored) return null;
 
-  const filter = { _id: stored.userId, deleted: false, status: "active" };
-  const account = role === "admin"
-    ? await AccountAdmin.findOne(filter).select("_id email")
-    : await AccountUser.findOne(filter).select("_id email");
+  const filter = { _id: stored.userId, deleted: false, status: "active" as const };
+  const account: { _id: unknown; email?: string | null } | null = role === "admin"
+    ? await AccountAdmin.findOne(filter).select("_id email").lean()
+    : await AccountUser.findOne(filter).select("_id email").lean();
   if (!account) return null;
 
   return { id: String(account._id), email: account.email ?? "", role, issuedAtMs: Date.now() };

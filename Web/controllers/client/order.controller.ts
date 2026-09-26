@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import * as orderService from '../../services/client/order.service';
 import * as zalopayService from '../../services/payment/zalopay.service';
 import * as vnpayService from '../../services/payment/vnpay.service';
+import { startGatewayPayment } from '../../services/payment/payment-gateway.service';
 import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 
 export const createPost = async (req: Request, res: Response) => {
@@ -22,7 +23,8 @@ export const createPost = async (req: Request, res: Response) => {
       orderCode: result.orderCode,
       phone: result.phone,
       total: result.total,
-      paymentStatus: result.paymentStatus
+      paymentStatus: result.paymentStatus,
+      redirectUrl: result.redirectUrl
     });
   } catch (error) {
     console.error("order createPost error:", error);
@@ -47,10 +49,12 @@ export const success = async (req: Request, res: Response) => {
   });
 };
 
-export const paymentZaloPay = async (req: Request, res: Response) => {
+// Sends the customer to the gateway of an online payment method (also used by "Retry Payment").
+export const paymentStart = async (req: Request, res: Response) => {
   const { orderCode, phone } = req.query;
+  const ipAddr = req.ip || req.socket.remoteAddress;
 
-  const result = await zalopayService.createZaloPayPaymentUrl(String(orderCode), String(phone));
+  const result = await startGatewayPayment(String(req.params.method), String(orderCode), String(phone), ipAddr);
 
   if (!result) {
     res.redirect("/");
@@ -73,25 +77,6 @@ export const paymentZalopayResult = async (req: Request, res: Response) => {
     const errorMessage = ex instanceof Error ? ex.message : "ZaloPay callback error";
     res.json({ return_code: 0, return_message: errorMessage });
   }
-};
-
-export const paymentVNPay = async (req: Request, res: Response) => {
-  const { orderCode, phone } = req.query;
-  const ipAddr = req.ip || req.socket.remoteAddress;
-
-  const result = await vnpayService.createVNPayPaymentUrl(String(orderCode), String(phone), ipAddr);
-
-  if (!result) {
-    res.redirect("/");
-    return;
-  }
-
-  if (result.alreadyPaid) {
-    res.redirect(`/order/success?orderCode=${encodeURIComponent(String(orderCode))}&phone=${encodeURIComponent(String(phone))}`);
-    return;
-  }
-
-  res.redirect(result.paymentUrl || "/");
 };
 
 export const paymentVNPayIpn = async (req: Request, res: Response) => {

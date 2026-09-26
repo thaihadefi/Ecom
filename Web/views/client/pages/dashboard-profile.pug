@@ -33,6 +33,7 @@ block main
                 li
                   span Phone:
                   | #{accountUser.phone}
-                li
-                  span Reward Points:
-                  | #{((accountUser.totalPoint || 0) - (accountUser.usedPoint || 0)).toLocaleString("vi-VN")} Points
+                if (FEATURES.LOYALTY_POINTS)
+                  li
+                    span Reward Points:
+                    | #{formatNumber(((accountUser.totalPoint || 0) - (accountUser.usedPoint || 0)))} Points

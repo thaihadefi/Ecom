@@ -9,16 +9,17 @@ div(class="shop_details_text")
       p.stock In Stock (#{productDetail.stock})
     else
       p(class="out_stock stock") Out of Stock
-    p.rating
-      +stars(productDetail)
-      span (#{productDetail.ratingCount} Reviews)
+    if (FEATURES.REVIEWS)
+      p.rating
+        +stars(productDetail)
+        span (#{productDetail.ratingCount} Reviews)
     p.views.ms-3(style="color: var(--paraColor); font-size: 14px;")
       i.fas.fa-eye.me-1(aria-hidden="true" style="color: var(--themeColorTwo);")
       span #{productDetail.view || 0} Views
   p.price
-    span.price-new.text-nowrap(data-base-price=(productDetail.priceNew || 0)) #{(productDetail.priceNew || 0).toLocaleString("vi-VN")}&nbsp;₫
+    span.price-new.text-nowrap(data-base-price=(productDetail.priceNew || 0)) #{formatPrice(productDetail.priceNew || 0)}
     if (productDetail.priceOld && productDetail.priceOld > (productDetail.priceNew || 0))
-      del.price-old.text-nowrap(data-base-price=productDetail.priceOld) #{(productDetail.priceOld).toLocaleString("vi-VN")}&nbsp;₫
+      del.price-old.text-nowrap(data-base-price=productDetail.priceOld) #{formatPrice(productDetail.priceOld)}
     else
       del.price-old(style="display: none;")
     -
@@ -75,24 +76,26 @@ div(class="shop_details_text")
         | Add to Cart
         i.fas.fa-long-arrow-right(aria-hidden="true")
   ul(class="details_list_btn")
-    li
-      a(
-        href="javascript:;"
-        button-add-wishlist
-        product-id=productDetail.id
-        aria-label="Add to Wishlist"
-      )
-        i.far.fa-heart(aria-hidden="true")
-        | Wishlist
-    li
-      a(
-        href="javascript:;"
-        button-add-compare
-        product-id=productDetail.id
-        aria-label="Add to Compare"
+    if (FEATURES.WISHLIST)
+      li
+        a(
+          href="javascript:;"
+          button-add-wishlist
+          product-id=productDetail.id
+          aria-label="Add to Wishlist"
         )
-        i.fas.fa-exchange-alt(aria-hidden="true")
-        | Compare
+          i.far.fa-heart(aria-hidden="true")
+          | Wishlist
+    if (FEATURES.COMPARE)
+      li
+        a(
+          href="javascript:;"
+          button-add-compare
+          product-id=productDetail.id
+          aria-label="Add to Compare"
+          )
+          i.fas.fa-exchange-alt(aria-hidden="true")
+          | Compare
 
   ul(class="details_tags_sku")
     li

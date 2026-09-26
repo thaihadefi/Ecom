@@ -5,11 +5,13 @@ import Product from '../../models/product.model';
 import { getActiveAttributes } from '../admin/attribute-product.service';
 import Coupon from '../../models/coupon.model';
 import { checkCouponValidity, couponRejectStatus } from './coupon.service';
-import { getInfoAddress } from '../../helpers/location.helper';
-import axios from 'axios';
-import { pointConfig } from '../../configs/variable.config';
 import AccountUser from '../../models/account-user.model';
-import { getApiShipping, getGeneral } from '../../configs/setting.config';
+import { getApiPayment } from '../../configs/setting.config';
+import { createShipment, getShippingContext, unitWeight } from '../shipping/shipping.service';
+import { caughtErrorStatus, isExposed } from '../../helpers/http-response.helper';
+import { enabledPaymentMethods } from '../../configs/payment-methods.config';
+import { getStorefront, toMoney } from '../../configs/storefront.config';
+import { formatPrice } from '../../helpers/format.helper';
 import { sendMail, emailTemplates } from '../../helpers/mail.helper';
 import { ICoupon } from '../../interfaces/models/coupon.interface';
 import { IAttributeProduct } from '../../interfaces/models/attribute-product.interface';
@@ -18,6 +20,7 @@ import { invalidateUserAuthCache } from './auth.service';
 import { invalidateAdminDashboardCaches } from '../admin/dashboard.service';
 import { invalidateProductCaches } from '../../helpers/metadata-cache.helper';
 import { scoreOrderForAnomaly } from '../admin/anomaly-detection.service';
+import { FEATURES } from '../../configs/features.config';
 
 export interface OrderItemInput {
   productId: string;
@@ -75,7 +78,8 @@ export const createOrder = async (
     usedPoint: number;
     pointDiscount: number;
     shipping: {
-      goshipOrderId?: string;
+      provider?: string;
+      externalId?: string;
       carrierName?: string;
       carrierCode?: string;
       fee: number;
@@ -92,6 +96,11 @@ export const createOrder = async (
     shipping: { fee: 0 },
     total: 0
   };
+
+  const paymentMethod = enabledPaymentMethods(await getApiPayment()).find((m) => m.id === payload.paymentMethod);
+  if (!paymentMethod) {
+    return { success: false, status: 400, message: "This payment method is not available. Please choose another one." };
+  }
 
   dataFinal.userId = accountUser?.id || "";
   dataFinal.ip = clientIp;
@@ -122,7 +131,7 @@ export const createOrder = async (
   const productIds = itemsInput.map((i) => i.productId);
 
   const [productList, attributeList] = await Promise.all([
-    Product.find({ _id: { $in: productIds }, deleted: false, status: "active" }).select("_id name priceNew stock images variants"),
+    Product.find({ _id: { $in: productIds }, deleted: false, status: "active" }).select("_id name priceNew stock weight images variants"),
     getActiveAttributes()
   ]);
 
@@ -228,6 +237,9 @@ export const createOrder = async (
 
   dataFinal.discount = 0;
   let couponDetail: ICoupon | null = null;
+  if (payload.coupon && !FEATURES.COUPONS) {
+    return { success: false, status: 400, message: "Coupons are not available in this store." };
+  }
   if (payload.coupon) {
     const couponCheck = await checkCouponValidity(payload.coupon, accountUser?.id);
     if (!couponCheck.valid || !couponCheck.couponDetail) {
@@ -239,12 +251,12 @@ export const createOrder = async (
     if (couponDetail.minOrderValue && dataFinal.subTotal < couponDetail.minOrderValue) {
       return {
         success: false,
-        status: 400, message: `Order must be at least ${couponDetail.minOrderValue.toLocaleString()}đ to use this coupon!`
+        status: 400, message: `Order must be at least ${formatPrice(couponDetail.minOrderValue)} to use this coupon!`
       };
     }
 
     if (couponDetail.typeDiscount === "percentage") {
-      const discountValue = Math.round((dataFinal.subTotal * (couponDetail.value || 0)) / 100);
+      const discountValue = toMoney((dataFinal.subTotal * (couponDetail.value || 0)) / 100);
       dataFinal.discount = couponDetail.maxDiscountValue && couponDetail.maxDiscountValue > 0
         ? Math.min(discountValue, couponDetail.maxDiscountValue)
         : discountValue;
@@ -255,24 +267,13 @@ export const createOrder = async (
     dataFinal._couponId = String(couponDetail._id);
   }
 
-  const general = await getGeneral();
-  const shopLocation = {
-    lat: parseFloat(String(general.shopLat || "10.8700089")),
-    lng: parseFloat(String(general.shopLng || "106.8030541"))
-  };
-
-  const [shopInfoAddress, userInfoAddress] = await Promise.all([
-    getInfoAddress(shopLocation.lat, shopLocation.lng),
-    getInfoAddress(dataFinal.latitude || 0, dataFinal.longitude || 0)
-  ]);
-
   dataFinal.usedPoint = 0;
   dataFinal.pointDiscount = 0;
   const wantUsePoint = payload.usedPoint ?? payload.usePoint;
-  if (accountUser && wantUsePoint) {
+  if (FEATURES.LOYALTY_POINTS && accountUser && wantUsePoint) {
     const availablePoint = Math.max(0, (accountUser.totalPoint || 0) - (accountUser.usedPoint || 0));
     const maxPayable = Math.max(0, dataFinal.subTotal - dataFinal.discount);
-    const maxPointsNeeded = Math.ceil(maxPayable / pointConfig.POINT_TO_MONEY);
+    const maxPointsNeeded = Math.ceil(maxPayable / getStorefront().pointValue);
 
     let requestedPoint = 0;
     if (wantUsePoint === true || wantUsePoint === "true") {
@@ -284,73 +285,34 @@ export const createOrder = async (
 
     if (requestedPoint > 0) {
       dataFinal.usedPoint = requestedPoint;
-      dataFinal.pointDiscount = Math.min(maxPayable, dataFinal.usedPoint * pointConfig.POINT_TO_MONEY);
+      dataFinal.pointDiscount = Math.min(maxPayable, dataFinal.usedPoint * getStorefront().pointValue);
     }
   }
 
-  const totalWeight = dataFinal.items.reduce((total: number, item) => total + item.quantity * 500, 0);
+  const shippingCtx = await getShippingContext();
+  const totalWeight = dataFinal.items.reduce(
+    (total: number, item) => total + item.quantity * unitWeight(productMap.get(String(item.productId))?.weight, shippingCtx),
+    0
+  );
+  const payable = Math.max(0, dataFinal.subTotal - dataFinal.discount - dataFinal.pointDiscount);
 
-  const dataGoShip = {
-    shipment: {
-      rate: payload.shippingMethod,
-      payer: dataFinal.paymentMethod === "money" ? 1 : 0,
-      address_from: {
-        name: String(general.shopSenderName || "Ecom"),
-        phone: String(general.shopSenderPhone || "02837252002"),
-        street: String(general.shopSenderAddress || "Quarter 34, Linh Xuan Ward, Ho Chi Minh City"),
-        city: shopInfoAddress.city,
-        district: shopInfoAddress.district,
-        ward: shopInfoAddress.ward
-      },
-      address_to: {
-        name: dataFinal.fullName,
-        phone: dataFinal.phone,
-        street: dataFinal.address,
-        city: userInfoAddress.city,
-        district: userInfoAddress.district,
-        ward: userInfoAddress.ward
-      },
-      parcel: {
-        cod: `${dataFinal.paymentMethod === "money" ? Math.max(0, dataFinal.subTotal - dataFinal.discount - dataFinal.pointDiscount) : 0}`,
-        amount: `${Math.max(0, dataFinal.subTotal - dataFinal.discount - dataFinal.pointDiscount)}`,
-        weight: `${totalWeight}`,
-        width: "10",
-        height: "10",
-        length: "10",
-        metadata: "Fragile items, please handle with care."
-      }
-    }
-  };
-
-  const apiShipping = await getApiShipping();
-  const goshipBase = String(apiShipping.goshipApiUrl || "https://sandbox.goship.io/api/v2");
-
-  
-  let goshipRes;
   try {
-    goshipRes = await axios.post(`${goshipBase}/shipments`, dataGoShip, {
-      headers: {
-        Authorization: `Bearer ${apiShipping.tokenGoShip}`,
-        "Content-Type": "application/json"
-      }
-    });
+    dataFinal.shipping = await createShipment(String(payload.shippingMethod || ""), {
+      destination: { lat: dataFinal.latitude || 0, lng: dataFinal.longitude || 0 },
+      parcel: {
+        weightGrams: totalWeight,
+        orderValue: dataFinal.subTotal,
+        declaredValue: payable,
+        codAmount: paymentMethod.collectOnDelivery ? payable : 0
+      },
+      receiver: { name: dataFinal.fullName || "", phone: dataFinal.phone || "", address: dataFinal.address || "" },
+      receiverPays: paymentMethod.collectOnDelivery
+    }, shippingCtx);
   } catch (error: unknown) {
-    console.error("[Checkout] GoShip request failed:", error instanceof Error ? error.message : error);
+    if (isExposed(error)) return { success: false, status: caughtErrorStatus(error), message: error.message };
+    console.error("[Checkout] Shipping provider failed:", error instanceof Error ? error.message : error);
     return { success: false, status: 502, message: "Unable to calculate the shipping fee. Please recheck your delivery address or try again later." };
   }
-
-  if (typeof goshipRes.data?.fee !== "number") {
-    console.error("[Checkout] GoShip returned an unexpected payload:", goshipRes.data);
-    return { success: false, status: 502, message: "The shipping service is temporarily unavailable. Please try again later." };
-  }
-
-  dataFinal.shipping = {
-    goshipOrderId: goshipRes.data.id,
-    carrierName: goshipRes.data.carrier,
-    carrierCode: goshipRes.data.carrier_short_name,
-    fee: goshipRes.data.fee,
-    cod: goshipRes.data.cod,
-  };
 
   dataFinal.total = Math.max(0, dataFinal.subTotal + dataFinal.shipping.fee - dataFinal.discount - dataFinal.pointDiscount);
   if (dataFinal.total === 0) {
@@ -489,7 +451,7 @@ export const createOrder = async (
   invalidateAdminDashboardCaches();
   invalidateProductCaches();
 
-  if (savedOrderId) {
+  if (savedOrderId && FEATURES.ML_FRAUD_DETECTION) {
     scoreOrderForAnomaly(savedOrderId).catch((error) => console.error("Anomaly scoring error:", error));
   }
 
@@ -511,13 +473,19 @@ export const createOrder = async (
       .catch(console.error);
   }
 
+  const orderQuery = `orderCode=${encodeURIComponent(dataFinal.code || "")}&phone=${encodeURIComponent(dataFinal.phone || "")}`;
+  const redirectUrl = paymentMethod.online && dataFinal.paymentStatus !== "paid"
+    ? `/order/payment-${paymentMethod.id}?${orderQuery}`
+    : `/order/success?${orderQuery}`;
+
   return {
     success: true,
     message: "Order placed successfully!",
     orderCode: dataFinal.code,
     phone: dataFinal.phone,
     total: dataFinal.total,
-    paymentStatus: dataFinal.paymentStatus
+    paymentStatus: dataFinal.paymentStatus,
+    redirectUrl
   };
 };
 

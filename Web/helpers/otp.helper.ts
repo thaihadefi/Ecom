@@ -14,7 +14,7 @@ export const consumeOtp = async (
       $or: [{ attempts: { $lt: OTP_MAX_ATTEMPTS } }, { attempts: { $exists: false } }],
     },
     { $inc: { attempts: 1 } },
-    { new: true },
+    { returnDocument: "after" },
   );
   if (!record) return null;
 

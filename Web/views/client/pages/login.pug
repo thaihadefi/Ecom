@@ -56,18 +56,21 @@ block main
                     i.fas.fa-long-arrow-right(aria-hidden="true")
             p(class="dont_account")
               | Don't have an account? #[a(href="/auth/register") Register]
-            .or-divider
-              span.or-line
-              span.or-text Or
-              span.or-line
-            ul
-              li
-                a(href="/auth/google")
-                  span
-                    i.fab.fa-google(aria-hidden="true")
-                  | Google
-              li
-                a(href="/auth/facebook")
-                  span
-                    i.fab.fa-facebook-f(aria-hidden="true")
-                  | Facebook
+            if (socialLogin && (socialLogin.google || socialLogin.facebook))
+              .or-divider
+                span.or-line
+                span.or-text Or
+                span.or-line
+              ul
+                if (socialLogin.google)
+                  li
+                    a(href="/auth/google")
+                      span
+                        i.fab.fa-google(aria-hidden="true")
+                      | Google
+                if (socialLogin.facebook)
+                  li
+                    a(href="/auth/facebook")
+                      span
+                        i.fab.fa-facebook-f(aria-hidden="true")
+                      | Facebook

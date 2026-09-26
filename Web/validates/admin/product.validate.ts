@@ -45,11 +45,12 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
     description: Joi.string().allow(''),
     content: Joi.string().allow(''),
     images: Joi.string().allow(''),
-    priceOld: Joi.alternatives().try(Joi.number().integer().min(0), Joi.string().pattern(/^\d{1,12}$/)).allow(''),
-    priceNew: Joi.alternatives().try(Joi.number().integer().min(0), Joi.string().pattern(/^\d{1,12}$/)).allow(''),
+    priceOld: Joi.alternatives().try(Joi.number().min(0), Joi.string().pattern(/^\d{1,12}(\.\d{1,4})?$/)).allow(''),
+    priceNew: Joi.alternatives().try(Joi.number().min(0), Joi.string().pattern(/^\d{1,12}(\.\d{1,4})?$/)).allow(''),
     attributes: Joi.string().allow(''),
     variants: Joi.string().allow(''),
     stock: Joi.alternatives().try(Joi.number().integer().min(0).max(999999999), Joi.string().pattern(/^\d{1,9}$/)).allow(''),
+    weight: Joi.alternatives().try(Joi.number().integer().min(0).max(10000000), Joi.string().pattern(/^\d{1,8}$/)).allow(''),
     tags: Joi.string().allow(''),
     boughtTogether: Joi.string().allow(''),
   });
@@ -178,7 +179,7 @@ export const editSEOPatch = (req: Request, res: Response, next: NextFunction) =>
   next();
 };
 
-const isWholeNonNegative = (value: unknown): boolean =>
+const isNonNegative = (value: unknown): boolean =>
   value === undefined || value === null || value === "" || (Number.isFinite(Number(value)) && Number(value) >= 0);
 
 const checkVariants = (raw: string): string | null => {
@@ -191,7 +192,7 @@ const checkVariants = (raw: string): string | null => {
   if (!Array.isArray(variants)) return "Invalid product variants!";
   const valid = variants.every((variant) =>
     variant && typeof variant === "object" &&
-    [variant.price, variant.priceOld, variant.priceNew, variant.stock].every(isWholeNonNegative)
+    [variant.price, variant.priceOld, variant.priceNew, variant.stock].every(isNonNegative)
   );
   return valid ? null : "Variant prices and stock must be non-negative numbers!";
 };

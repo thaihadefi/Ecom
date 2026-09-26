@@ -41,7 +41,7 @@ block main
                       td #{item.code}
                       td #{item.fullName}
                       td #{item.phone}
-                      td.text-end.text-nowrap #{formatVND(item.total)}
+                      td.text-end.text-nowrap #{formatPrice(item.total)}
                       td.text-center
                         span.badge.bg-danger #{(item.anomalyScore || 0).toFixed(2)}
                       td
