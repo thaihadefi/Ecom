@@ -1203,8 +1203,15 @@ header form .input .inner-voice.recording {
     margin-left: 0 !important;
     gap: 8px !important;
     display: flex !important;
-    flex-wrap: nowrap !important;
+    flex-wrap: wrap !important;
     align-items: center !important;
+}
+
+.fa-x-twitter:before {
+    content: "𝕏";
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-style: normal;
 }
 
 .footer_social_follow span,

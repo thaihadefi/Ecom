@@ -13,11 +13,15 @@ block main
           .col-md-6
             .mb-3
               label.form-label(for="primaryColor") Primary color
-              input.form-control.form-control-color.w-100(id="primaryColor" name="primaryColor" type="color" value=values.primaryColor)
+              .input-group
+                input.form-control.form-control-color(id="primaryColorPicker" type="color" value=values.primaryColor style="max-width: 48px; padding: 4px; cursor: pointer;" oninput="document.getElementById('primaryColor').value = this.value")
+                input.form-control(id="primaryColor" name="primaryColor" type="text" value=values.primaryColor placeholder="#0057B7" oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value.trim())) document.getElementById('primaryColorPicker').value = this.value.trim()")
           .col-md-6
             .mb-3
               label.form-label(for="secondaryColor") Secondary color
-              input.form-control.form-control-color.w-100(id="secondaryColor" name="secondaryColor" type="color" value=values.secondaryColor)
+              .input-group
+                input.form-control.form-control-color(id="secondaryColorPicker" type="color" value=values.secondaryColor style="max-width: 48px; padding: 4px; cursor: pointer;" oninput="document.getElementById('secondaryColor').value = this.value")
+                input.form-control(id="secondaryColor" name="secondaryColor" type="text" value=values.secondaryColor placeholder="#FFD700" oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value.trim())) document.getElementById('secondaryColorPicker').value = this.value.trim()")
           .col-md-6
             .mb-3
               label.form-label(for="headingFont") Heading font (Google Fonts)
@@ -43,7 +47,7 @@ block main
               label.form-label(for="timezone") Time zone
               select.form-select(id="timezone" name="timezone")
                 each zone in timeZones
-                  option(value=zone selected=zone === values.timezone) #{zone}
+                  option(value=zone selected=zone === selectedTimeZone) #{zone}
           .col-md-3
             .mb-3
               label.form-label(for="language") Page language (html lang)

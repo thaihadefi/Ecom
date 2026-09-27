@@ -15,7 +15,7 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
       }),
     phone: Joi.string()
       .custom((value, helpers) => {
-        if(!/^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$/.test(value)) {
+        if(!/^(0?)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$/.test(value)) {
           return helpers.error('phone.valid');
         }
         return value;

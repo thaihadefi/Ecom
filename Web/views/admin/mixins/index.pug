@@ -41,8 +41,8 @@ mixin form-group-file(label="", name="", id="", value="", placeholder="File path
         data-bs-target="#modalFileManager"
         ) Select File
       input.form-control(id=id type="text" name=name value=value placeholder=placeholder input-file)
-    .preview-file(preview-file)
-      img(alt=`${label} preview`)
+    .preview-file(preview-file class=(value ? "" : "d-none"))
+      img(src=(value ? (value.startsWith("http") ? value : `${domainCDN}${value}`) : "") alt=`${label} preview`)
 
 mixin form-search()
   form.input-group.mb-3(form-search)

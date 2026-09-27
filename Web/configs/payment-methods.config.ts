@@ -4,8 +4,10 @@ import { getStorefront } from "./storefront.config";
 // Every payment method the store knows. The order schema, checkout validation, checkout options,
 // labels and the unpaid-order job all read this list.
 //
-// To add a gateway: add an entry here, add its gateway module to services/payment/payment-gateway.service.ts,
-// and register its callback route in routes/client/order.route.ts.
+// To add a gateway (e.g. SePay): add an entry here, add a provider file under services/payment/ and register it in
+// payment-gateway.service.ts, register its callback route in routes/client/order.route.ts, and add its keys to
+// ISettingApiPayment, the apiPayment schema in validates/admin/setting.validate.ts (unknown keys are dropped),
+// views/admin/pages/setting-api-payment.pug and seed.ts. See "Adding a payment gateway" in the README.
 
 export interface PaymentMethodDefinition {
   id: string;

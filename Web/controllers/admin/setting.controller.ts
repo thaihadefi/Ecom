@@ -11,6 +11,7 @@ import { SHIPPING_CONFIG } from '../../configs/shipping.config';
 import { SOCIAL_LINKS } from '../../configs/social-links.config';
 import { CONTENT_PAGES, ContentPageKey } from '../../configs/content-pages.config';
 import { loadStorefront, normalizeStorefront, StorefrontSettings } from '../../configs/storefront.config';
+import { canonicalTimeZone } from '../../helpers/timezone.helper';
 
 export const apiShipping = async (_req: Request, res: Response) => {
   const key = "apiShipping";
@@ -130,12 +131,16 @@ export const generalPatch = async (req: RequestAccount, res: Response) => {
 
 export const storefront = async (_req: Request, res: Response) => {
   const record = await settingService.getSettingByKey("storefront");
+  const values = normalizeStorefront(record?.data as Partial<StorefrontSettings> | undefined);
+  // Intl.supportedValuesOf is ES2022; the compile target (ES6) does not declare it.
+  const timeZones = (Intl as unknown as { supportedValuesOf(key: "timeZone"): string[] }).supportedValuesOf("timeZone");
 
   res.render("admin/pages/setting-storefront", {
     pageTitle: "Storefront",
-    values: normalizeStorefront(record?.data as Partial<StorefrontSettings> | undefined),
-    // Intl.supportedValuesOf is ES2022; the compile target (ES6) does not declare it.
-    timeZones: (Intl as unknown as { supportedValuesOf(key: "timeZone"): string[] }).supportedValuesOf("timeZone")
+    values,
+    timeZones,
+    // The saved zone may be an alias the list spells differently; without this the first zone would be preselected.
+    selectedTimeZone: canonicalTimeZone(values.timezone)
   });
 };
 

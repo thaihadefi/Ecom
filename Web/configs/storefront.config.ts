@@ -43,11 +43,19 @@ let current: StorefrontSettings = { ...STOREFRONT_DEFAULTS };
 const pick = <T>(value: T | undefined | null | "", fallback: T): T =>
   value === undefined || value === null || value === "" ? fallback : value;
 
+// Display currencies as saved (a list) or typed in the settings form ("USD, EUR"): upper-cased, without blanks.
+export const parseCurrencyList = (value: unknown): string[] =>
+  (Array.isArray(value) ? value : String(value ?? "").split(","))
+    .map((code) => String(code).trim().toUpperCase())
+    .filter(Boolean);
+
 export const normalizeStorefront = (data: Partial<StorefrontSettings> | undefined): StorefrontSettings => {
   const d = data || {};
   const positive = (value: unknown, fallback: number) => (Number(value) > 0 ? Number(value) : fallback);
   const currency = pick(d.currency, STOREFRONT_DEFAULTS.currency).toUpperCase();
-  const display = Array.isArray(d.displayCurrencies) ? d.displayCurrencies : STOREFRONT_DEFAULTS.displayCurrencies;
+  const display = d.displayCurrencies === undefined || d.displayCurrencies === null
+    ? STOREFRONT_DEFAULTS.displayCurrencies
+    : parseCurrencyList(d.displayCurrencies);
   return {
     primaryColor: pick(d.primaryColor, STOREFRONT_DEFAULTS.primaryColor),
     secondaryColor: pick(d.secondaryColor, STOREFRONT_DEFAULTS.secondaryColor),
@@ -55,7 +63,7 @@ export const normalizeStorefront = (data: Partial<StorefrontSettings> | undefine
     bodyFont: pick(d.bodyFont, STOREFRONT_DEFAULTS.bodyFont),
     currency,
     // The store currency always comes first, so shoppers can switch back to it.
-    displayCurrencies: [...new Set([currency, ...display.map((c) => String(c).toUpperCase())])],
+    displayCurrencies: [...new Set([currency, ...display])],
     locale: pick(d.locale, STOREFRONT_DEFAULTS.locale),
     timezone: pick(d.timezone, STOREFRONT_DEFAULTS.timezone),
     language: pick(d.language, STOREFRONT_DEFAULTS.language),

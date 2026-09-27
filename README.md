@@ -10,7 +10,7 @@ A customizable e-commerce baseline: one codebase, configured per client instead 
 
 Every store gets a storefront, an admin panel and a JSON API. For a new client you switch modules on or off, set the look, currency and page content in the admin panel, and plug in payment gateways or shipping carriers through small interfaces. [Customizing for a client](#customizing-for-a-client) shows where each kind of request goes.
 
-The baseline also includes live support chat with an AI assistant, product recommendations, suspicious-order detection and stock forecasting; each of them can be switched off.
+The baseline also includes live chat between customers and staff (with optional AI helpers for staff), product recommendations, suspicious-order detection and stock forecasting; each of them can be switched off.
 
 ## Contents
 
@@ -22,14 +22,14 @@ The baseline also includes live support chat with an AI assistant, product recom
 - [Payments in development](#payments-in-development)
 - [API documentation](#api-documentation)
 - [Deployment and security notes](#deployment-and-security-notes)
-- [Contributing](#contributing)
+- [Development](#development)
 - [License](#license)
 
 ## Getting started
 
 ### Prerequisites
 
-- Node.js 22.12+ and Yarn (to run locally), or Docker
+- Node.js 22+ and Yarn 1 (to run locally), or Docker
 - A MongoDB database (MongoDB Atlas, or a local MongoDB)
 
 ### 1. Configure
@@ -48,7 +48,7 @@ Fill in at least these values (the app refuses to start without the first three,
 | `Web/.env` | `DATABASE` | MongoDB connection string |
 | `Web/.env` | `JWT_SECRET` | Signs login tokens |
 | `Web/.env` and `FileManager/.env` | `FILE_MANAGER_SECRET` | Shared secret between Web and FileManager; must be the same in both files |
-| `Web/.env` | `GROQ_API_KEY` | Optional; enables the AI chat assistant |
+| `Web/.env` | `GROQ_API_KEY` | Optional; enables the AI helpers staff use in the admin chat |
 
 Search uses the Atlas Search index named by `ATLAS_SEARCH_INDEX` when it exists, and a regex match otherwise.
 
@@ -90,7 +90,7 @@ Sign in to the admin panel with that account; other staff accounts and their rol
 
 Everything else is set in **Admin → Settings**; each page explains its fields. The rules the pages do not spell out:
 
-- **General Settings**: the store phone, address and warehouse location are also the GoShip sender, so checkout cannot ship until they are set.
+- **General Settings**: the store phone, address and map pin are also the GoShip sender, so checkout cannot ship until they are set. The pin also drives the map link in the footer and on the contact page, and the starting view of customers' address maps.
 - **App API Password**: a Gmail account with an [app password](https://support.google.com/accounts/answer/185833) sends the OTP and order emails.
 - **Payment Gateway API**: a method is offered only when it is ticked and its keys are filled in.
 - **Social Login API**: a login button appears only once its keys are saved.
@@ -108,12 +108,12 @@ Where each kind of client request goes; most need no code.
 | Show prices in other currencies for reference | Admin → Settings → Storefront → Display currencies | None |
 | Change the loyalty point rates | Admin → Settings → Storefront | None |
 | Edit About, FAQ and policy pages | Admin → Settings → Page Content | None |
-| Set the logo, contact details, footer text and social links | Admin → Settings → General Settings | None |
+| Set the logo, contact details, store map pin, footer text and social links | Admin → Settings → General Settings | None |
 | Rearrange the homepage | Admin → Block Management and Template Management | None |
 | Choose which payment methods checkout offers | Admin → Settings → Payment Gateway API | None |
 | Offer Google or Facebook login | Admin → Settings → Social Login API (buttons appear once keys are saved) | None |
 | Move the admin panel to another URL | `ADMIN_PATH` in `Web/.env` | None |
-| Add a payment gateway | One entry in [payment-methods.config.ts](Web/configs/payment-methods.config.ts), its start function in [payment-gateway.service.ts](Web/services/payment/payment-gateway.service.ts), its callback in [order.route.ts](Web/routes/client/order.route.ts) | Small |
+| Add a payment gateway (e.g. SePay, MoMo) | See [Adding a payment gateway](#adding-a-payment-gateway) | Small |
 | Add a shipping carrier | One `ShippingProvider` file like [goship.provider.ts](Web/services/shipping/goship.provider.ts), listed in [shipping.service.ts](Web/services/shipping/shipping.service.ts) | Small |
 | Add a module of their own | Routes behind `requireFeature(...)` ([feature.middleware.ts](Web/middlewares/feature.middleware.ts)), a flag in [features.config.ts](Web/configs/features.config.ts) | Yes |
 | Replace the storefront design | Pug views in `Web/views/client`, keeping the CSS variables and the element attributes that `main.js` hooks into; a fully separate frontend can use the [JSON API](#api-documentation) instead | Yes |
@@ -137,20 +137,31 @@ All flags default to on. A module that is off hides its UI, answers 404 on its p
 | `FEATURE_LOYALTY=false` | Loyalty points: none are earned or spent |
 | `FEATURE_TRANSLATE=false` | The Google Translate widget |
 
-### Currency
+### Adding a payment gateway
+
+Cash on delivery, VNPay and ZaloPay ship with the baseline; other gateways plug in the same way:
+
+1. Describe the method (label, icon, online or not, accepted currencies, which keys it needs) in [payment-methods.config.ts](Web/configs/payment-methods.config.ts). Checkout, order labels, the admin method picker and the unpaid-order job all read this list.
+2. Write a `PaymentProvider` file like [vnpay.provider.ts](Web/services/payment/vnpay.provider.ts) that returns the gateway URL for an order, and register it in [payment-gateway.service.ts](Web/services/payment/payment-gateway.service.ts). Offline methods need no provider.
+3. Add the gateway's callback or webhook to [order.route.ts](Web/routes/client/order.route.ts) above the generic `/payment-:method` route, and mark orders paid through `applyGatewayPayment` ([payment-order.helper.ts](Web/services/payment/payment-order.helper.ts)), which checks the amount and applies a repeated callback only once.
+4. Add its keys to `ISettingApiPayment` ([setting.interface.ts](Web/interfaces/models/setting.interface.ts)), the `apiPayment` schema in [setting.validate.ts](Web/validates/admin/setting.validate.ts), the Payment Gateway API page ([setting-api-payment.pug](Web/views/admin/pages/setting-api-payment.pug)) and [seed.ts](Web/seed.ts). The validator drops unknown fields, so a key missing from the schema is silently not saved.
+
+### Currency and locale
 
 The **store currency** (VND by default) is what prices are entered in and what every order is charged in. Pick it when the store is set up: changing it later does not convert existing prices. **Display currencies** only let shoppers view converted prices with live exchange rates; the cart then notes that the charge is in the store currency. Payment methods that cannot charge the store currency are hidden (VNPay and ZaloPay only take VND).
+
+The store **locale** sets number and date formats, and the map address search looks only in the locale's country, in its language (`vi-VN` searches Vietnam in Vietnamese).
 
 ### Limitations
 
 - UI and email text is in English in the code (Pug views, [mail.helper.ts](Web/helpers/mail.helper.ts)); Google Translate covers other languages on the storefront.
-- Shipping uses GoShip, so stores ship within Vietnam and phone numbers must be Vietnamese.
+- Shipping uses GoShip, so stores ship within Vietnam, and customer phone numbers must be Vietnamese mobile numbers ([auth.validate.ts](Web/validates/client/auth.validate.ts)).
 
 ### Setting up a new client store
 
 1. Follow [Getting started](#getting-started), setting the `FEATURE_*` flags for the modules the client wants.
 2. Fill in the Settings pages ([Configure the store](#4-configure-the-store)), then build the homepage from blocks.
-3. After any code change, run the checks in [Contributing](#contributing).
+3. After any code change, run the checks in [Development](#development).
 
 ## Features
 
@@ -161,8 +172,8 @@ Modules marked *(optional)* can be switched off with a feature flag.
 - Browse, filter, sort and search products (with live suggestions). For products with variants such as size and color, the picker updates price, stock and images and preselects a variant that is in stock.
 - Cart (kept in the browser), wishlist *(optional)* and product comparison *(optional)*.
 - Checkout with coupons *(optional)*, loyalty points *(optional)*, a map address picker and GoShip rates from several carriers, cheapest first (weight per product, with a store default).
-- Pay by cash on delivery, VNPay or ZaloPay (only the methods the store has set up are offered), with a retry button when an online payment did not finish.
-- Order emails and order tracking; reviews on purchased products and reports on abusive reviews *(optional)*.
+- Pay by cash on delivery, VNPay or ZaloPay out of the box, with room for [more gateways](#adding-a-payment-gateway) (only the methods the store has set up are offered), and a retry button when an online payment did not finish.
+- Order emails and order status in the customer account; reviews on purchased products and reports on abusive reviews *(optional)*.
 - Live chat with the store: typing and online status, attachments, and a rating at the end *(optional)*.
 - Blog *(optional)*, editable About/FAQ/policy pages, flash sales, contact form, prices viewable in other currencies, Google Translate *(optional)* and an installable PWA.
 
@@ -171,14 +182,14 @@ Modules marked *(optional)* can be switched off with a feature flag.
 - Moderate reviews, answer contact messages, and reply to or lock customer chats.
 - Role-based permissions, an audit log, and a trash bin to restore deleted records.
 - Dashboards for revenue over time, top-selling products, orders and customer growth in the store time zone; CSV import/export; SEO fields with OpenGraph tags and a sitemap; homepage blocks and page templates; store settings.
-- A file manager; renaming or deleting a file updates the products and articles that use it.
+- A file manager; renaming or deleting a file updates every record that uses it (products, articles, categories, avatars, reviews, chat messages, homepage blocks and settings).
 
-**AI assistant** *(optional)*
-- Staff can ask an LLM (through the Groq API) to summarize a chat, suggest or polish a reply, and read the customer's sentiment. When a model is retired, rate-limited or failing, the request moves on to another available Groq model ([ai.helper.ts](Web/helpers/ai.helper.ts)).
+**AI helpers for staff** *(optional)*
+- There is no AI chatting with customers. In the admin chat, staff can ask an LLM (through the Groq API) to summarize a chat, suggest or polish a reply, and read the customer's sentiment. When a model is retired, rate-limited or failing, the request moves on to another available Groq model ([ai.helper.ts](Web/helpers/ai.helper.ts)).
 
 **Machine learning** *(each optional)*
-- **Recommendations** ("frequently bought together"): item-based collaborative filtering where recent orders weigh more, results are mixed across categories, and new products fall back to popular items of the same category ([recommendation.helper.ts](Web/helpers/recommendation.helper.ts)).
-- **Suspicious-order detection**: each order gets an Isolation Forest score from order speed, coupon use, discount ratio and account age, combined with simple rules; flagged orders go to a review queue ([isolation-forest.helper.ts](Web/helpers/isolation-forest.helper.ts)).
+- **Recommendations** ("frequently bought together"): staff can hand-pick the list per product; otherwise item-based collaborative filtering where recent orders weigh more and results are mixed across categories, and products without data fall back to the most viewed items of the same category ([recommendation.helper.ts](Web/helpers/recommendation.helper.ts)).
+- **Suspicious-order detection**: each order gets an Isolation Forest score from order speed, coupon use, discount ratio, account age, guest checkout and how many accounts share its phone number or IP address, combined with simple rules; flagged orders go to a review queue ([isolation-forest.helper.ts](Web/helpers/isolation-forest.helper.ts)).
 - **Stock forecasting**: Holt's linear trend method with sales spikes (such as flash sales) capped, giving each product a reorder point and safety stock ([forecast.helper.ts](Web/helpers/forecast.helper.ts)).
 
 Recommendations and the fraud model are recomputed every night and can also be run on demand from the admin panel.
@@ -186,10 +197,10 @@ Recommendations and the fraud model are recomputed every night and can also be r
 ## Business rules
 
 - The cart lives in the browser, so the server re-checks every price, variant and stock level when the order is placed.
-- Stock is reserved when an order is placed. Cancelling or returning an order gives back the stock, the coupon use and the spent points. These changes run inside a MongoDB transaction.
+- Stock is reserved when an order is placed. Cancelling or returning an order gives back the stock, the coupon use and the spent points, and takes back the points it earned. These changes run inside a MongoDB transaction.
 - Points can pay part of an order, up to the customer's balance and the amount due.
 - Loyalty points are earned only once an order is paid, never for cancelled or returned orders. How much order value earns a point, and what a point is worth, are set in Settings → Storefront.
-- Completed, cancelled and returned orders can no longer change status; only cancelled or returned orders can be deleted.
+- Completed, cancelled and returned orders can no longer change status, and a paid order cannot be set back to unpaid; only cancelled or returned orders can be deleted.
 - An order placed with an online gateway (VNPay, ZaloPay) and never paid is cancelled after a timeout ([order.job.ts](Web/jobs/order.job.ts)). Idle chat rooms are deleted with their files ([chat.job.ts](Web/jobs/chat.job.ts)).
 - A product can be reviewed only after its order is completed, once per purchased item.
 - A new chat goes to the online staff member who can reply to chats and has the fewest open conversations; if nobody is online, to any staff member with that permission. When the assigned staff member loses the permission, the chat moves to someone else the next time the customer connects ([chat.socket.service.ts](Web/services/socket/chat.socket.service.ts)).
@@ -220,7 +231,7 @@ VNPay / ZaloPay ──(payment callbacks through the public domain)──> nginx
 | The Express app and its startup | [Web/app.ts](Web/app.ts) builds the app; [Web/index.ts](Web/index.ts) connects the database, starts jobs and Socket.IO, and shuts down |
 | A request's path through the code | `Web/routes` → `Web/controllers` → `Web/services` → `Web/models`, split into `admin/` and `client/` |
 | Store settings and feature flags | [Web/configs](Web/configs) |
-| Payment gateways | [payment-methods.config.ts](Web/configs/payment-methods.config.ts) and [Web/services/payment](Web/services/payment) |
+| Payment gateways | [payment-methods.config.ts](Web/configs/payment-methods.config.ts), [PaymentProvider](Web/services/payment/payment-provider.interface.ts) and [Web/services/payment](Web/services/payment) |
 | Shipping carriers | [Web/services/shipping](Web/services/shipping) |
 | Scheduled jobs | [Web/jobs](Web/jobs) |
 | Storefront and admin pages | `Web/views` (Pug) and `Web/public` (CSS, JS, service worker) |
@@ -256,15 +267,13 @@ Once the site is hosted, register the VNPay IPN (`/order/payment-vnpay-ipn`) and
 - **Redeploys:** the web app shuts down gracefully on `SIGTERM` ([Web/index.ts](Web/index.ts)), and Compose gives it time to finish (`stop_grace_period`).
 - **nginx config** is mounted as a directory; after editing `nginx/nginx.conf`, run `docker compose exec nginx nginx -s reload`.
 
-## Contributing
+## Development
 
 Each service defines its scripts in its own `package.json`; run them with `yarn <script>` inside `Web` or `FileManager`. Before pushing:
 
 - `yarn typecheck`, `yarn lint:any` (no `any` types) and `yarn build`.
 - When a route, method or payload changes, update the [API spec](#api-documentation) and run `yarn verify` in its repository; it compares the spec with this code.
 - When a setting gains a field, give it a default in [seed.ts](Web/seed.ts) so `yarn db:seed` fills it on existing stores.
-
-Questions and bugs go to [GitHub Issues](https://github.com/thaihadefi/Ecom/issues). Maintained by [@thaihadefi](https://github.com/thaihadefi).
 
 ## License
 

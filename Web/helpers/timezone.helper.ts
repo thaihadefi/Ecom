@@ -97,3 +97,13 @@ export const isValidTimeZone = (timeZone: string): boolean => {
     return false;
   }
 };
+
+// The engine's own spelling of a zone. Intl.supportedValuesOf lists only these, and ICU may keep a
+// legacy name as canonical (Asia/Ho_Chi_Minh resolves to Asia/Saigon), so compare through this.
+export const canonicalTimeZone = (timeZone: string): string => {
+  try {
+    return new Intl.DateTimeFormat("en-US", { timeZone }).resolvedOptions().timeZone;
+  } catch {
+    return timeZone;
+  }
+};

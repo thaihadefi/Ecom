@@ -27,6 +27,7 @@ html(lang=storefront.language)
     script.
       const domainCDN = "#{domainCDN}";
       window.storeLocale = !{safeJson({ currency: storefront.currency, displayCurrencies: storefront.displayCurrencies, locale: storefront.locale, timezone: storefront.timezone, digits: currencyDigits })};
+      window.storeLocation = !{safeJson(storeContact ? storeContact.coordinates : null)};
     meta(charset="UTF-8")
     meta(
       content="width=device-width, initial-scale=1.0"
@@ -205,6 +206,7 @@ html(lang=storefront.language)
     if (allowThirdPartyWidgets && FEATURES.TRANSLATE)
       script(src="https://cdn.gtranslate.net/widgets/latest/dwf.js" defer)
     script(src=`/client/assets/js/custom.js?v=${assetVersion}`)
+    script(src=`/common/assets/js/location-picker.js?v=${assetVersion}`)
     script(src=`/client/assets/js/main.js?v=${assetVersion}`)
     if (FEATURES.CHAT)
       script(src="/socket.io/socket.io.js")

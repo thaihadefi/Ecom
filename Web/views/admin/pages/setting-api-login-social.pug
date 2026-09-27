@@ -13,28 +13,28 @@ block main
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="googleClientId") Client Id
-              input(id="googleClientId" name="googleClientId" class="form-control" value=`${record ? record.data.googleClientId : ''}`)
+              input(id="googleClientId" name="googleClientId" class="form-control" value=(record && record.data.googleClientId != null ? record.data.googleClientId : ''))
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="googleClientSecret") Client Secret
-              input(id="googleClientSecret" name="googleClientSecret" class="form-control" value=`${record ? record.data.googleClientSecret : ''}`)
+              input(id="googleClientSecret" name="googleClientSecret" class="form-control" value=(record && record.data.googleClientSecret != null ? record.data.googleClientSecret : ''))
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="googleCallbackUrl") Callback URL
-              input(id="googleCallbackUrl" name="googleCallbackUrl" class="form-control" value=`${record ? record.data.googleCallbackUrl : ''}`)
+              input(id="googleCallbackUrl" name="googleCallbackUrl" class="form-control" value=(record && record.data.googleCallbackUrl != null ? record.data.googleCallbackUrl : ''))
         hr
         h5 Login with Facebook
         .row
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="facebookAppId") App Id
-              input(id="facebookAppId" name="facebookAppId" class="form-control" value=`${record ? record.data.facebookAppId : ''}`)
+              input(id="facebookAppId" name="facebookAppId" class="form-control" value=(record && record.data.facebookAppId != null ? record.data.facebookAppId : ''))
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="facebookAppSecret") App Secret
-              input(id="facebookAppSecret" name="facebookAppSecret" class="form-control" value=`${record ? record.data.facebookAppSecret : ''}`)
+              input(id="facebookAppSecret" name="facebookAppSecret" class="form-control" value=(record && record.data.facebookAppSecret != null ? record.data.facebookAppSecret : ''))
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="facebookCallbackUrl") Callback URL
-              input(id="facebookCallbackUrl" name="facebookCallbackUrl" class="form-control" value=`${record ? record.data.facebookCallbackUrl : ''}`)
+              input(id="facebookCallbackUrl" name="facebookCallbackUrl" class="form-control" value=(record && record.data.facebookCallbackUrl != null ? record.data.facebookCallbackUrl : ''))
         button.btn.btn-primary(type="submit") Update

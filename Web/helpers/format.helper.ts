@@ -30,7 +30,11 @@ const numberFormatterCache = new Map<string, Intl.NumberFormat>();
 const cachedDateFormatter = (key: string, locale: string, options: Intl.DateTimeFormatOptions) => {
   let formatter = dateFormatterCache.get(key);
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat(locale, options);
+    try {
+      formatter = new Intl.DateTimeFormat(locale, options);
+    } catch {
+      formatter = new Intl.DateTimeFormat("en-US", options);
+    }
     dateFormatterCache.set(key, formatter);
   }
   return formatter;

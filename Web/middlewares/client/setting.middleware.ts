@@ -4,6 +4,7 @@ import path from "path";
 import { getGeneral, getAssetVersion, getApiPayment } from "../../configs/setting.config";
 import { enabledPaymentMethods } from "../../configs/payment-methods.config";
 import { formatPhone } from "../../helpers/format.helper";
+import { getShopLocation } from "../../helpers/location.helper";
 
 const computeAssetBuildId = (): string => {
   let latestMtime = 0;
@@ -39,12 +40,16 @@ export const general = async (_req: Request, res: Response, next: NextFunction) 
   // Contact details shown in the header, footer and pages come from Settings > General; empty fields are hidden.
   const phone = (data?.shopSenderPhone || "").trim();
   const address = (data?.shopSenderAddress || "").trim();
+  // The map pin (Settings > General) wins over the address text for the map link and centers location pickers.
+  const coordinates = getShopLocation(data || {});
+  const mapQuery = coordinates ? `${coordinates.lat},${coordinates.lng}` : encodeURIComponent(address);
   res.locals.storeContact = {
     phone: formatPhone(phone),
     phoneHref: phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : "",
     address,
-    mapUrl: address ? `https://maps.google.com/?q=${encodeURIComponent(address)}` : "",
+    mapUrl: address || coordinates ? `https://maps.google.com/?q=${mapQuery}` : "",
     email: (data?.contactEmail || "").trim(),
+    coordinates,
   };
   next();
 };

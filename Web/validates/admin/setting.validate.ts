@@ -4,6 +4,7 @@ import { PAYMENT_METHOD_IDS } from "../../configs/payment-methods.config";
 import { isValidTimeZone } from "../../helpers/timezone.helper";
 import { SOCIAL_LINKS } from "../../configs/social-links.config";
 import { CONTENT_PAGES } from "../../configs/content-pages.config";
+import { parseCurrencyList } from "../../configs/storefront.config";
 
 const text = (max = 500) => Joi.string().trim().max(max).allow("");
 // A non-negative number; an empty field clears it.
@@ -37,8 +38,8 @@ const schemas: Record<string, Joi.ObjectSchema> = {
     shopSenderPhone: text(30),
     shopSenderAddress: text(300),
     contactEmail: Joi.string().trim().email({ tlds: { allow: false } }).max(254).allow(""),
-    shopLat: Joi.alternatives().try(Joi.number().min(-90).max(90), Joi.string().allow("")),
-    shopLng: Joi.alternatives().try(Joi.number().min(-180).max(180), Joi.string().allow("")),
+    shopLat: Joi.number().min(-90).max(90).allow(""),
+    shopLng: Joi.number().min(-180).max(180).allow(""),
     storeDescription: text(300),
     ...Object.fromEntries(SOCIAL_LINKS.map((link) => [link.key, url()])),
   }),
@@ -68,9 +69,7 @@ const schemas: Record<string, Joi.ObjectSchema> = {
     displayCurrencies: Joi.alternatives()
       .try(Joi.array().items(Joi.string()), Joi.string().allow(""))
       .custom((value, helpers) => {
-        const codes = (Array.isArray(value) ? value : String(value).split(","))
-          .map((code: string) => code.trim().toUpperCase())
-          .filter(Boolean);
+        const codes = parseCurrencyList(value);
         return codes.every(isCurrency) ? [...new Set(codes)] : helpers.error("any.invalid");
       })
       .messages({ "any.invalid": "Display currencies must be ISO codes such as USD, EUR!" }),

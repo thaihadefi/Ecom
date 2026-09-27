@@ -56,9 +56,10 @@ const seedRole = async (): Promise<string> => {
 };
 
 const seedAdmin = async (roleId: string) => {
-  const existing = await AccountAdmin.findOne({ email: SEED_ADMIN_EMAIL, deleted: false });
+  // Any existing admin means the store is set up; adding one with the well-known default password would be a backdoor.
+  const existing = await AccountAdmin.findOne({ deleted: false }).select("_id email");
   if (existing) {
-    log("skipped", `admin "${SEED_ADMIN_EMAIL}" already exists (${existing._id})`);
+    log("skipped", `an admin account already exists (${existing.email})`);
     return;
   }
 

@@ -840,24 +840,33 @@ if(listFormGroupFile.length > 0) {
     const inputFile = formGroupFile.querySelector("[input-file]");
     const previewFile = formGroupFile.querySelector("[preview-file]");
     const selectButton = formGroupFile.querySelector("[data-bs-target='#modalFileManager']");
+    const previewImg = previewFile ? previewFile.querySelector("img") : null;
 
-    inputFile.addEventListener("input", () => {
-      const value = inputFile.value;
-      previewFile.querySelector("img").src = `${domainCDN}${value}`;
-    })
+    const updatePreview = () => {
+      if (!previewFile || !previewImg) return;
+      const val = inputFile ? inputFile.value.trim() : "";
+      if (val) {
+        previewImg.src = val.startsWith("http") ? val : `${domainCDN}${val}`;
+        previewFile.classList.remove("d-none");
+      } else {
+        previewImg.removeAttribute("src");
+        previewFile.classList.add("d-none");
+      }
+    };
+
+    if (inputFile) {
+      inputFile.addEventListener("input", updatePreview);
+    }
 
     if(selectButton) {
       selectButton.addEventListener("click", () => {
         activeInputFile = inputFile;
         activeMultiFileList = null;
-      })
+      });
     }
 
-    if(inputFile.value) {
-      const value = inputFile.value;
-      previewFile.querySelector("img").src = `${domainCDN}${value}`;
-    }
-  })
+    updatePreview();
+  });
 }
 
 const listFormMultiFile = document.querySelectorAll(".form-multi-file");
@@ -2318,6 +2327,20 @@ document.querySelectorAll("form[data-setting-endpoint]").forEach((form) => {
       .catch(() => notyf.error("Update failed!"));
   });
 });
+
+// Interactive Map & Store Location Picker for General Settings
+if (document.querySelector("#boxMap") && typeof initLocationPicker === "function") {
+  initLocationPicker({
+    mapTarget: "#boxMap",
+    searchInput: "#mapSearchInput",
+    searchBtn: "#mapSearchBtn",
+    suggestionsBox: "#addressSuggestions",
+    addressInput: "#shopSenderAddress",
+    latInput: "#shopLat",
+    lngInput: "#shopLng",
+    clearButton: "#mapClearPin"
+  });
+}
 
 const settingApiLoginSocialForm = document.querySelector("#settingApiLoginSocialForm");
 if(settingApiLoginSocialForm) {

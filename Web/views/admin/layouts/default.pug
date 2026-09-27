@@ -10,6 +10,7 @@ html(
       const pathAdmin = "#{pathAdmin}";
       const domainCDN = "#{domainCDN}";
       window.storeLocale = !{safeJson({ currency: storefront.currency, displayCurrencies: storefront.displayCurrencies, locale: storefront.locale, timezone: storefront.timezone, digits: currencyDigits })};
+      window.storeLocation = !{safeJson(storeContact ? storeContact.coordinates : null)};
     meta(charset="utf-8")
     title #{pageTitle}
     meta(
@@ -90,6 +91,7 @@ html(
     block script
     script(src="/admin/assets/libs/vanillajs-datepicker/js/datepicker-full.min.js")
     script(src=`/admin/assets/js/app.js?v=${assetVersion || 0}`)
+    script(src=`/common/assets/js/location-picker.js?v=${assetVersion || 0}`)
     script(src=`/admin/assets/js/main.js?v=${assetVersion || 0}`)
     script(src=`/admin/assets/js/uppy.js?v=${assetVersion || 0}` type="module")
     if (FEATURES.CHAT)

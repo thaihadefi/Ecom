@@ -76,7 +76,7 @@ const lockSubmit = (trigger) => {
   trigger.disabled = true;
   trigger.setAttribute("aria-busy", "true");
   trigger.style.pointerEvents = "none";
-  trigger.innerHTML = `<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>${label}`;
+  trigger.innerHTML = `<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>${esc(label)}`;
   return () => {
     trigger.disabled = false;
     trigger.removeAttribute("aria-busy");
@@ -510,14 +510,8 @@ const loadLiveRates = async ({ force = false } = {}) => {
     return Object.keys(currencyConfig.rates).length > 0 || hasCachedRates;
   }
 
-  const symbols = currencyConfig.supported
-    .filter(code => code !== currencyConfig.base)
-    .join(",");
+  // Keyless source; exchangerate.host was dropped because it now requires an access key.
   const endpoints = [
-    {
-      url: `https://api.exchangerate.host/latest?base=${currencyConfig.base}&symbols=${symbols}`,
-      parse: (data) => data?.rates || null
-    },
     {
       url: `https://open.er-api.com/v6/latest/${currencyConfig.base}`,
       parse: (data) => {
@@ -2081,7 +2075,7 @@ if(registerForm) {
       },
       {
         rule: 'customRegexp',
-        value: /^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$/,
+        value: /^(0?)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$/,
         errorMessage: "Invalid phone number format!"
       },
     ])
@@ -2421,7 +2415,7 @@ if(dashboardProfileEditForm) {
     .addField('#phone', [
       {
         rule: 'customRegexp',
-        value: /^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$/,
+        value: /^(0?)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$/,
         errorMessage: "Invalid phone number format!"
       },
     ])
@@ -2483,7 +2477,7 @@ if(dashboardAddressCreateForm) {
       },
       {
         rule: 'customRegexp',
-        value: /^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$/,
+        value: /^(0?)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$/,
         errorMessage: "Invalid phone number format!"
       },
     ])
@@ -2585,139 +2579,20 @@ if(listButtonApi.length > 0) {
 }
 
 const boxMap = document.querySelector("#boxMap");
-let map = null;
-if(boxMap) {
-  const initOpenLayersMap = () => {
-    map = new ol.Map({
-      target: 'boxMap',
-      layers: [
-        new ol.layer.Tile({
-          source: new ol.source.OSM()
-        })
-      ],
-      view: new ol.View({
-        center: ol.proj.fromLonLat([105.8163212, 21.0227384]),
-        zoom: 13
-      })
-    });
-
-    const markerLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
-    map.addLayer(markerLayer);
-
-    const setMarker = (lon, lat) => {
-      markerLayer.getSource().clear();
-      const marker = new ol.Feature({
-        geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
-      });
-
-      marker.setStyle(new ol.style.Style({
-        image: new ol.style.Icon({
-          anchor: [0.5, 1],
-          src: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          scale: 0.5
-        })
-      }));
-
-      markerLayer.getSource().addFeature(marker);
-    };
-
-    const inputLon = document.querySelector(`[name="longitude"]`);
-    const inputLat = document.querySelector(`[name="latitude"]`);
-    if(inputLon && inputLat && inputLon.value && inputLat.value) {
-      const lon = parseFloat(inputLon.value);
-      const lat = parseFloat(inputLat.value);
-      setMarker(lon, lat);
-      map.getView().animate({ center: ol.proj.fromLonLat([lon, lat]), zoom: 15 });
+if (boxMap && typeof initLocationPicker === "function") {
+  initLocationPicker({
+    mapTarget: "#boxMap",
+    searchInput: "#mapSearchInput",
+    searchBtn: "#mapSearchBtn",
+    addressInput: '[name="address"]',
+    latInput: '[name="latitude"]',
+    lngInput: '[name="longitude"]',
+    onLocationSelected: () => {
+      if (typeof drawCart === "function") drawCart();
     }
-
-    map.on('click', (event) => {
-      const coord = ol.proj.toLonLat(event.coordinate);
-      const lon = coord[0];
-      const lat = coord[1];
-      setMarker(lon, lat);
-
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
-        .then(res => res.json())
-        .then(data => {
-          if(data && data.display_name) {
-            const inputAddress = document.querySelector(`[name="address"]`);
-            if (inputAddress) inputAddress.value = data.display_name;
-
-            const inputLonEl = document.querySelector(`[name="longitude"]`);
-            if (inputLonEl) inputLonEl.value = lon;
-
-            const inputLatEl = document.querySelector(`[name="latitude"]`);
-            if (inputLatEl) inputLatEl.value = lat;
-
-            if (typeof drawCart === 'function') drawCart();
-          } else {
-            notyf.error("Address not found!");
-          }
-        })
-        .catch(() => {
-          notyf.error("Address lookup failed!");
-        });
-    });
-
-    const searchInput = document.querySelector("#mapSearchInput");
-    const searchBtn = document.querySelector("#mapSearchBtn");
-    if (searchBtn && searchInput) {
-      searchInput.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter") return;
-        event.preventDefault();
-        searchBtn.click();
-      });
-      searchBtn.addEventListener("click", () => {
-        const keyword = searchInput.value;
-        if(!keyword) {
-          notyf.error("Please enter search address!");
-          return;
-        }
-
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(keyword)}&countrycodes=vn`)
-          .then(res => res.json())
-          .then(data => {
-            if(data && data.length > 0) {
-              const firstResult = data[0];
-              const lon = parseFloat(firstResult.lon);
-              const lat = parseFloat(firstResult.lat);
-              setMarker(lon, lat);
-              map.getView().animate({ center: ol.proj.fromLonLat([lon, lat]), zoom: 15 });
-
-              const inputAddress = document.querySelector(`[name="address"]`);
-              if (inputAddress) inputAddress.value = firstResult.display_name;
-
-              const inputLonEl = document.querySelector(`[name="longitude"]`);
-              if (inputLonEl) inputLonEl.value = lon;
-
-              const inputLatEl = document.querySelector(`[name="latitude"]`);
-              if (inputLatEl) inputLatEl.value = lat;
-            } else {
-              notyf.error("Address not found!");
-            }
-          })
-          .catch(() => {
-            notyf.error("Address lookup failed!");
-          });
-      });
-    }
-  };
-
-  if (typeof ol !== 'undefined') {
-    initOpenLayersMap();
-  } else {
-    if (!document.querySelector('link[href*="ol.min.css"]')) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "https://cdn.jsdelivr.net/npm/openlayers@4.6.5/dist/ol.min.css";
-      document.head.appendChild(link);
-    }
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/openlayers@4.6.5/dist/ol.min.js";
-    script.onload = initOpenLayersMap;
-    document.body.appendChild(script);
-  }
+  });
 }
+
 
 const dashboardAddressEditForm = document.querySelector("#dashboardAddressEditForm");
 if(dashboardAddressEditForm) {
@@ -2747,7 +2622,7 @@ if(dashboardAddressEditForm) {
       },
       {
         rule: 'customRegexp',
-        value: /^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$/,
+        value: /^(0?)(3[2-9]|5[689]|7[06-9]|8[0-689]|9[0-46-9])[0-9]{7}$/,
         errorMessage: "Invalid phone number format!"
       },
     ])

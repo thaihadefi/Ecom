@@ -13,18 +13,18 @@ block main
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="websiteName") Website Name
-              input(id="websiteName" name="websiteName" class="form-control" value=`${record ? record.data.websiteName : ''}`)
+              input(id="websiteName" name="websiteName" class="form-control" value=(record && record.data.websiteName != null ? record.data.websiteName : ''))
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="domainWebsite") Website Domain
-              input(id="domainWebsite" name="domainWebsite" class="form-control" value=`${record ? record.data.domainWebsite : ''}`)
+              input(id="domainWebsite" name="domainWebsite" class="form-control" value=(record && record.data.domainWebsite != null ? record.data.domainWebsite : ''))
           .col-md-6.col-lg-6
             .mb-3
               +form-group-file(
                 "Logo",
                 "logo",
                 "logo",
-                record ? record.data.logo : ''
+                (record && record.data.logo) || ''
               )
           .col-md-6.col-lg-6
             .mb-3
@@ -32,7 +32,7 @@ block main
                 "Favicon",
                 "favicon",
                 "favicon",
-                record ? record.data.favicon : ''
+                (record && record.data.favicon) || ''
               )
           .col-md-12
             .mb-3
@@ -56,26 +56,46 @@ block main
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="shopSenderName") Store Name
-              input(id="shopSenderName" name="shopSenderName" class="form-control" value=`${record ? record.data.shopSenderName : ''}`)
+              input(id="shopSenderName" name="shopSenderName" class="form-control" value=(record && record.data.shopSenderName != null ? record.data.shopSenderName : ''))
           .col-md-6.col-lg-6
             .mb-3
               label.form-label(for="shopSenderPhone") Phone
-              input(id="shopSenderPhone" name="shopSenderPhone" class="form-control" value=`${record ? record.data.shopSenderPhone : ''}`)
+              input(id="shopSenderPhone" name="shopSenderPhone" class="form-control" value=(record && record.data.shopSenderPhone != null ? record.data.shopSenderPhone : ''))
           .col-md-12.col-lg-12
             .mb-3
-              label.form-label(for="shopSenderAddress") Address
-              input(id="shopSenderAddress" name="shopSenderAddress" class="form-control" value=`${record ? record.data.shopSenderAddress : ''}`)
+              label.form-label.fw-semibold(for="mapSearchInput") Store Location on Map
+              .input-group.position-relative.mb-2
+                input.form-control(
+                  type="text"
+                  id="mapSearchInput"
+                  placeholder="Search address or landmark on map..."
+                  autocomplete="off"
+                )
+                button.btn.btn-outline-secondary(type="button" id="mapSearchBtn")
+                  i.fas.fa-search.me-1
+                  | Search
+                div#addressSuggestions.list-group.position-absolute.w-100.shadow.bg-white.d-none(style="z-index: 1050; max-height: 240px; overflow-y: auto; top: 100%; left: 0;")
+              div(id="boxMap" style="height: 320px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; margin-bottom: 8px; background: #f8f9fa;")
+              .d-flex.justify-content-between.align-items-start.gap-2
+                .text-muted.small
+                  i.fas.fa-info-circle.me-1
+                  | Search an address or click the map to pin the store. The pin is the GoShip pickup point, the map link in the footer and contact page, and the starting view of customers' maps; editing the address text keeps it.
+                button.btn.btn-sm.btn-outline-danger.flex-shrink-0(type="button" id="mapClearPin") Remove pin
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label.fw-semibold(for="shopSenderAddress") Address
+              input(
+                id="shopSenderAddress"
+                name="shopSenderAddress"
+                class="form-control"
+                value=(record && record.data.shopSenderAddress != null ? record.data.shopSenderAddress : '')
+                placeholder="Store address..."
+              )
           .col-md-12.col-lg-12
             .mb-3
               label.form-label(for="contactEmail") Contact Email
               input(id="contactEmail" name="contactEmail" type="email" class="form-control" value=`${record && record.data.contactEmail ? record.data.contactEmail : ''}`)
-          .col-md-6.col-lg-6
-            .mb-3
-              label.form-label(for="shopLat") Latitude
-              input(id="shopLat" name="shopLat" type="number" step="any" class="form-control" value=`${record ? record.data.shopLat : ''}`)
-          .col-md-6.col-lg-6
-            .mb-3
-              label.form-label(for="shopLng") Longitude
-              input(id="shopLng" name="shopLng" type="number" step="any" class="form-control" value=`${record ? record.data.shopLng : ''}`)
+          input(id="shopLat" name="shopLat" type="hidden" value=(record && record.data.shopLat != null ? record.data.shopLat : ''))
+          input(id="shopLng" name="shopLng" type="hidden" value=(record && record.data.shopLng != null ? record.data.shopLng : ''))
 
         button.btn.btn-primary(type="submit") Update
