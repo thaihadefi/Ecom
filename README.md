@@ -20,6 +20,7 @@ The baseline also includes live chat between customers and staff (with optional 
 - [Business rules](#business-rules)
 - [Architecture](#architecture)
 - [Payments in development](#payments-in-development)
+- [Search and AI discovery](#search-and-ai-discovery)
 - [API documentation](#api-documentation)
 - [Deployment and security notes](#deployment-and-security-notes)
 - [Development](#development)
@@ -181,7 +182,7 @@ Modules marked *(optional)* can be switched off with a feature flag.
 - Manage products (rich-text editor, variants, shipping weight), categories, attributes (color, dropdown or text), coupons, orders, articles, customers and staff accounts.
 - Moderate reviews, answer contact messages, and reply to or lock customer chats.
 - Role-based permissions, an audit log, and a trash bin to restore deleted records.
-- Dashboards for revenue over time, top-selling products, orders and customer growth in the store time zone; CSV import/export; SEO fields with OpenGraph tags and a sitemap; homepage blocks and page templates; store settings.
+- Dashboards for revenue over time, top-selling products, orders and customer growth in the store time zone; CSV import/export; SEO fields, social cards, structured data, a sitemap and Markdown copies of pages for AI assistants ([Search and AI discovery](#search-and-ai-discovery)); homepage blocks and page templates; store settings.
 - A file manager; renaming or deleting a file updates every record that uses it (products, articles, categories, avatars, reviews, chat messages, homepage blocks and settings).
 
 **AI helpers for staff** *(optional)*
@@ -249,6 +250,17 @@ ngrok http --url=<your-ngrok-domain> 80
 Then set **Settings → General Settings → Website Domain** to the ngrok URL. Payment return pages, the ZaloPay callback, canonical links and the sitemap are all built from this domain. Without the tunnel, ZaloPay orders are never marked as paid, and VNPay orders only when the customer's browser comes back to the store.
 
 Once the site is hosted, register the VNPay IPN (`/order/payment-vnpay-ipn`) and ZaloPay callback (`/order/payment-zalopay-callback`) URLs in the merchant portals.
+
+## Search and AI discovery
+
+Search engines and AI assistants read the store from the same data the pages show; nothing here needs its own content.
+
+- **Indexing:** public pages are `index, follow`. Cart, checkout, account, order, wishlist, compare, search and error pages are `noindex` ([seo.middleware.ts](Web/middlewares/client/seo.middleware.ts)). A product or article is hidden only when its SEO page in the admin unticks "Allow index".
+- **Metadata:** each page's title, description and social card come from its saved SEO fields, then its own text and first image, then Settings > General (store name, description, logo). Set **Website Domain** there: canonical links, the sitemap and social cards use it.
+- **Structured data:** Organization and WebSite on every page, Product (price, stock, rating) and breadcrumbs on product pages, BlogPosting on articles ([structured-data.helper.ts](Web/helpers/structured-data.helper.ts)).
+- **`/robots.txt` and `/sitemap.xml`:** robots.txt blocks only the admin panel and allows every crawler, AI ones included; restricting AI crawlers is a per-store choice made in [home.service.ts](Web/services/client/home.service.ts).
+- **Markdown copies:** add `.md` to a product, article, category, listing or store page URL (the home page is `/index.md`) for a Markdown version; `/llms.txt` lists them and `/llms-full.txt` holds all of them in one file ([markdown.service.ts](Web/services/client/markdown.service.ts)). They send `X-Robots-Tag: noindex` so they never compete with the real pages in search.
+- **Page actions:** product and article pages offer Copy page (as Markdown), View as Markdown, Copy link, Ask ChatGPT, Claude or Perplexity about the page, and share links.
 
 ## API documentation
 

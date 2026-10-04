@@ -92,10 +92,13 @@ $(function () {
 
     new WOW().init();
 
+    // Sliders do not move on their own for visitors who ask for reduced motion.
+    const allowAutoplay = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     $('.banner_slider').slick({
         slidesToShow: 1,
         slidesToScroll: 1,
-        autoplay: true,
+        autoplay: allowAutoplay,
         autoplaySpeed: 5000,
         dots: true,
         arrows: false
@@ -173,7 +176,7 @@ $(function () {
         $('.category_slider').slick({
             slidesToShow: 8,
             slidesToScroll: 1,
-            autoplay: true,
+            autoplay: allowAutoplay,
             autoplaySpeed: 2500,
             dots: false,
             arrows: true,
@@ -232,7 +235,7 @@ $(function () {
         $('.favourite_product_slider').slick({
             slidesToShow: 5,
             slidesToScroll: 1,
-            autoplay: true,
+            autoplay: allowAutoplay,
             autoplaySpeed: 2500,
             dots: false,
             arrows: true,

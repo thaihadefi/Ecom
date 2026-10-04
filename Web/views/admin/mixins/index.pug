@@ -153,6 +153,8 @@ mixin seo-fields(detail)
           each keyword in (detail.seo && detail.seo.keywords || [])
             option(value=keyword selected) #{keyword}
   h5.mb-2 Robots
+  //- Unsaved SEO means indexable, matching the storefront default; only an explicit false unchecks.
+  - const seoRobots = (detail.seo && detail.seo.robots) || {}
   .row
     .col-md-12
       .mb-3
@@ -160,7 +162,7 @@ mixin seo-fields(detail)
           id="seoRobotsIndex"
           type="checkbox"
           name="seoRobotsIndex"
-          checked=detail.seo && detail.seo.robots && detail.seo.robots.index
+          checked=(seoRobots.index !== false)
         )
         label.form-check-label.ms-1(for="seoRobotsIndex")
           | Allow index (If unchecked, item is hidden from Google)
@@ -170,7 +172,7 @@ mixin seo-fields(detail)
           id="seoRobotsFollow"
           type="checkbox"
           name="seoRobotsFollow"
-          checked=detail.seo && detail.seo.robots && detail.seo.robots.follow
+          checked=(seoRobots.follow !== false)
         )
         label.form-check-label.ms-1(for="seoRobotsFollow")
           | Allow follow link (If unchecked, Google will not follow links on page)

@@ -20,11 +20,12 @@ import { validateEnv } from './configs/env.config';
 import { requestLogger } from './middlewares/request-logger.middleware';
 import { secureCookies } from './middlewares/secure-cookie.middleware';
 import { formatDate, formatDateTime, formatPrice, formatNumber, priceHtml } from './helpers/format.helper';
-import { safeHtml, safeJson, safeUrl, safeColor } from './helpers/html-sanitize.helper';
+import { safeHtml, safeJson, safeUrl, safeColor, readableTextOn } from './helpers/html-sanitize.helper';
 import { FEATURES } from './configs/features.config';
 import { paymentMethodLabel, isOnlinePayment } from './configs/payment-methods.config';
 import { SOCIAL_LINKS } from './configs/social-links.config';
 import { loadStorefront, currencyDigits, STOREFRONT_DEFAULTS } from './configs/storefront.config';
+import { absoluteUrl } from './helpers/seo.helper';
 
 validateEnv();
 
@@ -205,6 +206,8 @@ app.locals.safeHtml = safeHtml;
 app.locals.safeJson = safeJson;
 app.locals.safeUrl = safeUrl;
 app.locals.safeColor = safeColor;
+app.locals.readableTextOn = readableTextOn;
+app.locals.absoluteUrl = absoluteUrl;
 app.locals.FEATURES = FEATURES;
 app.locals.STOREFRONT_DEFAULTS = STOREFRONT_DEFAULTS;
 app.locals.SOCIAL_LINKS = SOCIAL_LINKS;
@@ -238,7 +241,7 @@ app.use((req, res) => {
     return;
   }
 
-  res.status(404).render("client/pages/404", { pageTitle: "404 | Page not found" });
+  res.status(404).render("client/pages/404", { pageTitle: "Page not found", noindex: true });
 });
 
 app.use((err: { name?: string; message?: string; status?: number; statusCode?: number }, req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -251,7 +254,7 @@ app.use((err: { name?: string; message?: string; status?: number; statusCode?: n
     const message = status < 500 && err.message ? err.message : 'Internal Server Error';
     res.status(status).json({ code: 'error', message });
   } else {
-    res.status(status).render('client/pages/404', { pageTitle: `${status} | Error` });
+    res.status(status).render('client/pages/404', { pageTitle: `${status} | Error`, noindex: true });
   }
 });
 

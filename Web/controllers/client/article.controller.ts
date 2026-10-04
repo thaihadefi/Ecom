@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import * as articleService from '../../services/client/article.service';
 import { alreadyViewed, claimView } from '../../helpers/view-counter.helper';
 import { sendCaughtError } from '../../helpers/http-response.helper';
+import { plainText } from '../../helpers/seo.helper';
+import { articleJsonLd } from '../../helpers/structured-data.helper';
 
 export const articleByCategory = async (req: Request, res: Response) => {
   try {
@@ -21,7 +23,8 @@ export const articleByCategory = async (req: Request, res: Response) => {
       pageTitle: categoryDetail.name,
       categoryDetail: categoryDetail,
       articleList: articleList,
-      pagination: pagination
+      pagination: pagination,
+      markdownPath: `/article/category/${encodeURIComponent(req.params.slug)}.md`
     });
   } catch (error) {
     console.error("articleByCategory error:", error);
@@ -36,7 +39,8 @@ export const articleList = async (req: Request, res: Response) => {
     res.render("client/pages/article-list", {
       pageTitle: "Articles",
       articleList: articleList,
-      pagination: pagination
+      pagination: pagination,
+      markdownPath: "/article.md"
     });
   } catch (error) {
     console.error("articleList error:", error);
@@ -60,6 +64,12 @@ export const detail = async (req: Request, res: Response) => {
     res.render("client/pages/article-detail", {
       pageTitle: articleDetail.name,
       articleDetail: articleDetail,
+      seo: articleDetail.seo,
+      pageDescription: plainText(articleDetail.description || articleDetail.content),
+      pageImage: articleDetail.avatar,
+      ogType: "article",
+      jsonLd: articleJsonLd(articleDetail, res.locals.siteOrigin, res.locals.canonicalUrl),
+      markdownPath: `/article/detail/${encodeURIComponent(String(articleDetail.slug))}.md`
     });
   } catch (error) {
     console.error("article detail error:", error);

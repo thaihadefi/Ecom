@@ -86,3 +86,21 @@ export const safeColor = (color: unknown): string => {
   const value = color.trim();
   return /^(#[0-9a-fA-F]{3,8}|[a-zA-Z]{3,20}|(rgb|hsl)a?\([\d\s.,%/-]{1,40}\))$/.test(value) ? value : "transparent";
 };
+
+const relativeLuminance = (hex: string): number => {
+  const full = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex.slice(0, 7);
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    const c = parseInt(full.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+// Text color that stays readable on a store-chosen background: near-black on light colors
+// (such as yellow), white on dark ones. Non-hex colors keep white text.
+export const readableTextOn = (color: unknown): string => {
+  const value = safeColor(color);
+  if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value)) return "#FFFFFF";
+  const luminance = relativeLuminance(value);
+  return (1.05 / (luminance + 0.05)) >= ((luminance + 0.05) / 0.05) ? "#FFFFFF" : "#1C1917";
+};

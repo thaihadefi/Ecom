@@ -2261,12 +2261,82 @@ button[disabled] {
     margin-top: 20px;
 }
 
-.shop_details_shate li a {
+/* Page actions: copy, Markdown, AI and share links on product and article pages */
+.page_actions {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+}
+
+.page_actions_label {
+    margin: 0 0 10px;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.page_actions_row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-bottom: 10px;
+}
+
+.page_actions_btn {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
+    gap: 6px;
+    min-height: 44px;
+    padding: 8px 14px;
+    border: 1px solid var(--line-2);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.2;
+    text-decoration: none;
     cursor: pointer;
+    transition: border-color .15s ease, color .15s ease;
+}
+
+.page_actions_btn[hidden] {
+    display: none;
+}
+
+.page_actions_btn:hover {
+    border-color: var(--themeColorOne);
+    color: var(--themeColorOne);
+}
+
+.page_actions_sub {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.page_actions_link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    color: var(--ink);
+    font-size: 14px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.page_actions_link:hover {
+    color: var(--themeColorOne);
+}
+
+.page_actions_btn:focus-visible,
+.page_actions_link:focus-visible {
+    outline: 2px solid var(--themeColorOne);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page_actions_btn {
+        transition: none;
+    }
 }
 
 .details_variant_color li {
@@ -2323,12 +2393,6 @@ button[disabled] {
     clip: rect(0, 0, 0, 0) !important;
     white-space: nowrap !important;
     border: 0 !important;
-}
-
-.shop_details_shate li a:focus-visible {
-    outline: 2px solid var(--themeColorOne);
-    outline-offset: 3px;
-    border-radius: var(--radius-sm);
 }
 
 .btn-close { width: 44px !important; height: 44px !important; padding: 12px !important; background-size: 16px !important; }
@@ -4530,3 +4594,22 @@ header.header_main .topbar_right .gtranslate_wrapper .gt_option a:hover {
 }
 
 
+
+/* Text on the store's theme colors follows their brightness (--onThemeColor* is set per store in the layout),
+   so a light secondary color such as yellow gets dark text. */
+.main_menu_2 .menu_icon li a span:not([mini-cart-quantity]),
+.details_variant_size li:hover,
+.details_variant_size li.active {
+    color: var(--onThemeColorTwo, var(--colorWhite)) !important;
+}
+
+/* Page banners: the tall top padding was meant for a header drawn over the banner; the header sits above it. */
+@media (max-width: 991.98px) {
+    .page_banner_overlay {
+        padding: 44px 0 36px !important;
+    }
+}
+
+/* A long current-page crumb wraps onto its own line; keep it centered under the title. */
+.page_banner_text ul { justify-content: center !important; }
+.page_banner_text ul li { text-align: center; }

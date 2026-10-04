@@ -167,13 +167,6 @@ if(pagination) {
   })
 }
 
-const listButtonShare = document.querySelectorAll("[button-share]");
-if(listButtonShare.length > 0) {
-  listButtonShare.forEach(button => {
-    button.href = button.href + window.location.href;
-  })
-}
-
 const listFilterProductStatus = document.querySelectorAll("[filter-product-status]");
 if(listFilterProductStatus.length > 0) {
   const url = new URL(window.location.href);

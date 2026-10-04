@@ -11,16 +11,16 @@ const renderContentPage = (key: ContentPageKey) => async (req: Request, res: Res
   const saved = (await getCachedSetting<Partial<Record<ContentPageKey, string>>>("pages"))[key];
   const content = safeHtml(saved);
   if (content) {
-    res.render("client/pages/content-page", { pageTitle: page.title, pagePath: req.path, content });
+    res.render("client/pages/content-page", { pageTitle: page.title, pagePath: req.path, content, markdownPath: `${req.path}.md` });
     return;
   }
-  res.render(page.view, { pageTitle: page.title });
+  res.render(page.view, { pageTitle: page.title, markdownPath: `${req.path}.md` });
 };
 
 export const about = renderContentPage("about");
 
 export const contact = (_req: Request, res: Response) => {
-  res.render("client/pages/contact", { pageTitle: "Contact Us" });
+  res.render("client/pages/contact", { pageTitle: "Contact Us", markdownPath: "/contact.md" });
 };
 
 export const privacyPolicy = renderContentPage("privacyPolicy");

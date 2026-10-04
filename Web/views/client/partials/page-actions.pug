@@ -1,0 +1,36 @@
+//- Share and AI actions for a content page (product, article). Needs markdownPath from the controller.
+//- Only the public page URL and its public Markdown leave the page.
+if (markdownPath)
+  -
+    const pageUrl = canonicalUrl
+    const mdUrl = (siteOrigin || "") + markdownPath
+    const aiPrompt = encodeURIComponent(`Read ${mdUrl} so I can ask you questions about it.`)
+    const shareUrl = encodeURIComponent(pageUrl)
+    const shareTitle = encodeURIComponent(pageTitle || "")
+  .page_actions(data-page-actions data-md-path=markdownPath data-page-url=pageUrl data-page-title=pageTitle)
+    p.page_actions_label Save, share or ask AI about this page
+    .page_actions_row
+      button.page_actions_btn(type="button" data-page-action="copy-page")
+        i.far.fa-copy(aria-hidden="true")
+        | Copy page
+      a.page_actions_btn(href=markdownPath target="_blank" rel="noopener")
+        i.fab.fa-markdown(aria-hidden="true")
+        | View as Markdown
+      button.page_actions_btn(type="button" data-page-action="copy-url")
+        i.fas.fa-link(aria-hidden="true")
+        | Copy link
+      button.page_actions_btn(type="button" data-page-action="share" hidden)
+        i.fas.fa-share-alt(aria-hidden="true")
+        | Share
+    .page_actions_row
+      span.page_actions_sub Ask AI:
+      a.page_actions_link(href=`https://chatgpt.com/?hints=search&prompt=${aiPrompt}` target="_blank" rel="noopener noreferrer") ChatGPT
+      a.page_actions_link(href=`https://claude.ai/new?q=${aiPrompt}` target="_blank" rel="noopener noreferrer") Claude
+      a.page_actions_link(href=`https://www.perplexity.ai/search?q=${aiPrompt}` target="_blank" rel="noopener noreferrer") Perplexity
+    .page_actions_row
+      span.page_actions_sub Share on:
+      a.page_actions_link(href=`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}` target="_blank" rel="noopener noreferrer") Facebook
+      a.page_actions_link(href=`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}` target="_blank" rel="noopener noreferrer") LinkedIn
+      a.page_actions_link(href=`https://x.com/intent/post?url=${shareUrl}&text=${shareTitle}` target="_blank" rel="noopener noreferrer") X
+      a.page_actions_link(href=`https://pinterest.com/pin/create/button/?url=${shareUrl}&description=${shareTitle}` target="_blank" rel="noopener noreferrer") Pinterest
+      a.page_actions_link(href=`mailto:?subject=${shareTitle}&body=${shareUrl}`) Email

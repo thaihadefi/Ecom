@@ -3,6 +3,8 @@ import * as productService from '../../services/client/product.service';
 import { PRODUCT_DISPLAY_CONFIG } from '../../configs/product-display.config';
 import { resultStatus, sendCaughtError } from "../../helpers/http-response.helper";
 import { alreadyViewed, claimView } from "../../helpers/view-counter.helper";
+import { plainText } from "../../helpers/seo.helper";
+import { productJsonLd } from "../../helpers/structured-data.helper";
 
 export const productByCategory = async (req: Request, res: Response) => {
   try {
@@ -28,7 +30,8 @@ export const productByCategory = async (req: Request, res: Response) => {
       categoryDetail: categoryDetail,
       productList: productList,
       pagination: pagination,
-      topRatedProducts: topRatedProducts
+      topRatedProducts: topRatedProducts,
+      markdownPath: slug ? `/product/category/${encodeURIComponent(slug)}.md` : "/product.md"
     });
   } catch (error) {
     console.error("productByCategory error:", error);
@@ -96,7 +99,12 @@ export const detail = async (req: Request, res: Response) => {
       boughtTogetherProducts: boughtTogetherProducts,
       viewedProducts: viewedProducts,
       reviewList: reviewList,
-      seo: productDetail.seo
+      seo: productDetail.seo,
+      pageDescription: plainText(productDetail.description || productDetail.content),
+      pageImage: productDetail.images?.[0],
+      ogType: "product",
+      jsonLd: productJsonLd(productDetail, res.locals.siteOrigin, res.locals.canonicalUrl),
+      markdownPath: `/product/detail/${encodeURIComponent(String(productDetail.slug))}.md`
     });
   } catch (error) {
     console.error("product detail error:", error);
