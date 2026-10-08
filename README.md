@@ -51,7 +51,7 @@ Fill in at least these values (the app refuses to start without the first three,
 | `Web/.env` and `FileManager/.env` | `FILE_MANAGER_SECRET` | Shared secret between Web and FileManager; must be the same in both files |
 | `Web/.env` | `GROQ_API_KEY` | Optional; enables the AI helpers staff use in the admin chat |
 
-Search uses the Atlas Search index named by `ATLAS_SEARCH_INDEX` when it exists, and a regex match otherwise.
+Search uses the Atlas Search index named by `ATLAS_SEARCH_INDEX` when it exists, and a regex match otherwise. Create or update that index on `products` and `blogs` with `cd Web && yarn db:search-index` (definitions in [search-index.config.ts](Web/configs/search-index.config.ts)); it adds typo tolerance, search-as-you-type, accent-insensitive matching and relevance ranking. Storefront searches are counted anonymously in `search-queries` to offer popular searches; a term appears there only after several visitors searched it and it found products.
 
 Optional modules are switched with feature flags; see [Feature flags](#feature-flags).
 
@@ -283,7 +283,7 @@ Search engines and AI assistants read the store from the same data the pages sho
 
 Each service defines its scripts in its own `package.json`; run them with `yarn <script>` inside `Web` or `FileManager`. Before pushing:
 
-- `yarn typecheck`, `yarn lint:any` (no `any` types) and `yarn build`.
+- `yarn typecheck`, `yarn lint:any` (no `any` types) and `yarn build`. [CI](.github/workflows/ci.yml) runs these and builds each service's Docker image on every push and pull request to `main`.
 - When a route, method or payload changes, update the [API spec](#api-documentation) and run `yarn verify` in its repository; it compares the spec with this code.
 - When a setting gains a field, give it a default in [seed.ts](Web/seed.ts) so `yarn db:seed` fills it on existing stores.
 

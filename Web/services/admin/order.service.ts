@@ -5,7 +5,7 @@ import AccountUser from '../../models/account-user.model';
 import { pointsEarnedFor } from '../../helpers/point.helper';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
+import { buildKeywordFilter } from '../../helpers/list-query.helper';
 import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
 import { releaseOrderResources, notifyOrderStatusChange } from "../../helpers/order.helper";
 import { invalidateUserAuthCache } from "../client/auth.service";
@@ -18,15 +18,7 @@ export const getOrderList = async (rawKeyword?: unknown, rawPage?: unknown) => {
     deleted: false
   };
 
-  if (rawKeyword) {
-    const keyword = `${rawKeyword}`.trim();
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.$or = [
-      { code: keywordRegex },
-      { fullName: keywordRegex },
-      { phone: keywordRegex }
-    ];
-  }
+  Object.assign(find, buildKeywordFilter(rawKeyword, ["code", "fullName", "phone"]));
 
   const limitItems = PAGINATION.ADMIN_LIMIT;
   const totalRecord = await Order.countDocuments(find);

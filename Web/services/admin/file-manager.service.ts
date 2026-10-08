@@ -4,6 +4,7 @@ import FormData from "form-data";
 import Media from '../../models/media.model';
 import { domainCDN } from '../../configs/variable.config';
 import { escapeRegex } from '../../helpers/generate.helper';
+import { buildKeywordFilter } from '../../helpers/list-query.helper';
 import { formatFileSize } from '../../helpers/format.helper';
 import { getPagination } from '../../helpers/pagination.helper';
 import { propagateMediaRename, propagateMediaDelete } from '../../helpers/media-propagate.helper';
@@ -51,11 +52,7 @@ export const getFilesAndFolders = async (folderPath: string, rawKeyword?: unknow
   try {
     const find: Record<string, unknown> = { folder: normalizedFolder };
 
-    if (rawKeyword) {
-      const keyword = `${rawKeyword}`.trim();
-      const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-      find.filename = keywordRegex;
-    }
+    Object.assign(find, buildKeywordFilter(rawKeyword, ["filename"]));
 
     const totalRecord = await Media.countDocuments(find);
     const pag = getPagination(rawPage, limit, totalRecord);

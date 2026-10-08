@@ -2,20 +2,13 @@ import AdminLog from '../../models/admin-log.model';
 import AccountAdmin from '../../models/account-admin.model';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
+import { buildKeywordFilter } from '../../helpers/list-query.helper';
 import { IAccountAdmin } from '../../interfaces/models/account-admin.interface';
 
 export const getAdminLogList = async (rawKeyword?: unknown, rawPage?: unknown) => {
   const find: Record<string, unknown> = {};
 
-  if (rawKeyword) {
-    const keyword = `${rawKeyword}`.trim();
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.$or = [
-      { title: keywordRegex },
-      { route: keywordRegex }
-    ];
-  }
+  Object.assign(find, buildKeywordFilter(rawKeyword, ["title", "route"]));
 
   const limitItems = PAGINATION.ADMIN_LIMIT;
   const totalRecord = await AdminLog.countDocuments(find);

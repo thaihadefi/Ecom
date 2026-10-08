@@ -21,7 +21,7 @@ const removeUserMedia = (userIds: string[]): void => {
 };
 
 export const getUserAccountList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  const { recordList, pagination } = await paginatedSearch(AccountUser, rawKeyword, rawPage, { select: "-password -search" });
+  const { recordList, pagination } = await paginatedSearch(AccountUser, rawKeyword, rawPage, { select: "-password -search", fields: ["search", "phone"] });
 
   return {
     recordList,

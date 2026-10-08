@@ -15,7 +15,7 @@ import { buildSeoPayload } from "../../helpers/seo.helper";
 import { invalidateProductCaches } from "../../helpers/metadata-cache.helper";
 
 export const getProductList = async (rawKeyword?: unknown, rawPage?: unknown) => {
-  const { recordList, pagination } = await paginatedSearch(Product, rawKeyword, rawPage, { select: "_id name slug images priceNew priceOld position stock view status", sort: { position: "desc" } });
+  const { recordList, pagination } = await paginatedSearch(Product, rawKeyword, rawPage, { select: "_id name slug images priceNew priceOld position stock view status", sort: { position: "desc" }, fields: ["search", "sku", "variants.sku"] });
 
   return {
     recordList,

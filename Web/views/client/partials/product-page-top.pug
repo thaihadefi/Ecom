@@ -29,6 +29,8 @@ div(class="product_page_top")
       ul(class="product_page_sorting")
         li(select-js="sort")
           select.select_js(aria-label="Sort products")
+            if keyword
+              option(value="relevance") Relevance
             option(value="position-desc") Default
             option(value="price-asc") Price: Low to High
             option(value="price-desc") Price: High to Low

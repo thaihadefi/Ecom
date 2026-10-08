@@ -4,7 +4,7 @@ import Role from '../../models/role.model';
 import AccountAdmin from '../../models/account-admin.model';
 import { IAccountAdmin, IAccountAdminInput } from '../../interfaces/models/account-admin.interface';
 import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
+import { buildKeywordFilter } from '../../helpers/list-query.helper';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
 import { restoreMany, getTrash } from "../../helpers/admin-crud.helper";
@@ -87,11 +87,7 @@ export const getAdminAccountList = async (rawKeyword?: unknown, rawPage?: unknow
     deleted: false
   };
 
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
+  Object.assign(find, buildKeywordFilter(rawKeyword, ["search", "email"]));
 
   const limitItems = PAGINATION.ADMIN_LIMIT;
   const totalRecord = await AccountAdmin.countDocuments(find);

@@ -2,7 +2,7 @@ import ContactInquiry from '../../models/contact-inquiry.model';
 import { IContactInquiry, IContactInquiryInput } from '../../interfaces/models/contact-inquiry.interface';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
+import { buildKeywordFilter } from '../../helpers/list-query.helper';
 import { softDeleteMany, restoreMany, permanentlyDeleteMany, getTrash } from "../../helpers/admin-crud.helper";
 
 export const getContactInquiryList = async (rawKeyword?: unknown, rawPage?: unknown) => {
@@ -10,15 +10,7 @@ export const getContactInquiryList = async (rawKeyword?: unknown, rawPage?: unkn
     deleted: { $ne: true }
   };
 
-  if (rawKeyword) {
-    const keyword = `${rawKeyword}`.trim();
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.$or = [
-      { name: keywordRegex },
-      { email: keywordRegex },
-      { subject: keywordRegex }
-    ];
-  }
+  Object.assign(find, buildKeywordFilter(rawKeyword, ["name", "email", "subject"]));
 
   const limitItems = PAGINATION.ADMIN_LIMIT;
   const totalRecord = await ContactInquiry.countDocuments(find);

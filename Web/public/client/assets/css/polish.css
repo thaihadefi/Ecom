@@ -2791,6 +2791,24 @@ header.header_main form .inner-suggest {
     max-height: 420px !important; overflow-y: auto !important; z-index: 1050 !important;
 }
 header.header_main form .inner-suggest:empty { display: none !important; }
+header.header_main form .input button.inner-voice {
+    background: transparent !important; color: var(--muted) !important; width: auto !important;
+    align-self: center !important; padding: 4px !important;
+}
+header.header_main form .input button.inner-voice.recording { color: #ef4444 !important; }
+header.header_main form input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
+.header_main form .inner-suggest .inner-item.is-active,
+.header_main form .inner-suggest .inner-item:focus-visible { background-color: #f3f3f3; outline: none; }
+.header_main form .inner-suggest .inner-name mark { background: none; color: inherit; font-weight: 800; padding: 0; }
+.header_main form .inner-suggest .inner-stock-out { color: #777; font-size: 12px; font-weight: 500; }
+.header_main form .inner-suggest .inner-item-text { min-height: 40px; font-size: 14px; color: #1d1d20; }
+.header_main form .inner-suggest .inner-item-text i { width: 16px; color: #777; }
+.header_main form .inner-suggest .inner-item-all { border-top: 1px solid #eee; font-weight: 600; }
+.header_main form .inner-suggest .inner-title { display: flex; justify-content: space-between; align-items: center; }
+.header_main form .inner-suggest .inner-clear-recent {
+    background: none !important; border: 0 !important; color: #777 !important; font-size: 12px; font-weight: 500;
+    width: auto !important; height: auto !important; padding: 0 !important; position: static !important;
+}
 .menu_icon li a b {
     background: transparent !important; border: none !important; border-radius: 0 !important;
     box-shadow: none !important; width: 38px !important; height: 38px !important;

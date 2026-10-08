@@ -248,6 +248,7 @@ if (formChat) {
   };
 
   const appendMessage = (item, isPrepend = false) => {
+    if (document.getElementById(item._id)) return;
     const wrap = document.createElement("div");
     wrap.classList.add("d-flex");
     if (item.senderRole === "admin") wrap.classList.add("flex-row-reverse");
@@ -321,6 +322,8 @@ if (formChat) {
   });
 
   inputContent.addEventListener("keydown", (e) => {
+    // Enter that commits an IME word (e.g. Vietnamese Telex) is followed by a real Enter; sending on both duplicates the message.
+    if (e.isComposing || e.keyCode === 229) return;
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); buttonSend.click(); }
   });
 

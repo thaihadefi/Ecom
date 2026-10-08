@@ -65,7 +65,7 @@ router.use('/checkout', checkoutRoutes);
 
 router.use('/order', orderRoutes);
 
-router.use('/search', searchRoutes);
+router.use('/search', priceFilterMiddleware.priceFilterCeiling, searchRoutes);
 router.use('/', pageRoutes);
 
 export default router;

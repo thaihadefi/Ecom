@@ -4,7 +4,7 @@ import AccountUser from '../../models/account-user.model';
 import Product from '../../models/product.model';
 import { PAGINATION } from '../../configs/pagination.config';
 import { getPagination } from '../../helpers/pagination.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
+import { buildKeywordFilter } from '../../helpers/list-query.helper';
 import { invalidateProductCaches } from '../../helpers/metadata-cache.helper';
 import { invalidateUserDashboardCache } from '../client/dashboard.service';
 
@@ -21,11 +21,7 @@ export const getReviewList = async (
     find.status = "rejected";
   }
 
-  if (rawKeyword) {
-    const keyword = `${rawKeyword}`.trim();
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.comment = keywordRegex;
-  }
+  Object.assign(find, buildKeywordFilter(rawKeyword, ["comment"]));
 
   const limitItems = PAGINATION.ADMIN_LIMIT;
   const totalRecord = await Review.countDocuments(find);

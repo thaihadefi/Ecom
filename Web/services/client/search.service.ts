@@ -1,101 +1,63 @@
-import Product from '../../models/product.model';
 import Blog from '../../models/blog.model';
 import { FEATURES } from '../../configs/features.config';
 import { findIdsByKeyword } from '../../helpers/atlas-search.helper';
-import { formatProductItem } from '../../helpers/product.helper';
-import { PAGINATION } from '../../configs/pagination.config';
-import { metadataCache } from '../../helpers/metadata-cache.helper';
+import { getPagination } from '../../helpers/pagination.helper';
 import { populateAuthors } from './article.service';
+import { getProductsByCategory, ProductFilterQuery, sortByIdOrder } from './product.service';
 import { IProduct } from '../../interfaces/models/product.interface';
 import { IBlog } from '../../interfaces/models/blog.interface';
+
+const ARTICLE_RESULT_LIMIT = 5;
 
 export interface SearchServiceResult {
   keyword: string;
   productList: IProduct[];
   articleList: IBlog[];
-  pagination: {
-    totalPage: number;
-    currentPage: number;
-    totalRecord: number;
-    skip: number;
-  };
+  topRatedProducts: IProduct[];
+  pagination: ReturnType<typeof getPagination>;
 }
 
-export const searchProductsAndArticles = async (keyword: string, rawPage: unknown): Promise<SearchServiceResult> => {
-  const trimmed = `${keyword || ""}`.trim();
-  if (!trimmed) {
+const searchArticles = async (keyword: string): Promise<IBlog[]> => {
+  if (!FEATURES.BLOG) return [];
+  const rankedIds = await findIdsByKeyword({ model: Blog, keyword, atlasPaths: ["name", "description", "content"], limit: 200 })
+    .catch(() => [] as string[]);
+  const visible = await Blog.find({ _id: { $in: rankedIds }, deleted: false, status: "published" }).select("_id");
+  const visibleIds = new Set(visible.map((doc) => String(doc._id)));
+  const pageIds = rankedIds.filter((id) => visibleIds.has(id)).slice(0, ARTICLE_RESULT_LIMIT);
+
+  const articleList = sortByIdOrder(
+    await Blog.find({ _id: { $in: pageIds } }).select("name avatar slug createdBy updatedBy createdAt updatedAt"),
+    pageIds
+  );
+  await populateAuthors(articleList);
+  return articleList;
+};
+
+// Products come from the shop listing with the keyword applied, so the results page gets the same
+// filters, sorts and paging as a category page, ordered by relevance by default.
+export const searchProductsAndArticles = async (rawKeyword: unknown, query: ProductFilterQuery): Promise<SearchServiceResult> => {
+  const keyword = `${rawKeyword || ""}`.trim().slice(0, 100);
+  if (!keyword) {
     return {
       keyword: "",
       productList: [],
       articleList: [],
-      pagination: { totalPage: 0, currentPage: 1, totalRecord: 0, skip: 0 }
+      topRatedProducts: [],
+      pagination: getPagination(1, 1, 0)
     };
   }
 
-  const limitItems = PAGINATION.CLIENT_LIMIT;
-  let page = 1;
-  if (rawPage) {
-    const currentPage = parseInt(`${rawPage}`);
-    if (currentPage > 0) page = currentPage;
-  }
-  const skip = (page - 1) * limitItems;
-
-  const searchCacheKey = `search:${trimmed.toLowerCase()}:p${page}`;
-  const cached = metadataCache.get<SearchServiceResult>(searchCacheKey);
-  if (cached) return cached;
-
-  const [productIds, articleIds] = await Promise.all([
-    findIdsByKeyword({ model: Product, keyword: trimmed, atlasPaths: ["name", "description"], limit: 2000 }).catch(() => [] as string[]),
-    FEATURES.BLOG
-      ? findIdsByKeyword({ model: Blog, keyword: trimmed, atlasPaths: ["name", "description", "content"], limit: 2000 }).catch(() => [] as string[])
-      : Promise.resolve([] as string[]),
+  const [products, articleList] = await Promise.all([
+    getProductsByCategory(undefined, { ...query, keyword }),
+    // Articles are a side panel on the first page only, like a marketplace's content strip.
+    query.page && `${query.page}` !== "1" ? Promise.resolve([] as IBlog[]) : searchArticles(keyword),
   ]);
 
-  const productFind: Record<string, unknown> = {
-    deleted: false,
-    status: "active",
-    _id: { $in: productIds }
-  };
-
-  const articleFind: Record<string, unknown> = {
-    deleted: false,
-    status: "published",
-    _id: { $in: articleIds }
-  };
-
-  const [totalProductRecord, productList, articleList] = await Promise.all([
-    Product.countDocuments(productFind),
-    Product.find(productFind)
-      .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
-      .limit(limitItems)
-      .skip(skip)
-      .sort({ createdAt: "desc" }),
-    Blog.find(articleFind)
-      .select("name avatar slug createdBy updatedBy createdAt updatedAt")
-      .limit(5)
-      .sort({ createdAt: "desc" }),
-  ]);
-
-  const totalPage = Math.ceil(totalProductRecord / limitItems);
-
-  for (const item of productList) {
-    formatProductItem(item);
-  }
-  await populateAuthors(articleList);
-
-  const result = {
-    keyword: trimmed,
-    productList,
+  return {
+    keyword,
+    productList: products?.productList ?? [],
     articleList,
-    pagination: {
-      totalPage,
-      currentPage: page,
-      totalRecord: totalProductRecord,
-      skip
-    }
+    topRatedProducts: products?.topRatedProducts ?? [],
+    pagination: products?.pagination ?? getPagination(1, 1, 0)
   };
-
-  metadataCache.set(searchCacheKey, result, 60);
-
-  return result;
 };

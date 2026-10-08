@@ -45,11 +45,16 @@ div(class="mobile_menu_area")
             a(href="/dashboard" aria-label="My account")
               b
                 i.fas.fa-user(aria-hidden="true")
-      form(class="mobile_menu_search")
+      form(class="mobile_menu_search" action="/search" method="get" role="search")
         input(
           placeholder="Search"
-          type="text"
+          type="search"
+          name="keyword"
+          maxlength="100"
+          autocomplete="off"
+          enterkeyhint="search"
           aria-label="Search products"
+          required
           )
         button(type="submit" aria-label="Search")
           i.fas.fa-search(aria-hidden="true")

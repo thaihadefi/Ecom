@@ -26,9 +26,10 @@ export const getChatRoomList = async (adminId: string) => {
   const userMap = Object.fromEntries(users.map(u => [u._id.toString(), u]));
   const lastMessageMap = Object.fromEntries(lastMessages.map(l => [l._id, l.doc]));
 
-  const result = chatRoomList.map(item => {
+  // A room whose customer account no longer exists has nobody to talk to, so it is left out of the list.
+  const result = chatRoomList.filter(item => item.userId && userMap[item.userId]).map(item => {
     const rid = item._id.toString();
-    const user = item.userId ? userMap[item.userId] : undefined;
+    const user = userMap[item.userId as string];
     const last = lastMessageMap[rid];
     return {
       ...item.toObject(),

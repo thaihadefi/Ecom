@@ -12,6 +12,7 @@ import { orderApi } from "./order.route";
 import { contactInquiryApi } from "./page.route";
 import { productApi, productCategoryApi, productSuggestionApi, reviewReportApi } from "./product.route";
 import { articleApi, articleCategoryApi } from "./article.route";
+import { popularSearchApi } from "./search.route";
 
 const router = Router();
 
@@ -37,6 +38,7 @@ router.use('/reviews/:id/reports', requireFeature("REVIEWS"), reviewReportApi);
 router.use('/reviews', requireFeature("REVIEWS"), authMiddleware.loggedIn, reviewApi);
 
 router.use('/product-suggestions', productSuggestionApi);
+router.use('/popular-searches', popularSearchApi);
 router.use('/products', productApi);
 router.use('/product-categories', productCategoryApi);
 router.use('/articles', requireFeature("BLOG"), articleApi);

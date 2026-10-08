@@ -1,5 +1,5 @@
 import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
+import { buildKeywordFilter } from '../../helpers/list-query.helper';
 import CategoryBlog from '../../models/category-blog.model';
 import Blog from '../../models/blog.model';
 import { IBlog, IArticleInput } from '../../interfaces/models/blog.interface';
@@ -20,11 +20,7 @@ export const getCategoryBlogList = async (rawKeyword?: unknown, rawPage?: unknow
     deleted: false
   };
 
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
+  Object.assign(find, buildKeywordFilter(rawKeyword, ["search"]));
 
   const limitItems = PAGINATION.ADMIN_LIMIT;
   const totalRecord = await CategoryBlog.countDocuments(find);
@@ -182,11 +178,7 @@ export const getArticleList = async (rawKeyword?: unknown, rawPage?: unknown) =>
     deleted: false
   };
 
-  if (rawKeyword) {
-    const keyword = toSearchText(`${rawKeyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
+  Object.assign(find, buildKeywordFilter(rawKeyword, ["search"]));
 
   const limitItems = PAGINATION.ADMIN_LIMIT;
   const totalRecord = await Blog.countDocuments(find);

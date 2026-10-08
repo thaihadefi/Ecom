@@ -1,5 +1,4 @@
-import { toSearchText } from '../../helpers/slugify.helper';
-import { escapeRegex } from '../../helpers/generate.helper';
+import { findIdsByKeyword } from '../../helpers/atlas-search.helper';
 import CategoryProduct from '../../models/category-product.model';
 import Product from '../../models/product.model';
 import Review from '../../models/review.model';
@@ -31,6 +30,25 @@ export interface ProductFilterQuery {
   sort?: unknown;
   [key: string]: unknown;
 }
+
+export const searchProductIds = (keyword: string, limit = 2000) =>
+  findIdsByKeyword({ model: Product, keyword, atlasPaths: ["name", "description"], limit }).catch(() => [] as string[]);
+
+// Keeps the search engine's best-match-first order for the records that passed the other filters,
+// with sold-out products moved after the ones that can be bought.
+const orderByRelevance = (rankedIds: string[], visible: Array<{ _id: unknown; stock?: number | null }>): string[] => {
+  const stockById = new Map(visible.map((doc) => [String(doc._id), doc.stock ?? 0]));
+  const ranked = rankedIds.filter((id) => stockById.has(id));
+  return [
+    ...ranked.filter((id) => (stockById.get(id) ?? 0) > 0),
+    ...ranked.filter((id) => (stockById.get(id) ?? 0) <= 0)
+  ];
+};
+
+export const sortByIdOrder = <T extends { _id: unknown }>(list: T[], ids: string[]): T[] => {
+  const position = new Map(ids.map((id, index) => [id, index]));
+  return [...list].sort((a, b) => (position.get(String(a._id)) ?? 0) - (position.get(String(b._id)) ?? 0));
+};
 
 export const getProductsByCategory = async (
   slug?: string,
@@ -93,18 +111,22 @@ export const getProductsByCategory = async (
     find.category = categoryId;
   }
 
-  if (query.keyword) {
-    const keyword = toSearchText(`${query.keyword}`);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
+  const keyword = `${query.keyword || ""}`.trim().slice(0, 100);
+  const rankedIds = keyword ? await searchProductIds(keyword) : [];
+  if (keyword) {
+    find._id = { $in: rankedIds };
   }
+  // A keyword search is ordered best match first unless the shopper picks another sort.
+  const sortByRelevance = Boolean(keyword) && (!query.sort || query.sort === "relevance");
 
   if (query.price) {
     const [priceMin, priceMax] = `${query.price}`.split("-").map(item => parseFloat(item));
-    find.priceNew = {
-      $gte: priceMin,
-      $lte: priceMax
-    };
+    if (Number.isFinite(priceMin) && Number.isFinite(priceMax)) {
+      find.priceNew = {
+        $gte: priceMin,
+        $lte: priceMax
+      };
+    }
   }
 
   if (query.onSale && query.onSale === "true") {
@@ -168,7 +190,10 @@ export const getProductsByCategory = async (
     if (currentLimitItems > 0) limitItems = Math.min(currentLimitItems, MAX_LIMIT_ITEMS);
   }
 
-  const totalRecord = await Product.countDocuments(find);
+  const relevanceOrder = sortByRelevance
+    ? orderByRelevance(rankedIds, await Product.find(find).select("_id stock"))
+    : [];
+  const totalRecord = sortByRelevance ? relevanceOrder.length : await Product.countDocuments(find);
   const pagination = getPagination(query.page, limitItems, totalRecord);
 
   const sort: Record<string, 1 | -1 | "asc" | "desc"> = {};
@@ -210,11 +235,16 @@ export const getProductsByCategory = async (
   const topRatedCacheKey = `product:top_rated:${categoryId || 'all'}`;
   let topRatedProducts = metadataCache.get<IProduct[]>(topRatedCacheKey);
 
-  const productListPromise = Product.find(find)
-    .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
-    .limit(limitItems)
-    .skip(pagination.skip)
-    .sort(sort);
+  const pageIds = relevanceOrder.slice(pagination.skip, pagination.skip + limitItems);
+  const productListPromise = sortByRelevance
+    ? Product.find({ _id: { $in: pageIds } })
+      .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
+      .then((list) => sortByIdOrder(list, pageIds))
+    : Product.find(find)
+      .select("_id name slug images priceNew priceOld discount variants ratingAvg ratingCount")
+      .limit(limitItems)
+      .skip(pagination.skip)
+      .sort(sort);
 
   if (!topRatedProducts) {
     let topRated = await Product.find(categoryTopRatedFind)
@@ -257,33 +287,25 @@ export const getProductsByCategory = async (
 
 export const getProductSuggestions = async (rawKeyword?: unknown) => {
   const keywordStr = `${rawKeyword || ""}`.trim().slice(0, 100);
-  const cacheKey = `suggestions:${keywordStr}`;
+  if (!keywordStr) return [];
+  const cacheKey = `suggestions:${keywordStr.toLowerCase()}`;
   const cached = metadataCache.get<IProduct[]>(cacheKey);
   if (cached) return cached;
 
-  const find: {
-    status: "active";
-    deleted: boolean;
-    priceNew: { $gt: number };
-    stock: { $gt: number };
-    search?: RegExp;
-  } = {
+  // Same engine and order as the results page, so the dropdown previews exactly what Enter will show.
+  const rankedIds = await searchProductIds(keywordStr, 200);
+  const visible = await Product.find({
+    _id: { $in: rankedIds },
     deleted: false,
     status: "active",
-    priceNew: { $gt: 0 },
-    stock: { $gt: 0 }
-  };
+    priceNew: { $gt: 0 }
+  }).select("_id stock");
+  const topIds = orderByRelevance(rankedIds, visible).slice(0, PRODUCT_DISPLAY_CONFIG.SEARCH_SUGGESTION_LIMIT);
 
-  if (keywordStr) {
-    const keyword = toSearchText(keywordStr);
-    const keywordRegex = new RegExp(escapeRegex(keyword), "i");
-    find.search = keywordRegex;
-  }
-
-  const results = await Product.find(find)
-    .limit(PRODUCT_DISPLAY_CONFIG.SEARCH_SUGGESTION_LIMIT)
-    .sort({ position: "desc" })
-    .select("images name slug priceNew priceOld discount");
+  const results = sortByIdOrder(
+    await Product.find({ _id: { $in: topIds } }).select("images name slug priceNew priceOld discount stock"),
+    topIds
+  );
 
   metadataCache.set(cacheKey, results, 60);
   return results;

@@ -2,41 +2,62 @@ extends ../layouts/default.pug
 include ../mixins/index.pug
 
 block main
-  section(class="search_results mt_100 mb_100")
+  section(class="search_results shop_page mt_100 mb_100")
     .container
-      .row
-        .col-12
-          h1.mb-4
-            | Search results for:
-            strong.ms-2 "#{keyword}"
-
-      if (productList.length > 0)
-        .row.mb-5
-          .col-12
-            h2.mb-3 Products (#{pagination.totalRecord})
-          each item in productList
-            .col-xxl-3.col-6.col-md-4.col-lg-3.wow.fadeInUp
-              +product-item(item)
-          .col-12
-            include ../partials/pagination-area.pug
-
-      else if (keyword)
-        .row.mb-5
-          .col-12
-            p.text-muted No products found.
-
-      if (articleList.length > 0)
+      if !keyword
+        .row
+          .col-12.text-center.py-5
+            i.fas.fa-search.fa-3x.text-muted.mb-3(aria-hidden="true")
+            h1.h3.mb-2 What are you looking for?
+            p.text-muted Type a product name, style or color in the search box above.
+            a.common_btn.mt-3(href="/product") Browse all products
+      else
         .row
           .col-12
-            h2.mb-3 Articles
-          each item in articleList
-            .col-lg-4.col-md-6.wow.fadeInUp
-              +blog-item(item)
-
-      if (productList.length === 0 && articleList.length === 0)
+            h1.mb-4
+              | Search results for:
+              strong.ms-2 "#{keyword}"
         .row
-          .col-12
-            .text-center.py-5
-              i.fas.fa-search.fa-3x.text-muted.mb-3(aria-hidden="true")
-              p.text-muted No results found for "#{keyword}"
-              a.common_btn.mt-3(href="/") Back to Home
+          .col-xxl-3.col-lg-4.col-xl-3
+            include ../partials/sticky-sidebar-shop.pug
+          .col-xxl-9.col-lg-8.col-xl-9
+            if productList.length > 0
+              include ../partials/product-page-top.pug
+              #nav-tabContent.tab-content
+                #nav-home.tab-pane.fade.show.active(
+                  tabindex="0"
+                  aria-labelledby="nav-home-tab"
+                  role="tabpanel"
+                  )
+                  .row
+                    each item in productList
+                      .col-6.col-md-4.col-lg-4.col-xl-4.col-xxl-4.wow.fadeInUp
+                        +product-item(item)
+                #nav-profile.tab-pane.fade(
+                  tabindex="0"
+                  aria-labelledby="nav-profile-tab"
+                  role="tabpanel"
+                  )
+                  .row
+                    each item in productList
+                      .col-12
+                        +product-list-item(item)
+              include ../partials/pagination-area.pug
+            else if hasFilters
+              .text-center.py-5
+                p.mb-2 No products match "#{keyword}" with the filters you picked.
+                a.common_btn.mt-3(href=`/search?keyword=${encodeURIComponent(keyword)}`) Clear filters
+            else
+              .text-center.py-5
+                i.fas.fa-search.fa-3x.text-muted.mb-3(aria-hidden="true")
+                p.mb-2 No products found for "#{keyword}".
+                p.text-muted.mb-0 Check the spelling, try fewer or more general words, or browse the catalog.
+                a.common_btn.mt-3(href="/product") Browse all products
+
+            if articleList.length > 0
+              .row.mt_50
+                .col-12
+                  h2.mb-3 Articles
+                each item in articleList
+                  .col-lg-4.col-md-6.wow.fadeInUp
+                    +blog-item(item)

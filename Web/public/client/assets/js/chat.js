@@ -295,6 +295,8 @@ if (chatButton) {
 
   chatSend?.addEventListener("click", sendMessage);
   chatInput?.addEventListener("keydown", (e) => {
+    // Enter that commits an IME word (e.g. Vietnamese Telex) is followed by a real Enter; sending on both duplicates the message.
+    if (e.isComposing || e.keyCode === 229) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (isClientTyping) {
@@ -307,6 +309,7 @@ if (chatButton) {
   });
 
   const appendMessage = (item, isPrepend = false) => {
+    if (document.getElementById(item._id)) return;
     const wrap = document.createElement("div");
     wrap.classList.add("message", item.senderRole);
     wrap.setAttribute("id", item._id);

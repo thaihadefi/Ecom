@@ -181,6 +181,7 @@ if(listFilterProductStatus.length > 0) {
       } else {
         url.searchParams.delete(name);
       }
+      url.searchParams.delete("page");
       window.location.href = url.href;
     })
 
@@ -200,6 +201,7 @@ if(listButtonSlug.length > 0) {
       const slug = button.getAttribute("button-slug");
       if(slug) {
         url.pathname = `/product/category/${slug}`;
+        url.searchParams.delete("page");
         window.location.href = url.href;
       }
     })
@@ -224,6 +226,7 @@ if(listFilterAttribute.length > 0) {
         } else {
           url.searchParams.delete(`attribute_${id}`);
         }
+        url.searchParams.delete("page");
         window.location.href = url.href;
       })
     })
@@ -259,9 +262,16 @@ if(formSearch) {
     keywordField.value = keywordCurrent;
   }
 
+  let saveRecentSearch = () => {};
+
   formSearch.addEventListener("submit", (event) => {
     event.preventDefault();
     const keyword = keywordField ? keywordField.value.trim() : "";
+    if (!keyword && !categoryField) {
+      keywordField?.focus();
+      return;
+    }
+    if (keyword) saveRecentSearch(keyword);
     const category = categoryField ? categoryField.value : "";
 
     const targetUrl = new URL("/search", window.location.origin);
@@ -298,13 +308,13 @@ if(formSearch) {
     buttonVoice.addEventListener("click", () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        alert("Your browser does not support Speech Recognition. Try using Chrome or Safari.");
+        notyf.error("Voice search isn't supported in this browser. Try Chrome or Safari.");
         return;
       }
 
       const voice = new SpeechRecognition();
 
-      let activeLang = "vi";
+      let activeLang = document.documentElement.lang || "en";
       const match = document.cookie.match(/googtrans=([^;]+)/);
       if (match) {
         const parts = match[1].split('/');
@@ -371,67 +381,196 @@ if(formSearch) {
     });
   }
 
-  const input = formSearch.querySelector(`input[name="keyword"]`);
-  const boxSuggest = formSearch.querySelector(`.inner-suggest`);
-  const boxSuggestList = boxSuggest.querySelector(`.inner-list`);
-  let timeout;
+  const input = keywordField;
+  const boxSuggest = formSearch.querySelector(".inner-suggest");
+  const boxSuggestTitle = boxSuggest.querySelector("[search-suggest-title]");
+  const boxSuggestList = boxSuggest.querySelector(".inner-list");
+  const SUGGEST_DELAY_MS = 200;
+  const RECENT_KEY = "recentSearches";
+  const RECENT_LIMIT = 5;
+
+  // Recent searches are a per-browser convenience; storage can be blocked, so every access is guarded.
+  const readRecent = () => {
+    try {
+      const list = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+      return Array.isArray(list) ? list.filter(item => typeof item === "string" && item.trim()) : [];
+    } catch (e) { return []; }
+  };
+  saveRecentSearch = (keyword) => {
+    try {
+      const list = [keyword, ...readRecent().filter(item => item.toLowerCase() !== keyword.toLowerCase())];
+      localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_LIMIT)));
+    } catch (e) {}
+  };
+  const clearRecent = () => {
+    try { localStorage.removeItem(RECENT_KEY); } catch (e) {}
+  };
+
+  // Splits on the raw text and escapes each piece, so a query like "amp" can never cut into an HTML entity.
+  const highlight = (text, keyword) => {
+    const words = keyword.split(/\s+/).filter(Boolean).map(word => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    if (!words.length) return esc(text);
+    return String(text ?? "")
+      .split(new RegExp(`(${words.join("|")})`, "gi"))
+      .map((part, index) => index % 2 ? `<mark>${esc(part)}</mark>` : esc(part))
+      .join("");
+  };
+
+  const searchUrl = (keyword) => `/search?keyword=${encodeURIComponent(keyword)}`;
+  const options = () => Array.from(boxSuggestList.querySelectorAll("[role='option']"));
+  let activeIndex = -1;
+
+  const setActive = (index) => {
+    const list = options();
+    activeIndex = index;
+    list.forEach((el, i) => {
+      el.classList.toggle("is-active", i === index);
+      el.setAttribute("aria-selected", String(i === index));
+    });
+    if (index >= 0 && list[index]) {
+      input.setAttribute("aria-activedescendant", list[index].id);
+      list[index].scrollIntoView({ block: "nearest" });
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
+  };
+
+  const setOpen = (open) => {
+    boxSuggest.style.display = open ? "block" : "none";
+    input.setAttribute("aria-expanded", String(open));
+    if (!open) setActive(-1);
+  };
+
+  const render = (titleHtml, items) => {
+    boxSuggestTitle.innerHTML = titleHtml;
+    boxSuggestList.innerHTML = items.map((html, index) => html.replace("<a ", `<a id="search-option-${index}" role="option" aria-selected="false" `)).join("");
+    activeIndex = -1;
+    setOpen(items.length > 0);
+  };
+
+  const textItem = (keyword, icon, labelHtml, extraClass = "") => `
+    <a class="inner-item inner-item-text ${extraClass}" href="${searchUrl(keyword)}" data-keyword="${esc(keyword)}">
+      <i class="fas ${icon}" aria-hidden="true"></i><span>${labelHtml}</span>
+    </a>`;
+
+  let popularSearches = null;
+  const loadPopularSearches = async () => {
+    if (popularSearches) return popularSearches;
+    try {
+      const res = await fetch("/api/popular-searches");
+      const data = await res.json();
+      popularSearches = data.code === "success" && Array.isArray(data.list) ? data.list : [];
+    } catch (e) {
+      popularSearches = [];
+    }
+    return popularSearches;
+  };
+
+  // An empty box offers the shopper's own recent searches first, then what other shoppers search for.
+  const showStarters = async () => {
+    const recent = readRecent();
+    const popular = (await loadPopularSearches())
+      .filter(keyword => !recent.some(item => item.toLowerCase() === keyword.toLowerCase()));
+    if (input.value.trim()) return;
+
+    const items = recent.map(keyword => textItem(keyword, "fa-history", esc(keyword)));
+    if (popular.length) {
+      if (recent.length) items.push(`<div class="inner-title">Popular searches</div>`);
+      items.push(...popular.map(keyword => textItem(keyword, "fa-fire", esc(keyword))));
+    }
+    if (!items.length) { setOpen(false); return; }
+    render(
+      recent.length ? `Recent searches <button type="button" class="inner-clear-recent" clear-recent>Clear</button>` : "Popular searches",
+      items
+    );
+  };
+
+  let suggestTimer;
+  let suggestController;
+  const showSuggestions = async (keyword) => {
+    suggestController?.abort();
+    suggestController = new AbortController();
+    try {
+      const res = await fetch(`/api/product-suggestions?keyword=${encodeURIComponent(keyword)}`, { signal: suggestController.signal });
+      const data = await res.json();
+      // A late answer for text the shopper has already changed is dropped.
+      if (data.code !== "success" || input.value.trim() !== keyword) return;
+      const productItems = data.list.map(item => `
+        <a class="inner-item" href="/product/detail/${esc(item.slug)}">
+          ${item.images?.[0] ? `<img class="inner-image" src="${domainCDN}${esc(item.images[0])}" alt="">` : ""}
+          <div class="inner-info">
+            <div class="inner-name">${highlight(item.name, keyword)}</div>
+            <div class="inner-prices">
+              <div class="inner-price-new">${formatMoney(item.priceNew || 0)}</div>
+              ${item.priceOld ? `<div class="inner-price-old">${formatMoney(item.priceOld)}</div>` : ""}
+              ${(item.stock ?? 0) <= 0 ? `<div class="inner-stock-out">Out of stock</div>` : ""}
+            </div>
+          </div>
+        </a>`);
+      render(
+        productItems.length ? "Suggested Products" : "No matching products",
+        [...productItems, textItem(keyword, "fa-search", `See all results for "<strong>${esc(keyword)}</strong>"`, "inner-item-all")]
+      );
+      refreshCurrencyDisplay(boxSuggestList);
+    } catch (e) {
+      if (e.name !== "AbortError") setOpen(false);
+    }
+  };
 
   input.addEventListener("input", () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      const keyword = input.value;
-      if(keyword) {
-        fetch(`/api/product-suggestions?keyword=${encodeURIComponent(keyword)}`)
-          .then(res => res.json())
-          .then(data => {
-            if(data.code == "success") {
-              const htmlArray = data.list.map(item => {
-                return `
-                  <a class="inner-item" href="/product/detail/${esc(item.slug)}">
-                    <img class="inner-image" src="${domainCDN}${esc(item.images[0])}">
-                    <div class="inner-info">
-                      <div class="inner-name">${esc(item.name)}</div>
-                      <div class="inner-prices">
-                        <div class="inner-price-new">
-                          ${formatMoney((item.priceNew || 0))}
-                        </div>
-                        ${item.priceOld ? `<div class="inner-price-old">${formatMoney(item.priceOld)}</div>` : ''}
-                      </div>
-                    </div>
-                  </a>
-                `;
-              })
-              boxSuggestList.innerHTML = htmlArray.join("");
-              refreshCurrencyDisplay(boxSuggestList);
-              if(data.list.length > 0) {
-                boxSuggest.style.display = "block";
-              } else {
-                boxSuggest.style.display = "none";
-              }
-            }
-          })
-      } else {
-        boxSuggest.style.display = "none";
-      }
-    }, 500);
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!formSearch.contains(e.target)) {
-      boxSuggest.style.display = "none";
+    clearTimeout(suggestTimer);
+    const keyword = input.value.trim();
+    if (!keyword) {
+      suggestController?.abort();
+      showStarters();
+      return;
     }
+    suggestTimer = setTimeout(() => showSuggestions(keyword), SUGGEST_DELAY_MS);
   });
 
   input.addEventListener("focus", () => {
-    if (input.value && boxSuggestList.children.length > 0) {
-      boxSuggest.style.display = "block";
+    const keyword = input.value.trim();
+    if (!keyword) showStarters();
+    else if (options().length) setOpen(true);
+    else showSuggestions(keyword);
+  });
+
+  input.addEventListener("keydown", (e) => {
+    // Enter that only commits an IME word (e.g. Vietnamese Telex) must not pick a suggestion.
+    if (e.isComposing || e.keyCode === 229) return;
+    const list = options();
+    const isOpen = boxSuggest.style.display !== "none";
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!isOpen || !list.length) return;
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      setActive((activeIndex + step + list.length + (activeIndex < 0 && step < 0 ? 1 : 0)) % list.length);
+    } else if (e.key === "Enter" && isOpen && activeIndex >= 0 && list[activeIndex]) {
+      e.preventDefault();
+      list[activeIndex].click();
+    } else if (e.key === "Escape" && isOpen) {
+      // First Escape only closes the list; the search input's native Escape (clear the text) needs a second press.
+      e.preventDefault();
+      setOpen(false);
     }
   });
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      boxSuggest.style.display = "none";
+  boxSuggest.addEventListener("click", (e) => {
+    if (e.target.closest("[clear-recent]")) {
+      e.preventDefault();
+      clearRecent();
+      input.focus();
+      showStarters();
+      return;
     }
+    const option = e.target.closest("[role='option']");
+    if (!option) return;
+    const keyword = option.dataset.keyword || input.value.trim();
+    if (keyword) saveRecentSearch(keyword);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!formSearch.contains(e.target)) setOpen(false);
   });
 }
 
@@ -3045,6 +3184,7 @@ if(listInputFilterRating.length > 0) {
       } else {
         url.searchParams.delete("rating");
       }
+      url.searchParams.delete("page");
       window.location.href = url.href;
     })
   })

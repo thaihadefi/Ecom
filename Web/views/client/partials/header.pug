@@ -23,21 +23,29 @@ header(class="header_main")
             span(class="mobile_menu_icon")
               i.fas.fa-bars(class="menu_icon_bar" aria-hidden="true")
       .col-lg-5.col-xl-5.col-xxl-5.d-none.d-lg-block
-        form(form-search)
+        form(form-search action="/search" method="get" role="search")
           .input
-            span(class="inner-voice" button-voice)
+            button(class="inner-voice" button-voice type="button" aria-label="Search by voice")
               <i class="fas fa-microphone" aria-hidden="true"></i>
             input(
               placeholder="Search products..."
-              type="text"
+              type="search"
               name="keyword"
+              maxlength="100"
+              autocomplete="off"
+              spellcheck="false"
+              enterkeyhint="search"
               aria-label="Search products"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded="false"
+              aria-controls="search-suggest-list"
               )
             button(type="submit" aria-label="Search")
               i.fas.fa-search(aria-hidden="true")
           .inner-suggest(style="display: none;")
-            .inner-title Suggested Products
-            .inner-list
+            .inner-title(search-suggest-title) Suggested Products
+            .inner-list#search-suggest-list(role="listbox" aria-label="Search suggestions")
       .col-lg-5.col-xl-5.col-xxl-5.d-none.d-lg-flex.align-items-center.justify-content-end.gap-3.gap-xl-4
         .header_support_user
           if storeContact.phone

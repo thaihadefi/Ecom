@@ -75,6 +75,7 @@ $(function () {
                     } else {
                         url.searchParams.delete(fieldName);
                     }
+                    url.searchParams.delete("page");
                     window.location.href = url.href;
                 }
             });
@@ -363,6 +364,7 @@ $(function () {
                 } else {
                     url.searchParams.set("price", `${fromSelected}-${toSelected}`);
                 }
+                url.searchParams.delete("page");
                 window.location.href = url.href;
             }
         };
