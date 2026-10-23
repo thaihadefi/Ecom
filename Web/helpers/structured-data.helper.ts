@@ -96,6 +96,7 @@ export const articleJsonLd = (article: IBlog, origin: string, url: string): Json
   };
   if (article.avatar) data.image = absoluteUrl(origin, article.avatar);
   if (article.authorName) data.author = { "@type": "Person", name: article.authorName };
+  if (article.sourceUrl) data.isBasedOn = article.sourceUrl;
   return [data, breadcrumbJsonLd([
     { name: "Home", url: `${origin}/` },
     { name: "Articles", url: `${origin}/article` },

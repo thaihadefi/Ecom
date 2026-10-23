@@ -30,6 +30,13 @@ block main
             .mb-3
               label.form-label(for="bodyFont") Body font (Google Fonts)
               input.form-control(id="bodyFont" name="bodyFont" value=values.bodyFont placeholder="Keep the theme font")
+          .col-md-6
+            .mb-3
+              label.form-label(for="logoDisplay") Header logo
+              select.form-select(id="logoDisplay" name="logoDisplay")
+                option(value="logo" selected=values.logoDisplay === "logo") Logo only
+                option(value="logo-name" selected=values.logoDisplay === "logo-name") Logo and store name
+              .form-text Choose "Logo and store name" when the logo image does not spell the name (Settings > General).
         hr
         h5 Currency and locale
         p.text-muted.small Prices are entered, stored and charged in the store currency. Choose it when setting up the store: changing it later does not convert existing prices. Payment methods that cannot charge in it are hidden from checkout (VNPay and ZaloPay only charge in VND).
@@ -68,4 +75,10 @@ block main
             .mb-3
               label.form-label(for="pointValue") Discount 1 point is worth
               input.form-control(id="pointValue" name="pointValue" type="number" min="0" step="any" value=values.pointValue)
+        hr
+        h5 Product page promises
+        .mb-3
+          label.form-label(for="productPromises") Promises shown beside every product
+          textarea.form-control(id="productPromises" name="productPromises" rows="4" placeholder="Returns within 30 days of delivery | /return-policy")= values.productPromises
+          .form-text One promise per line. Add " | /page" to link it, for example to the Return Policy. Keep them in line with your policy pages; leave empty to hide the box. Cash on Delivery is added automatically when that payment method is on.
         button.btn.btn-primary(type="submit") Update

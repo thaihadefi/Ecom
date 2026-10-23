@@ -116,6 +116,21 @@ mixin page-banner(data, link)
                 li
                   a(href=safeUrl(link)) #{data.name}
 
+//- A one-line trail for pages whose own heading is the H1 (product detail); the last item is the current page.
+mixin page-breadcrumb(trail)
+  nav(class="page_breadcrumb" aria-label="Breadcrumb")
+    .container
+      ol
+        each crumb, index in trail
+          li
+            if (index === trail.length - 1)
+              span(aria-current="page") #{crumb.name}
+            else
+              a(href=safeUrl(crumb.link))
+                if (index === 0)
+                  i.fas.fa-home(aria-hidden="true")
+                | #{crumb.name}
+
 mixin product-item(item)
   -
     var disc = item.discount > 0

@@ -182,30 +182,27 @@ html(lang=storefront.language)
 
     #modalReportReview.modal.fade(tabindex="-1" aria-labelledby="modalReportReviewLabel" aria-hidden="true")
       .modal-dialog.modal-dialog-centered.modal-sm
-        .modal-content(style="border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);")
-          .modal-body.text-center.px-4.pt-4.pb-2
-            .mx-auto.mb-3(style="width:56px; height:56px; background:#fff0f0; border-radius:50%; display:flex; align-items:center; justify-content:center;")
-              i.fas.fa-flag(style="font-size:22px; color:#e74c3c;")
-            h2.fw-bold.mb-1(style="font-size:16px;" id="modalReportReviewLabel") Report this review?
-            p.text-muted.mb-0(style="font-size:13px; line-height:1.5;") This will flag the review for admin to inspect. Only report content that is fake or inappropriate.
-          .modal-footer.border-0.justify-content-center.gap-2.pb-4
-            button.btn.btn-light.px-4(type="button" data-bs-dismiss="modal" style="border-radius:20px; font-size:14px;") Cancel
-            button#btnConfirmReport.btn.btn-danger.px-4(type="button" style="border-radius:20px; font-size:14px;")
-              i.fas.fa-flag.me-1
-              | Report
+        .modal-content.confirm_modal
+          .modal-body
+            span.confirm_modal_icon
+              i.fas.fa-flag(aria-hidden="true")
+            h2#modalReportReviewLabel.confirm_modal_title Report this review?
+            p.confirm_modal_text This will flag the review for admin to inspect. Only report content that is fake or inappropriate.
+          .modal-footer
+            button.confirm_modal_cancel(type="button" data-bs-dismiss="modal") Cancel
+            button#btnConfirmReport.confirm_modal_ok(type="button") Report
 
-    #modalPhoneConfirm.modal.fade(aria-hidden="true" tabindex="-1")
-      .modal-dialog.modal-dialog-centered
-        .modal-content(style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);")
-          .modal-body.text-center.py-4(style="position: relative;")
-            button.btn-close.position-absolute.top-0.end-0.m-3(type="button" data-bs-dismiss="modal" aria-label="Close")
-            .avatar-md.rounded-circle.mx-auto.mb-3.d-flex.align-items-center.justify-content-center(style="width: 60px; height: 60px; font-size: 24px; color: var(--themeColorOne); background-color: var(--lightBg); margin: 0 auto 15px;")
+    #modalPhoneConfirm.modal.fade(tabindex="-1" aria-labelledby="modalPhoneConfirmLabel" aria-hidden="true")
+      .modal-dialog.modal-dialog-centered.modal-sm
+        .modal-content.confirm_modal
+          .modal-body
+            span.confirm_modal_icon
               i.fas.fa-phone-alt(aria-hidden="true")
-            h2.fw-semibold.mb-2(style="color: var(--themeColorOne); font-weight: 600; font-size: 20px;") Contact Hotline
-            p.text-muted.small.mb-0#modalPhoneConfirmMessage(style="font-size: 14px;") Would you like to call us?
-          .modal-footer.border-0.justify-content-center.pt-0.pb-4
-            button.btn.btn-light.px-4(type="button" data-bs-dismiss="modal" style="border-radius: 20px; font-weight: 500;") Cancel
-            a.btn.btn-primary.px-4#modalPhoneConfirmCall(href="" style="border-radius: 20px; font-weight: 500; background-color: var(--themeColorOne); border-color: var(--themeColorOne);") Call Now
+            h2#modalPhoneConfirmLabel.confirm_modal_title Contact Hotline
+            p#modalPhoneConfirmMessage.confirm_modal_text Would you like to call us?
+          .modal-footer
+            button.confirm_modal_cancel(type="button" data-bs-dismiss="modal") Cancel
+            a#modalPhoneConfirmCall.confirm_modal_ok(href="") Call Now
 
     script(src=`/client/assets/js/jquery-3.7.1.min.js?v=${assetVersion}`)
     script(src=`/client/assets/js/bootstrap.bundle.min.js?v=${assetVersion}`)

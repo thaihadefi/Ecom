@@ -1292,15 +1292,12 @@ const drawCart = () => {
     const ulMiniCart = miniCart.querySelector(".offcanvas-body ul");
     ulMiniCart.innerHTML = "Your cart is empty.";
 
-    const cartTable = document.querySelector("[cart-table]");
-    if(cartTable) {
-      cartTable.innerHTML = `
-        <tr>
-          <td colspan="7">
-            ${emptyStateHTML("fa-shopping-bag", "Your cart is empty", "Browse the store and add something you like.", "Continue Shopping", "/product")}
-          </td>
-        </tr>
-      `;
+    // The empty state replaces the whole table: inside a wide scrolling table it would sit off-screen on phones.
+    // The order summary has nothing to show, so the page hides it (see .cart_page_empty in polish.css).
+    const cartTableArea = document.querySelector("[cart-table]")?.closest(".cart_table_area");
+    if(cartTableArea) {
+      cartTableArea.innerHTML = emptyStateHTML("fa-shopping-bag", "Your cart is empty", "Browse the store and add something you like.", "Continue Shopping", "/product");
+      cartTableArea.closest(".cart_page")?.classList.add("cart_page_empty");
     }
 
     const cartSummary = document.querySelector("[cart-summary]");
@@ -3499,3 +3496,9 @@ document.addEventListener("click", (event) => {
   const collection = page === "detail" ? `${kind}s` : `${kind}-categories`;
   fetch(`/api/${collection}/${slug}/views`, { method: "POST", credentials: "same-origin", keepalive: true }).catch(() => {});
 })();
+
+// The header search button on phones opens the menu with the cursor already in its search field.
+document.getElementById("offcanvasWithBothOptions")?.addEventListener("shown.bs.offcanvas", (event) => {
+  if (!event.relatedTarget?.hasAttribute("data-mobile-search")) return;
+  event.target.querySelector(".mobile_menu_search input")?.focus();
+});

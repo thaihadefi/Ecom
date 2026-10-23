@@ -3,7 +3,7 @@ include ../mixins/index.pug
 div(class="shop_details_text")
   script.
     const productVariants = !{safeJson(productDetail.variants)};
-  h2(class="details_title") #{productDetail.name}
+  h1(class="details_title") #{productDetail.name}
   .d-flex.flex-wrap.align-items-center
     if (productDetail.stock > 0)
       p.stock In Stock (#{productDetail.stock})

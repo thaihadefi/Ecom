@@ -125,8 +125,9 @@ export const articleMarkdown = async (slug: string, origin: string): Promise<Mar
   if (!article) return null;
   const url = `${origin}/article/detail/${encodeURIComponent(String(article.slug))}`;
   const byline = [
-    article.publishAt ? `Published: ${new Date(article.publishAt).toISOString().slice(0, 10)}` : "",
+    `Published: ${new Date(article.publishAt || article.createdAt).toISOString().slice(0, 10)}`,
     article.authorName ? `Author: ${article.authorName}` : "",
+    article.sourceUrl ? `Original source: ${article.sourceUrl}` : "",
   ].filter(Boolean).join("\n");
   const body = [
     byline,

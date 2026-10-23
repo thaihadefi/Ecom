@@ -8,7 +8,7 @@ footer(class="footer_main pt_100")
             class="footer_logo"
             )
             img.img-fluid.w-100(
-              alt="Logo"
+              alt=(settingGeneral && settingGeneral.websiteName) || "Home"
               src=`${settingGeneral && settingGeneral.logo ? domainCDN + settingGeneral.logo : '/images/logo.png'}`
               )
           if (settingGeneral.storeDescription)
@@ -44,13 +44,13 @@ footer(class="footer_main pt_100")
           h2 Quick Links
           ul
             li
-              a(href="/privacy-policy" target="_blank" rel="noopener noreferrer") Privacy Policy
+              a(href="/privacy-policy") Privacy Policy
             li
-              a(href="/terms-and-conditions" target="_blank" rel="noopener noreferrer") Terms & Conditions
+              a(href="/terms-and-conditions") Terms & Conditions
             li
-              a(href="/return-policy" target="_blank" rel="noopener noreferrer") Return Policy
+              a(href="/return-policy") Return Policy
             li
-              a(href="/faq" target="_blank" rel="noopener noreferrer") FAQ’s
+              a(href="/faq") FAQ’s
       .col-xl-3.col-lg-3.col-md-3.col-sm-6
         div(class="footer_link footer_logo_area")
           h2 Get In Touch

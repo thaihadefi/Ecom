@@ -21,11 +21,13 @@ interface BlockDataWithCategory extends BlockData {
 export const renderHTML = async (_req: Request, res: Response, blockList: Array<{ fileName?: string | null; data?: unknown }>) => {
   if (!blockList || blockList.length === 0) return [];
 
-  const blocksPromises = blockList.map(async (block) => {
+  const blocksDir = path.join(process.cwd(), "views", "client", "blocks");
+
+  // Product and article lists load in parallel; rendering then walks the blocks in page order.
+  const loadedBlocks = await Promise.all(blockList.map(async (block) => {
     if (!block || !block.fileName) return null;
     // A block that belongs to a switched-off module is skipped.
     if (!FEATURES.BLOG && block.fileName === "blog.pug") return null;
-    const blocksDir = path.join(process.cwd(), "views", "client", "blocks");
     const blockPath = path.join(blocksDir, path.basename(`${block.fileName}`));
     if (!blockPath.endsWith(".pug")) return null;
     const blockData = block.data as BlockDataWithCategory | undefined;
@@ -40,7 +42,7 @@ export const renderHTML = async (_req: Request, res: Response, blockList: Array<
         blogListPromise = getBlogByCategory(blockData.getByCategory);
       }
 
-      let tabListPromise: Promise<unknown[]> = Promise.resolve([]);
+      let tabListPromise: Promise<Array<BlockData & { productList?: unknown[] }>> = Promise.resolve([]);
       const tabs = blockData?.tabs;
       if (tabs && tabs.length > 0) {
         const tabPromises = tabs.map(async (tab) => {
@@ -61,12 +63,35 @@ export const renderHTML = async (_req: Request, res: Response, blockList: Array<
         blogListPromise,
         tabListPromise
       ]);
+      return { fileName: block.fileName, blockPath, blockData, productList, blogList, tabList };
+    } catch (error) {
+      console.error(`Load error for block: ${block.fileName}`, error);
+      return null;
+    }
+  }));
 
-      const renderedBlockData = block.fileName === "flash-sale.pug" && blockData
+  // A product already shown by an earlier block is left out of later ones, so a small catalog does not repeat
+  // the same items section after section; a product section left with nothing to show is dropped.
+  const shownProductIds = new Set<string>();
+  const productId = (item: unknown) => String((item as { _id?: unknown; id?: unknown })._id ?? (item as { id?: unknown }).id);
+  const unseen = (list: unknown[]) => list.filter((item) => !shownProductIds.has(productId(item)));
+
+  const renderedHtmls = loadedBlocks.map((loaded) => {
+    if (!loaded) return null;
+    const { fileName, blockPath, blockData } = loaded;
+    const loadsProducts = blockData?.getByCategory?.type === "product" || loaded.tabList.some((tab) => Array.isArray(tab.productList));
+    const productList = unseen(loaded.productList);
+    const tabList = loaded.tabList.map((tab) => (Array.isArray(tab.productList) ? { ...tab, productList: unseen(tab.productList) } : tab));
+    const visibleProducts = [...productList, ...tabList.flatMap((tab) => tab.productList || [])];
+    if (loadsProducts && visibleProducts.length === 0) return null;
+    visibleProducts.forEach((item) => shownProductIds.add(productId(item)));
+
+    try {
+      const renderedBlockData = fileName === "flash-sale.pug" && blockData
         ? { ...blockData, endTime: blockData.endTime || flashSaleConfig.endTime }
         : blockData;
 
-      const html = pug.renderFile(blockPath, {
+      return pug.renderFile(blockPath, {
         cache: true,
         categoryProductList: res.locals.categoryProductList,
         domainCDN: mediaBase,
@@ -89,16 +114,14 @@ export const renderHTML = async (_req: Request, res: Response, blockList: Array<
         blockData: renderedBlockData,
         blockProductList: productList,
         blockTabList: tabList,
-        blockBlogList: blogList
+        blockBlogList: loaded.blogList
       });
-      return html;
     } catch (error) {
-      console.error(`Render error for block: ${block.fileName}`, error);
+      console.error(`Render error for block: ${fileName}`, error);
       return null;
     }
   });
 
-  const renderedHtmls = await Promise.all(blocksPromises);
   return renderedHtmls.filter((html) => html !== null) as string[];
 };
 

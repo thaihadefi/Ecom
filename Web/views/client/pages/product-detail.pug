@@ -2,12 +2,13 @@ extends ../layouts/default.pug
 include ../mixins/index.pug
 
 block main
-  +page-banner(
-    productDetail,
-    `/product/detail/${productDetail.slug}`
-  )
+  - const productCategory = productDetail.categoryList && productDetail.categoryList[0]
+  - const productTrail = [{ name: "Home", link: "/" }]
+  - if (productCategory && productCategory.name && productCategory.slug) productTrail.push({ name: productCategory.name, link: `/product/category/${productCategory.slug}` })
+  - productTrail.push({ name: productDetail.name, link: `/product/detail/${productDetail.slug}` })
+  +page-breadcrumb(productTrail)
 
-  section(class="shop_details mt_100")
+  section(class="shop_details")
     .container
       .row
         .col-xl-9.col-xxl-10

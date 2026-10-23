@@ -39,6 +39,16 @@ block main
                   option(value="archived") Archived
             .col-md-6.col-lg-6
               .mb-3
+                label.form-label(for="author") Author
+                input.form-control(id="author" type="text" name="author" maxlength="120" placeholder="Writer's name")
+                .form-text The writer shown on the article. Leave empty to show the staff member who created it.
+            .col-md-6.col-lg-6
+              .mb-3
+                label.form-label(for="sourceUrl") Original source (link)
+                input.form-control(id="sourceUrl" type="url" name="sourceUrl" maxlength="500" placeholder="https://...")
+                .form-text For an article first published elsewhere: credited on the page and in search data.
+            .col-md-6.col-lg-6
+              .mb-3
                 +form-group-file(
                   "Avatar",
                   "avatar",

@@ -108,6 +108,7 @@ Where each kind of client request goes; most need no code.
 | Set the currency, number and date format, time zone, page language | Admin → Settings → Storefront | None |
 | Show prices in other currencies for reference | Admin → Settings → Storefront → Display currencies | None |
 | Change the loyalty point rates | Admin → Settings → Storefront | None |
+| Change the promises beside every product, or show the store name next to the logo | Admin → Settings → Storefront | None |
 | Edit About, FAQ and policy pages | Admin → Settings → Page Content | None |
 | Set the logo, contact details, store map pin, footer text and social links | Admin → Settings → General Settings | None |
 | Rearrange the homepage | Admin → Block Management and Template Management | None |

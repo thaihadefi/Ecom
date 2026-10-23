@@ -5,6 +5,7 @@ import { resultStatus, sendCaughtError } from "../../helpers/http-response.helpe
 import { alreadyViewed, claimView } from "../../helpers/view-counter.helper";
 import { plainText } from "../../helpers/seo.helper";
 import { productJsonLd } from "../../helpers/structured-data.helper";
+import { getStorefront, parseProductPromises } from "../../configs/storefront.config";
 
 export const productByCategory = async (req: Request, res: Response) => {
   try {
@@ -99,6 +100,7 @@ export const detail = async (req: Request, res: Response) => {
       boughtTogetherProducts: boughtTogetherProducts,
       viewedProducts: viewedProducts,
       reviewList: reviewList,
+      productPromises: parseProductPromises(getStorefront().productPromises),
       seo: productDetail.seo,
       pageDescription: plainText(productDetail.description || productDetail.content),
       pageImage: productDetail.images?.[0],

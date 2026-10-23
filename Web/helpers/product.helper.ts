@@ -1,11 +1,9 @@
-import { formatDate } from "./format.helper";
-import AccountAdmin from "../models/account-admin.model";
 import Blog from "../models/blog.model";
 import CategoryBlog from "../models/category-blog.model";
 import CategoryProduct from "../models/category-product.model";
 import Product from "../models/product.model";
 import { IProductVariant, IProductAttributeValue } from "../interfaces/models/product.interface";
-import { IAccountAdmin } from "../interfaces/models/account-admin.interface";
+import { populateAuthors } from "../services/client/article.service";
 
 export interface GetByCategoryOptions {
   category?: string[];
@@ -106,23 +104,11 @@ export const getBlogByCategory = async (getByCategory: GetByCategoryOptions) => 
 
   const blogList = await Blog
     .find(find)
-    .select("name avatar slug category createdBy updatedBy createdAt updatedAt")
+    .select("name avatar slug category author createdBy createdAt updatedAt publishAt")
     .sort(sort)
     .limit(limit);
 
-  const adminIds = [...new Set(blogList.map((i) => String(i.updatedBy || i.createdBy)).filter(Boolean))];
-  if (adminIds.length > 0) {
-    const admins: Pick<IAccountAdmin, "_id" | "fullName">[] = await AccountAdmin.find({ _id: { $in: adminIds } }).select("_id fullName");
-    const adminMap = new Map(admins.map((a) => [String(a._id), a.fullName]));
-    for (const item of blogList) {
-      const id = item.updatedBy || item.createdBy;
-      const name = id ? adminMap.get(String(id)) : undefined;
-      if (name) {
-        item.authorName = name;
-        item.date = formatDate(item.updatedBy ? item.updatedAt : item.createdAt);
-      }
-    }
-  }
+  await populateAuthors(blogList);
 
   return blogList;
 };

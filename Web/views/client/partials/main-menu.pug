@@ -11,7 +11,7 @@ nav.d-none.d-lg-block(class="main_menu_2 main_menu")
               href="/"
               )
               img.img-fluid.w-100.notranslate(
-                alt="Logo"
+                alt=(settingGeneral && settingGeneral.websiteName) || "Home"
                 src=`${settingGeneral && settingGeneral.logo ? domainCDN + settingGeneral.logo : '/images/logo.png'}`
                 translate="no"
                 )

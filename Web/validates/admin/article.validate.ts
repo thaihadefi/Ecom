@@ -44,6 +44,9 @@ export const createPost = (req: Request, res: Response, next: NextFunction) => {
     avatar: Joi.string().allow(''),
     description: Joi.string().allow(''),
     content: Joi.string().allow(''),
+    author: Joi.string().trim().max(120).allow(''),
+    sourceUrl: Joi.string().trim().uri({ scheme: ["http", "https"] }).max(500).allow('')
+      .messages({ "string.uri": "Original source must be a full http(s) link!", "string.uriCustomScheme": "Original source must be a full http(s) link!" }),
   });
 
   const { error } = schema.validate(req.body);

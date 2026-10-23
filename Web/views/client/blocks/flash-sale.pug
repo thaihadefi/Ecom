@@ -1,6 +1,9 @@
 include ../mixins/index.pug
 
-if blockData && blockProductList && blockProductList.length
+//- A sale that has ended is hidden; one more than a week away shows its end date, since a long countdown reads as fake urgency.
+- const saleEnd = blockData && blockData.endTime ? new Date(blockData.endTime) : null
+- const msLeft = saleEnd && !isNaN(saleEnd) ? saleEnd.getTime() - Date.now() : null
+if blockData && blockProductList && blockProductList.length && (msLeft === null || msLeft > 0)
   section(class="flash_sell flash_sell mt_95")
     .container
       .row.align-items-center
@@ -11,7 +14,10 @@ if blockData && blockProductList && blockProductList.length
               |  #{blockData.title.normal}
         .col-xxl-6.col-md-9.col-xl-8
           .d-flex.flex-wrap.justify-content-end
-            .simply-countdown.simply-countdown-one(data-end-time=blockData.endTime)
+            if (msLeft !== null && msLeft > 7 * 24 * 60 * 60 * 1000)
+              p(class="flash_sell_ends") Ends #{formatDate(saleEnd)}
+            else
+              .simply-countdown.simply-countdown-one(data-end-time=blockData.endTime)
             if (blockData.linkViewAll)
               div(class="view_all_btn_area")
                 a(

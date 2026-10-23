@@ -78,6 +78,8 @@ const schemas: Record<string, Joi.ObjectSchema> = {
     language: Joi.string().trim().pattern(/^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})?$/).messages({ "string.pattern.base": "Language must be a code like en or vi!" }),
     moneyPerPoint: Joi.number().greater(0).max(1e12),
     pointValue: Joi.number().greater(0).max(1e12),
+    productPromises: Joi.string().trim().max(2000).allow(""),
+    logoDisplay: Joi.string().valid("logo", "logo-name"),
   }),
   pages: Joi.object(Object.fromEntries(CONTENT_PAGES.map((page) => [page.key, Joi.string().max(60000).allow("")]))),
   apiLoginSocial: Joi.object({

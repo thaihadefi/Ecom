@@ -22,6 +22,15 @@ export interface StorefrontSettings {
   moneyPerPoint: number;
   /** Discount one loyalty point is worth at checkout */
   pointValue: number;
+  /** Promises listed beside every product, one per line as "Text" or "Text | /link"; empty hides the box */
+  productPromises: string;
+  /** "logo" shows the logo image only; "logo-name" also writes the store name beside it */
+  logoDisplay: "logo" | "logo-name";
+}
+
+export interface ProductPromise {
+  text: string;
+  href: string;
 }
 
 export const STOREFRONT_DEFAULTS: StorefrontSettings = {
@@ -36,6 +45,8 @@ export const STOREFRONT_DEFAULTS: StorefrontSettings = {
   language: "en",
   moneyPerPoint: 10000,
   pointValue: 100,
+  productPromises: "Returns within 30 days of delivery | /return-policy\nFree exchange for defective or damaged items | /return-policy",
+  logoDisplay: "logo",
 };
 
 let current: StorefrontSettings = { ...STOREFRONT_DEFAULTS };
@@ -69,8 +80,22 @@ export const normalizeStorefront = (data: Partial<StorefrontSettings> | undefine
     language: pick(d.language, STOREFRONT_DEFAULTS.language),
     moneyPerPoint: positive(d.moneyPerPoint, STOREFRONT_DEFAULTS.moneyPerPoint),
     pointValue: positive(d.pointValue, STOREFRONT_DEFAULTS.pointValue),
+    // Saved empty on purpose hides the promises, so only a missing field falls back to the defaults.
+    productPromises: typeof d.productPromises === "string" ? d.productPromises : STOREFRONT_DEFAULTS.productPromises,
+    logoDisplay: d.logoDisplay === "logo-name" ? "logo-name" : "logo",
   };
 };
+
+// The promise lines as text and an optional same-site link ("/return-policy") or http(s) URL.
+export const parseProductPromises = (value: string): ProductPromise[] =>
+  value
+    .split("\n")
+    .map((line) => {
+      const [text, link = ""] = line.split("|").map((part) => part.trim());
+      const href = /^(\/(?!\/)|https?:\/\/)/.test(link) ? link : "";
+      return { text, href };
+    })
+    .filter((promise) => promise.text);
 
 // Synchronous read for formatters and templates; refreshed by loadStorefront().
 export const getStorefront = (): StorefrontSettings => current;

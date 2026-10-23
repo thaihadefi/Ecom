@@ -9,21 +9,25 @@ import { IAccountAdmin } from '../../interfaces/models/account-admin.interface';
 import { IBlog } from '../../interfaces/models/blog.interface';
 import { metadataCache } from '../../helpers/metadata-cache.helper';
 
-// Adds authorName and date to each article from the admin who last edited or created it.
-export const populateAuthors = async (articles: Array<Pick<IBlog, "createdBy" | "updatedBy" | "createdAt" | "updatedAt" | "authorName" | "date">>) => {
-  const adminIds = [...new Set(articles.map((i) => String(i.updatedBy || i.createdBy)).filter(Boolean))];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Byline and dates for every surface that shows an article (cards, detail page, Markdown copy, JSON-LD):
+// the article's own author, else the staff member who created it, so later edits never take over the byline.
+// date is when it was published; updatedDate is set only when it changed at least a day after that.
+export const populateAuthors = async (articles: Array<Pick<IBlog, "author" | "createdBy" | "createdAt" | "updatedAt" | "publishAt" | "authorName" | "date" | "updatedDate">>) => {
+  const adminIds = [...new Set(articles.filter((i) => !i.author && i.createdBy).map((i) => String(i.createdBy)))];
   const adminMap = new Map<string, string>();
   if (adminIds.length > 0) {
     const admins: Pick<IAccountAdmin, '_id' | 'fullName'>[] = await AccountAdmin.find({ _id: { $in: adminIds } }).select("_id fullName");
     for (const a of admins) adminMap.set(String(a._id), a.fullName ?? "");
   }
   for (const item of articles) {
-    const id = item.updatedBy || item.createdBy;
-    const name = id ? adminMap.get(String(id)) : undefined;
-    if (name) {
-      item.authorName = name;
-      item.date = formatDate(item.updatedBy ? item.updatedAt : item.createdAt);
-    }
+    item.authorName = item.author || (item.createdBy ? adminMap.get(String(item.createdBy)) : "") || "";
+    const published = new Date(item.publishAt || item.createdAt);
+    item.date = formatDate(published);
+    item.updatedDate = item.updatedAt && new Date(item.updatedAt).getTime() - published.getTime() >= DAY_MS
+      ? formatDate(item.updatedAt)
+      : "";
   }
 };
 
@@ -44,7 +48,7 @@ export const getArticleList = async (page: unknown) => {
 
   const articleList = await Blog
     .find(find)
-    .select("name avatar slug category createdBy updatedBy createdAt updatedAt")
+    .select("name avatar slug category author createdBy createdAt updatedAt publishAt")
     .limit(limitItems)
     .skip(pagination.skip)
     .sort({ createdAt: "desc" });
@@ -93,7 +97,7 @@ export const getArticlesByCategory = async (slug: string, page: unknown) => {
 
   const articleList = await Blog
     .find(find)
-    .select("name avatar slug category createdBy updatedBy createdAt updatedAt")
+    .select("name avatar slug category author createdBy createdAt updatedAt publishAt")
     .limit(limitItems)
     .skip(pagination.skip)
     .sort({ createdAt: "desc" });
@@ -125,19 +129,7 @@ export const getArticleDetail = async (slug: string) => {
 
   const articleDetail = articleDoc.toObject({ virtuals: true }) as unknown as IBlog;
 
-  if (articleDetail.updatedBy) {
-    const accountInfo = await AccountAdmin.findOne({ _id: articleDetail.updatedBy }).select("_id fullName");
-    if (accountInfo) {
-      articleDetail.authorName = accountInfo.fullName;
-      articleDetail.date = formatDate(articleDetail.updatedAt);
-    }
-  } else if (articleDetail.createdBy) {
-    const accountInfo = await AccountAdmin.findOne({ _id: articleDetail.createdBy }).select("_id fullName");
-    if (accountInfo) {
-      articleDetail.authorName = accountInfo.fullName;
-      articleDetail.date = formatDate(articleDetail.createdAt);
-    }
-  }
+  await populateAuthors([articleDetail]);
 
   metadataCache.set(detailCacheKey, articleDetail, 120);
   return articleDetail;
@@ -157,14 +149,18 @@ export const getCategoryIdBySlug = async (slug: string): Promise<string | null> 
 export const incrementCategoryView = async (categoryId: string) => {
   await CategoryBlog.updateOne(
     { _id: categoryId, deleted: false, status: "active" },
-    { $inc: { view: 1 } }
+    { $inc: { view: 1 } },
+    // A view is not an edit: updatedAt feeds "last updated" dates, the sitemap and structured data.
+    { timestamps: false }
   );
 };
 
 export const incrementArticleView = async (slug: string) => {
   await Blog.updateOne(
     { slug: slug, deleted: false, status: "published" },
-    { $inc: { view: 1 } }
+    { $inc: { view: 1 } },
+    // A view is not an edit: updatedAt feeds "last updated" dates, the sitemap and structured data.
+    { timestamps: false }
   );
 };
 
@@ -178,14 +174,12 @@ export const getPopularArticles = async (limit: number = PRODUCT_DISPLAY_CONFIG.
       deleted: false,
       status: "published"
     })
-    .select("name avatar slug createdAt")
+    .select("name avatar slug createdAt publishAt")
     .sort({ view: "desc" })
     .limit(limit);
 
   for (const item of blogList) {
-    if (item.createdAt) {
-      item.createdAtFormat = formatDate(item.createdAt);
-    }
+    item.createdAtFormat = formatDate(item.publishAt || item.createdAt);
   }
 
   metadataCache.set(cacheKey, blogList, 300);

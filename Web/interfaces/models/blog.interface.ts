@@ -13,12 +13,15 @@ export interface IBlog extends Document {
   view: number;
   search?: string;
   publishAt?: Date;
+  author?: string;
+  sourceUrl?: string;
   deleted: boolean;
   deletedAt?: Date;
   createdBy?: string;
   updatedBy?: string;
   authorName?: string;
   date?: string;
+  updatedDate?: string;
   createdAtFormat?: string;
   seo?: ISeo;
   createdAt: Date;
@@ -34,6 +37,8 @@ export interface IArticleInput {
   content?: string;
   status?: "draft" | "published" | "archived";
   publishAt?: Date | string;
+  author?: string;
+  sourceUrl?: string;
   createdBy?: string;
   updatedBy?: string;
   search?: string;

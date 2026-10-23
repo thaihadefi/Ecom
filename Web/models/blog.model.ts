@@ -20,6 +20,9 @@ const schema = new mongoose.Schema(
     },
     search: String,
     publishAt: Date,
+    // Byline and original source for articles written by someone other than the staff member who posts them.
+    author: String,
+    sourceUrl: String,
     deleted: {
       type: Boolean,
       default: false

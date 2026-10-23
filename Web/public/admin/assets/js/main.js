@@ -996,6 +996,8 @@ if(articleCreateForm) {
       formData.append("avatar", avatar);
       formData.append("description", description);
       formData.append("content", content);
+      formData.append("author", event.target.author ? event.target.author.value : "");
+      formData.append("sourceUrl", event.target.sourceUrl ? event.target.sourceUrl.value : "");
 
       fetch(`/${pathAdmin}/api/articles`, {
         method: "POST",
@@ -1051,6 +1053,8 @@ if(articleEditForm) {
       formData.append("avatar", avatar);
       formData.append("description", description);
       formData.append("content", content);
+      formData.append("author", event.target.author ? event.target.author.value : "");
+      formData.append("sourceUrl", event.target.sourceUrl ? event.target.sourceUrl.value : "");
 
       fetch(`/${pathAdmin}/api/articles/${id}`, {
         method: "PATCH",

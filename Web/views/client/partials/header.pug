@@ -8,20 +8,36 @@ header(class="header_main")
             href="/"
             )
             img.img-fluid.w-100.notranslate(
-              alt="Logo"
+              alt=(settingGeneral && settingGeneral.websiteName) || "Home"
               src=`${settingGeneral && settingGeneral.logo ? domainCDN + settingGeneral.logo : '/images/logo.png'}`
               translate="no"
               )
-          button.d-block.d-lg-none(
-            aria-controls="offcanvasWithBothOptions"
-            aria-label="Open menu"
-            data-bs-target="#offcanvasWithBothOptions"
-            data-bs-toggle="offcanvas"
-            class="mobile_menu_icon"
-            type="button"
-            )
-            span(class="mobile_menu_icon")
-              i.fas.fa-bars(class="menu_icon_bar" aria-hidden="true")
+            if (storefront && storefront.logoDisplay === "logo-name" && settingGeneral && settingGeneral.websiteName)
+              span.header_logo_name.notranslate(translate="no" aria-hidden="true")= settingGeneral.websiteName
+          //- Phones and tablets keep search and the cart one tap away; the rest of the menu lives in the off-canvas.
+          .header_mobile_actions.d-flex.d-lg-none
+            button.header_mobile_btn(
+              aria-controls="offcanvasWithBothOptions"
+              aria-label="Search products"
+              data-bs-target="#offcanvasWithBothOptions"
+              data-bs-toggle="offcanvas"
+              data-mobile-search
+              type="button"
+              )
+              i.fas.fa-search(aria-hidden="true")
+            a.header_mobile_btn(href="/cart" aria-label="Shopping cart")
+              i.fas.fa-shopping-cart(aria-hidden="true")
+              span.header_mobile_count(mini-cart-quantity aria-hidden="true") 0
+            button.d-block.d-lg-none(
+              aria-controls="offcanvasWithBothOptions"
+              aria-label="Open menu"
+              data-bs-target="#offcanvasWithBothOptions"
+              data-bs-toggle="offcanvas"
+              class="mobile_menu_icon"
+              type="button"
+              )
+              span(class="mobile_menu_icon")
+                i.fas.fa-bars(class="menu_icon_bar" aria-hidden="true")
       .col-lg-5.col-xl-5.col-xxl-5.d-none.d-lg-block
         form(form-search action="/search" method="get" role="search")
           .input

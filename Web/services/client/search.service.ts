@@ -26,7 +26,7 @@ const searchArticles = async (keyword: string): Promise<IBlog[]> => {
   const pageIds = rankedIds.filter((id) => visibleIds.has(id)).slice(0, ARTICLE_RESULT_LIMIT);
 
   const articleList = sortByIdOrder(
-    await Blog.find({ _id: { $in: pageIds } }).select("name avatar slug createdBy updatedBy createdAt updatedAt"),
+    await Blog.find({ _id: { $in: pageIds } }).select("name avatar slug author createdBy createdAt updatedAt publishAt"),
     pageIds
   );
   await populateAuthors(articleList);

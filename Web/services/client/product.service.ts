@@ -519,14 +519,18 @@ export const getCategoryIdBySlug = async (slug: string): Promise<string | null> 
 export const incrementProductView = async (productId: string) => {
   await Product.updateOne(
     { _id: productId, deleted: false, status: "active" },
-    { $inc: { view: 1 } }
+    { $inc: { view: 1 } },
+    // A view is not an edit: updatedAt feeds "last updated" dates, the sitemap and structured data.
+    { timestamps: false }
   );
 };
 
 export const incrementCategoryProductView = async (categoryId: string) => {
   await CategoryProduct.updateOne(
     { _id: categoryId, deleted: false, status: "active" },
-    { $inc: { view: 1 } }
+    { $inc: { view: 1 } },
+    // A view is not an edit: updatedAt feeds "last updated" dates, the sitemap and structured data.
+    { timestamps: false }
   );
 };
 

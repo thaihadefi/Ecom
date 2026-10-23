@@ -11,12 +11,17 @@ div(class="blog_details_left")
       li
         span
           i.fas.fa-calendar-alt.me-2(aria-hidden="true")
-        | #{articleDetail.date}
+        | Published #{articleDetail.date}
+    if (articleDetail.updatedDate)
+      li
+        span
+          i.fas.fa-history.me-2(aria-hidden="true")
+        | Updated #{articleDetail.updatedDate}
     if (articleDetail.authorName)
       li
         span
           i.fas.fa-user(aria-hidden="true")
-        | #{articleDetail.authorName}
+        | By #{articleDetail.authorName}
     li
       span
         i.fas.fa-eye.me-2(aria-hidden="true")
@@ -26,3 +31,9 @@ div(class="blog_details_left")
     | !{safeHtml(articleDetail.description)}
   div(class="blog_details_content")
     | !{safeHtml(articleDetail.content)}
+  if (articleDetail.sourceUrl)
+    p(class="blog_details_source")
+      | First published at
+      |
+      a(href=articleDetail.sourceUrl target="_blank" rel="noopener noreferrer")= articleDetail.sourceUrl.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]
+
