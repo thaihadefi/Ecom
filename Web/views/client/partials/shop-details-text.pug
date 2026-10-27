@@ -30,26 +30,38 @@ div(class="shop_details_text")
             : 0);
     span.discount(style=(detailDisc > 0 ? "" : "display: none;")) -#{detailDisc}%
   div(class="short_description") !{safeHtml(productDetail.description)}
+  //- Options are radio groups the shopper picks explicitly (a preselected size is easy to miss); a group with
+  //- a single value is picked by main.js. The hint under a group names what is still missing.
   each attribute in attributeList
     div(class="details_single_variant")
-      p(class="variant_title") #{attribute.name}:
+      p(class="variant_title" id=`variantTitle${attribute.id}`)
+        | #{attribute.name}:
+        |
+        span(class="variant_selected" data-variant-selected)
       if (attribute.type == "color")
-        ul(class="details_variant_color")
+        ul(class="details_variant_color" role="radiogroup" aria-labelledby=`variantTitle${attribute.id}`)
           each variant, index in attribute.variants
             li(
               style=`background: ${safeColor(variant)};`
               attribute-id=attribute.id
               variant=variant
+              role="radio"
+              tabindex="0"
+              aria-checked="false"
               title=(attribute.variantsLabel && attribute.variantsLabel[index] ? attribute.variantsLabel[index] : variant)
               aria-label=(attribute.variantsLabel && attribute.variantsLabel[index] ? attribute.variantsLabel[index] : variant)
               )
       else
-        ul(class="details_variant_size")
+        ul(class="details_variant_size" role="radiogroup" aria-labelledby=`variantTitle${attribute.id}`)
           each variantLabel, index in (attribute.variantsLabel && attribute.variantsLabel.length ? attribute.variantsLabel : attribute.variants)
             li(
               attribute-id=attribute.id
               variant=attribute.variants[index]
+              role="radio"
+              tabindex="0"
+              aria-checked="false"
             ) #{variantLabel || attribute.variants[index]}
+      p(class="variant_hint" data-variant-hint data-choose-label=`Choose a ${String(attribute.name || "option").toLowerCase()}` aria-live="polite")
   .d-flex.flex-wrap.align-items-center
     div(class="details_qty_input")
       button.minus(type="button" aria-label="Decrease quantity")

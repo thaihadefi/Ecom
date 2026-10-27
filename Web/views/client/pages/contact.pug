@@ -9,29 +9,31 @@ block main
       .row.justify-content-center
         .col-lg-5.mb-5.mb-lg-0
           h2(class="contact-section-title") Get In Touch
+          //- Every row comes from Settings > General and is hidden when that field is empty.
           if storeContact.address
-            div(style="display:flex;align-items:flex-start;margin-bottom:20px;")
-              i.fas.fa-map-marker-alt(style="color:#A16207;font-size:20px;margin-right:16px;margin-top:3px;" aria-hidden="true")
+            .contact_info_item
+              i.fas.fa-map-marker-alt(aria-hidden="true")
               div
-                h3(style="font-weight:600;font-size:15px;margin-bottom:4px;") Address
-                a(href=storeContact.mapUrl target="_blank" rel="noopener noreferrer" style="color:#6b7280;")= storeContact.address
+                h3 Address
+                a(href=storeContact.mapUrl target="_blank" rel="noopener noreferrer")= storeContact.address
           if storeContact.phone
-            div(style="display:flex;align-items:flex-start;margin-bottom:20px;")
-              i.fas.fa-phone-alt(style="color:#A16207;font-size:20px;margin-right:16px;margin-top:3px;" aria-hidden="true")
+            .contact_info_item
+              i.fas.fa-phone-alt(aria-hidden="true")
               div
-                h3(style="font-weight:600;font-size:15px;margin-bottom:4px;") Hotline
-                a(href=storeContact.phoneHref style="color:#A16207;")= storeContact.phone
+                h3 Hotline
+                a(href=storeContact.phoneHref)= storeContact.phone
           if storeContact.email
-            div(style="display:flex;align-items:flex-start;margin-bottom:20px;")
-              i.fas.fa-envelope(style="color:#A16207;font-size:20px;margin-right:16px;margin-top:3px;" aria-hidden="true")
+            .contact_info_item
+              i.fas.fa-envelope(aria-hidden="true")
               div
-                h3(style="font-weight:600;font-size:15px;margin-bottom:4px;") Email
-                a(href=`mailto:${storeContact.email}` style="color:#A16207;")= storeContact.email
-          div(style="display:flex;align-items:flex-start;")
-            i.fas.fa-clock(style="color:#A16207;font-size:20px;margin-right:16px;margin-top:3px;" aria-hidden="true")
-            div
-              h3(style="font-weight:600;font-size:15px;margin-bottom:4px;") Working Hours
-              p(style="color:#6b7280;margin:0;") Monday - Saturday: 7:30 AM - 4:30 PM
+                h3 Email
+                a(href=`mailto:${storeContact.email}`)= storeContact.email
+          if settingGeneral && settingGeneral.openingHours
+            .contact_info_item
+              i.fas.fa-clock(aria-hidden="true")
+              div
+                h3 Opening hours
+                p= settingGeneral.openingHours
 
         .col-lg-6.offset-lg-1
           h2(class="contact-section-title") Send A Message

@@ -12,6 +12,8 @@ export interface ISettingGeneral extends Partial<Record<SocialLinkKey, string>> 
   shopSenderPhone?: string;
   shopSenderAddress?: string;
   contactEmail?: string;
+  /** Free text shown on the Contact page, e.g. "Mon–Sat 8:00–17:00"; empty hides the row */
+  openingHours?: string;
   shopLat?: string | number;
   shopLng?: string | number;
 }

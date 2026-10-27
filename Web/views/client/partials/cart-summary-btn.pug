@@ -1,11 +1,12 @@
+//- Checkout is the one primary action; going back to the store is a quiet link under it.
 div(class="cart_summary_btn")
-  a(
-    href="/"
-    class="common_btn continue_shopping"
-    ) Continue shopping
   a(
     href="/checkout"
     class="common_btn"
     )
     | Checkout
     i.fas.fa-long-arrow-right(aria-hidden="true")
+  a(
+    href="/product"
+    class="continue_shopping_link"
+    ) Continue shopping

@@ -13,7 +13,7 @@ div(class="cart_page_summary")
     span
       span(discount) 0
   if (FEATURES.LOYALTY_POINTS)
-    p.summary_row(class="checkout_point_row" style="display: none;" point-row)
+    p.summary_row(class="checkout_point_row" hidden point-row)
       label(style="display: flex; align-items: center; gap: 6px; cursor: pointer;")
         input(type="checkbox" id="usePointCheckbox" use-point-checkbox)
         | Use Points
