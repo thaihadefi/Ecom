@@ -51,7 +51,8 @@ html(lang=storefront.language)
     meta(name="description" content=metaDescription)
     meta(name="robots" content=`${metaIndex ? "index" : "noindex"}, ${metaFollow ? "follow" : "nofollow"}`)
 
-    link(rel="canonical" href=canonicalUrl)
+    //- Republished content points search engines at the original (canonicalSource); everything else at itself.
+    link(rel="canonical" href=(canonicalSource || canonicalUrl))
     if (markdownPath)
       link(rel="alternate" type="text/markdown" href=markdownPath title="Markdown version")
 

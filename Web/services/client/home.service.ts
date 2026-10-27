@@ -21,7 +21,8 @@ export const generateSitemapXml = async (origin: string): Promise<string> => {
   const notNoindex = { "seo.robots.index": { $ne: false } };
   const [productList, blogList, productCategories, blogCategories] = await Promise.all([
     Product.find({ deleted: false, status: "active", ...notNoindex }).select("slug updatedAt"),
-    FEATURES.BLOG ? Blog.find({ deleted: false, status: "published", ...notNoindex }).select("slug updatedAt") : [],
+    // A republished article's canonical is its original source, so it is not listed here.
+    FEATURES.BLOG ? Blog.find({ deleted: false, status: "published", ...notNoindex, sourceUrl: { $in: [null, ""] } }).select("slug updatedAt") : [],
     CategoryProduct.find({ deleted: false, status: "active" }).select("slug updatedAt"),
     FEATURES.BLOG ? CategoryBlog.find({ deleted: false, status: "active" }).select("slug updatedAt") : [],
   ]);

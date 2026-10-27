@@ -97,12 +97,12 @@ block main
               textarea(id="content" name="content" textarea-mce)
           .col-md-12.col-lg-12
             .mb-3
-              label.form-label Tags
-              select(select-tag name="tags")
+              label.form-label(for="productTags") Tags
+              select(select-tag id="productTags" name="tags")
           .col-md-12.col-lg-12
             .mb-3
-              label.form-label Frequently Bought Together
-              select(select-tag name="boughtTogether" multiple taggable="false")
+              label.form-label(for="productBoughtTogether") Frequently Bought Together
+              select(select-tag id="productBoughtTogether" name="boughtTogether" multiple taggable="false")
                 each item in productList
                   option(value=item.id) #{item.name}
         button.btn.btn-primary(type="submit") Create New

@@ -38,6 +38,7 @@ const schemas: Record<string, Joi.ObjectSchema> = {
     shopSenderPhone: text(30),
     shopSenderAddress: text(300),
     contactEmail: Joi.string().trim().email({ tlds: { allow: false } }).max(254).allow(""),
+    openingHours: text(200),
     shopLat: Joi.number().min(-90).max(90).allow(""),
     shopLng: Joi.number().min(-180).max(180).allow(""),
     storeDescription: text(300),

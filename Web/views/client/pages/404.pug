@@ -1,14 +1,23 @@
 extends ../layouts/default.pug
 
+//- Search is the most useful next step from a missing page; the home page is the quiet alternative.
 block main
-  section.error_page
+  section.not_found
     .container
-      .row
-        .col-12
-          .error_text
-            p.error_code 404
-            h1 Page not found
-            p The page you’re looking for doesn’t exist or has been moved.
-            .d-flex.flex-wrap.gap-3.justify-content-center
-              a.common_btn(href="/") Back to Home
-              a.common_btn(href="javascript:history.back()") Back
+      .not_found_inner
+        p.not_found_code(aria-hidden="true") 404
+        h1 Page not found
+        p.not_found_text The page you’re looking for doesn’t exist or has been moved. Search the store, or start again from the home page.
+        form.not_found_search(action="/search" method="get" role="search")
+          label.visually-hidden(for="notFoundSearch") Search products
+          input#notFoundSearch(
+            type="search"
+            name="keyword"
+            maxlength="100"
+            placeholder="Search products..."
+            enterkeyhint="search"
+            autocomplete="off"
+            required
+            )
+          button.common_btn(type="submit") Search
+        a.not_found_home(href="/") Go to the home page

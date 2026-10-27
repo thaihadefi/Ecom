@@ -52,7 +52,15 @@ export const goshipProvider: ShippingProvider = {
     }, { headers: authHeaders(ctx) });
 
     const rates: GoShipRate[] = Array.isArray(res.data?.data) ? res.data.data : [];
-    return rates.map((r) => ({
+    // GoShip can quote one service from several price tables; shoppers can't tell identical rows apart, so keep one.
+    const seen = new Set<string>();
+    const distinct = rates.filter((r) => {
+      const key = [r.carrier_name, r.service, r.expected, r.total_fee].map((part) => String(part ?? "").trim()).join("|");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return distinct.map((r) => ({
       id: String(r.id),
       carrierName: r.carrier_name,
       service: r.service,

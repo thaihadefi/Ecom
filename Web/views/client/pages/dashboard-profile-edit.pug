@@ -38,7 +38,7 @@ block main
                         )
                   .col-md-6
                     div(class="single_input")
-                      label Phone Number
+                      label(for="phone") Phone Number
                       input(
                         placeholder="e.g. 0987654321"
                         type="tel"
@@ -57,8 +57,8 @@ block main
               .row
                 .col-md-6
                   div(class="single_input")
-                    label Current Email
-                    input(type="email" value=accountUser.email readonly aria-readonly="true" autocomplete="email" style="background:#f5f5f5;cursor:not-allowed;")
+                    label(for="currentEmail") Current Email
+                    input#currentEmail(type="email" value=accountUser.email readonly aria-readonly="true" autocomplete="email" style="background:var(--surface-2);cursor:not-allowed;")
               div#changeEmailStep1
                 .row
                   .col-md-6

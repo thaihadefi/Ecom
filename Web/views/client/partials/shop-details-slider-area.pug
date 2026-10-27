@@ -12,7 +12,7 @@ div(class="shop_details_slider_area")
                 )
     .col-xl-10.col-lg-9.col-md-9.order-md-1
       .row(class="details_slider_thumb")
-        each image in productDetail.images
+        each image, imageIndex in productDetail.images
           .col-12
             div(class="details_slider_thumb_item")
               a.venobox(
@@ -20,8 +20,10 @@ div(class="shop_details_slider_area")
                 data-gall=`gallery-${productDetail.slug}`
                 aria-label=`View larger image of ${productDetail.name}`
                 )
+                //- The first photo is the page's largest paint, so it loads at once.
                 img.img-fluid.w-100(
                   alt=productDetail.name
                   src=`${domainCDN}${image}`
-                  loading="lazy"
+                  loading=(imageIndex === 0 ? "eager" : "lazy")
+                  fetchpriority=(imageIndex === 0 ? "high" : "auto")
                   )

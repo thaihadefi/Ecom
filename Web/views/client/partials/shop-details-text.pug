@@ -3,9 +3,26 @@ include ../mixins/index.pug
 div(class="shop_details_text")
   script.
     const productVariants = !{safeJson(productDetail.variants)};
+  //- Until the shopper picks every option, price and stock describe the sellable variants, not the product record.
+  -
+    var sellableVariants = (attributeList && attributeList.length ? productDetail.variants || [] : [])
+      .filter(v => v.status !== false);
+    var variantPrices = sellableVariants.map(v => Number(v.priceNew ?? v.price ?? 0));
+    var variantPriceMin = variantPrices.length ? Math.min(...variantPrices) : 0;
+    var variantPriceMax = variantPrices.length ? Math.max(...variantPrices) : 0;
+    var variantsInStock = sellableVariants.some(v => (v.stock ?? 0) > 0);
+    // A struck-through price is only true before a pick when every variant shares both prices.
+    var variantOldPrices = sellableVariants.map(v => Number(v.priceOld || 0));
+    var variantPriceOld = variantPriceMin === variantPriceMax && variantOldPrices.every(p => p === variantOldPrices[0])
+      && variantOldPrices[0] > variantPriceMin ? variantOldPrices[0] : 0;
   h1(class="details_title") #{productDetail.name}
   .d-flex.flex-wrap.align-items-center
-    if (productDetail.stock > 0)
+    if (sellableVariants.length)
+      if (variantsInStock)
+        p.stock Choose options to see stock
+      else
+        p(class="out_stock stock") Out of Stock
+    else if (productDetail.stock > 0)
       p.stock In Stock (#{productDetail.stock})
     else
       p(class="out_stock stock") Out of Stock
@@ -17,45 +34,71 @@ div(class="shop_details_text")
       i.fas.fa-eye.me-1(aria-hidden="true" style="color: var(--themeColorTwo);")
       span #{productDetail.view || 0} Views
   p.price
-    span.price-new.text-nowrap(data-base-price=(productDetail.priceNew || 0)) #{formatPrice(productDetail.priceNew || 0)}
-    if (productDetail.priceOld && productDetail.priceOld > (productDetail.priceNew || 0))
-      del.price-old.text-nowrap(data-base-price=productDetail.priceOld) #{formatPrice(productDetail.priceOld)}
+    if (sellableVariants.length)
+      //- The range spans convert with the currency switcher; picking a variant replaces them with its price.
+      if (variantPriceMin !== variantPriceMax)
+        span.price-new
+          | !{priceHtml(variantPriceMin)} – !{priceHtml(variantPriceMax)}
+      else
+        span.price-new.text-nowrap(data-base-price=variantPriceMin) #{formatPrice(variantPriceMin)}
+      if (variantPriceOld)
+        del.price-old.text-nowrap(data-base-price=variantPriceOld) #{formatPrice(variantPriceOld)}
+        span.discount -#{Math.round((1 - variantPriceMin / variantPriceOld) * 100)}%
+      else
+        del.price-old(style="display: none;")
+        span.discount(style="display: none;")
     else
-      del.price-old(style="display: none;")
-    -
-      var detailDisc = productDetail.discount > 0
-        ? Math.round(productDetail.discount)
-        : (productDetail.priceOld && productDetail.priceNew && productDetail.priceOld > productDetail.priceNew
-            ? Math.round((1 - productDetail.priceNew / productDetail.priceOld) * 100)
-            : 0);
-    span.discount(style=(detailDisc > 0 ? "" : "display: none;")) -#{detailDisc}%
+      span.price-new.text-nowrap(data-base-price=(productDetail.priceNew || 0)) #{formatPrice(productDetail.priceNew || 0)}
+      if (productDetail.priceOld && productDetail.priceOld > (productDetail.priceNew || 0))
+        del.price-old.text-nowrap(data-base-price=productDetail.priceOld) #{formatPrice(productDetail.priceOld)}
+      else
+        del.price-old(style="display: none;")
+      -
+        var detailDisc = productDetail.discount > 0
+          ? Math.round(productDetail.discount)
+          : (productDetail.priceOld && productDetail.priceNew && productDetail.priceOld > productDetail.priceNew
+              ? Math.round((1 - productDetail.priceNew / productDetail.priceOld) * 100)
+              : 0);
+      span.discount(style=(detailDisc > 0 ? "" : "display: none;")) -#{detailDisc}%
   div(class="short_description") !{safeHtml(productDetail.description)}
+  //- Options are radio groups the shopper picks explicitly (a preselected size is easy to miss); a group with
+  //- a single value is picked by main.js. The hint under a group names what is still missing.
   each attribute in attributeList
     div(class="details_single_variant")
-      p(class="variant_title") #{attribute.name}:
+      p(class="variant_title" id=`variantTitle${attribute.id}`)
+        | #{attribute.name}:
+        |
+        span(class="variant_selected" data-variant-selected)
       if (attribute.type == "color")
-        ul(class="details_variant_color")
+        ul(class="details_variant_color" role="radiogroup" aria-labelledby=`variantTitle${attribute.id}`)
           each variant, index in attribute.variants
             li(
               style=`background: ${safeColor(variant)};`
               attribute-id=attribute.id
               variant=variant
+              role="radio"
+              tabindex="0"
+              aria-checked="false"
               title=(attribute.variantsLabel && attribute.variantsLabel[index] ? attribute.variantsLabel[index] : variant)
               aria-label=(attribute.variantsLabel && attribute.variantsLabel[index] ? attribute.variantsLabel[index] : variant)
               )
       else
-        ul(class="details_variant_size")
+        ul(class="details_variant_size" role="radiogroup" aria-labelledby=`variantTitle${attribute.id}`)
           each variantLabel, index in (attribute.variantsLabel && attribute.variantsLabel.length ? attribute.variantsLabel : attribute.variants)
             li(
               attribute-id=attribute.id
               variant=attribute.variants[index]
+              role="radio"
+              tabindex="0"
+              aria-checked="false"
             ) #{variantLabel || attribute.variants[index]}
+      p(class="variant_hint" data-variant-hint data-choose-label=`Choose a ${String(attribute.name || "option").toLowerCase()}` aria-live="polite")
   .d-flex.flex-wrap.align-items-center
     div(class="details_qty_input")
       button.minus(type="button" aria-label="Decrease quantity")
         i.fas.fa-minus(aria-hidden="true")
       input(
-        value=(productDetail.stock > 0 ? 1 : 0)
+        value=((sellableVariants.length ? variantsInStock : productDetail.stock > 0) ? 1 : 0)
         type="number"
         class="input-quantity"
         min="1"

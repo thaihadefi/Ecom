@@ -95,6 +95,11 @@ block main
             .mb-3
               label.form-label(for="contactEmail") Contact Email
               input(id="contactEmail" name="contactEmail" type="email" class="form-control" value=`${record && record.data.contactEmail ? record.data.contactEmail : ''}`)
+          .col-md-12.col-lg-12
+            .mb-3
+              label.form-label(for="openingHours") Opening hours
+              input(id="openingHours" name="openingHours" type="text" class="form-control" maxlength="200" placeholder="e.g. Mon–Sat 8:00–17:00" value=(record && record.data.openingHours ? record.data.openingHours : ''))
+              .form-text Shown on the Contact page; leave empty to hide it.
           input(id="shopLat" name="shopLat" type="hidden" value=(record && record.data.shopLat != null ? record.data.shopLat : ''))
           input(id="shopLng" name="shopLng" type="hidden" value=(record && record.data.shopLng != null ? record.data.shopLng : ''))
 

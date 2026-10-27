@@ -68,6 +68,7 @@ export const detail = async (req: Request, res: Response) => {
       pageDescription: plainText(articleDetail.description || articleDetail.content),
       pageImage: articleDetail.avatar,
       ogType: "article",
+      canonicalSource: articleDetail.sourceUrl || "",
       jsonLd: articleJsonLd(articleDetail, res.locals.siteOrigin, res.locals.canonicalUrl),
       markdownPath: `/article/detail/${encodeURIComponent(String(articleDetail.slug))}.md`
     });

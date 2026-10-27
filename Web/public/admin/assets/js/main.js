@@ -2105,6 +2105,7 @@ if(listSelectTag.length > 0) {
 
     const inputTag = container.querySelector(".selectr-tag-input");
     if(inputTag) {
+      inputTag.setAttribute("aria-label", `Add to ${trigger?.getAttribute("aria-label") || "tags"}`);
       inputTag.addEventListener("keydown", (event) => {
         if(event.key == "Enter") {
           event.preventDefault();

@@ -1056,7 +1056,7 @@ const drawCart = () => {
               >
                 <td class="cart_page_checkbox">
                   <div class="form-check">
-                    <input class="form-check-input" value="" type="checkbox" ${item.checked && "checked"} />
+                    <input class="form-check-input" value="" type="checkbox" aria-label="Include ${esc(detail.name)} in this order" ${item.checked && "checked"} />
                   </div>
                 </td>
                 <td class="cart_page_img">
@@ -1077,7 +1077,7 @@ const drawCart = () => {
                 </td>
                 <td class="cart_page_quantity">
                   <div class="details_qty_input">
-                    <button class="minus">
+                    <button class="minus" type="button" aria-label="One fewer">
                       <i class="fas fa-minus" aria-hidden="true"></i>
                     </button>
                     <input
@@ -1086,8 +1086,9 @@ const drawCart = () => {
                       readonly=""
                       min="1"
                       max="${stock}"
+                      aria-label="Quantity"
                     />
-                    <button class="plus">
+                    <button class="plus" type="button" aria-label="One more">
                       <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
                   </div>
@@ -1202,14 +1203,15 @@ const drawCart = () => {
           const pointRow = document.querySelector("[point-row]");
           const usePointCheckbox = document.querySelector("[use-point-checkbox]");
           if(pointRow) {
+            // hidden, not an inline display style: .summary_row sets display with !important.
             if(pointData && pointsToUse > 0) {
-              pointRow.style.display = "";
+              pointRow.hidden = false;
               const availablePointEl = pointRow.querySelector("[available-point]");
               if(availablePointEl) {
                 availablePointEl.textContent = `(${pointsToUse} / ${pointData.canUsePoint} points)`;
               }
             } else {
-              pointRow.style.display = "none";
+              pointRow.hidden = true;
               if(usePointCheckbox) usePointCheckbox.checked = false;
             }
           }
@@ -1358,25 +1360,31 @@ if(shopDetailsText) {
       const attributeId = item.getAttribute("attribute-id");
       const variant = item.getAttribute("variant");
 
-      item.closest("ul").querySelectorAll("li").forEach(li => li.classList.remove("active"));
+      item.closest("ul").querySelectorAll("li").forEach(li => {
+        li.classList.remove("active");
+        li.setAttribute("aria-checked", "false");
+      });
 
       item.classList.add("active");
+      item.setAttribute("aria-checked", "true");
+      const group = item.closest(".details_single_variant");
+      const selectedName = group.querySelector("[data-variant-selected]");
+      if (selectedName) selectedName.textContent = item.getAttribute("aria-label") || item.textContent.trim();
+      const hint = group.querySelector("[data-variant-hint]");
+      if (hint) hint.textContent = "";
+      group.classList.remove("needs_choice");
 
       selected[attributeId] = variant;
 
-      const selectedValues = Object.values(selected);
-      if(selectedValues.length > 0) {
-        const totalAttrs = shopDetailsText.querySelectorAll(".details_single_variant").length;
-        const allAttrsSelected = totalAttrs > 0 ? Object.keys(selected).length === totalAttrs : true;
-
-        const variantMatched = allAttrsSelected
-          ? productVariants.find(variantItem => {
-              return (
-                (variantItem.attributeValue || []).length === Object.keys(selected).length &&
-                variantItem.attributeValue.every(attr => String(selected[attr.attrId]) === String(attr.value))
-              );
-            })
-          : null;
+      // Until every group is picked the page keeps describing all variants, not "Unavailable".
+      const totalAttrs = shopDetailsText.querySelectorAll(".details_single_variant").length;
+      if(Object.keys(selected).length === totalAttrs) {
+        const variantMatched = productVariants.find(variantItem => {
+          return (
+            (variantItem.attributeValue || []).length === Object.keys(selected).length &&
+            variantItem.attributeValue.every(attr => String(selected[attr.attrId]) === String(attr.value))
+          );
+        });
 
         if(variantMatched && variantMatched.status !== false) {
           const currentVariantPrice = variantMatched.priceNew ?? variantMatched.price ?? 0;
@@ -1449,17 +1457,34 @@ if(shopDetailsText) {
     })
   })
 
-  if (typeof productVariants !== "undefined" && productVariants && productVariants.length > 0) {
-    const firstActive = productVariants.find(v => v.status && v.stock > 0) || productVariants.find(v => v.status) || productVariants[0];
-    if (firstActive && firstActive.attributeValue) {
-      firstActive.attributeValue.forEach(attr => {
-        const matchingLi = shopDetailsText.querySelector(`.details_single_variant li[attribute-id="${attr.attrId}"][variant="${attr.value}"]`);
-        if (matchingLi) {
-          matchingLi.click();
-        }
-      });
-    }
-  }
+  // Options are keyboard radios: Enter or Space picks the focused one.
+  listElementLiVariant.forEach(item => {
+    item.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        item.click();
+      }
+    });
+  });
+
+  // Nothing is preselected (a preselected size is easily missed), except a group with only one value.
+  shopDetailsText.querySelectorAll(".details_single_variant").forEach(group => {
+    const options = group.querySelectorAll("li[attribute-id]");
+    if (options.length === 1) options[0].click();
+  });
+
+  // Names each option group still unpicked, under the group itself; returns true when all are picked.
+  const flagMissingOptions = () => {
+    const missing = [...shopDetailsText.querySelectorAll(".details_single_variant")]
+      .filter(group => !group.querySelector("li.active"));
+    missing.forEach(group => {
+      group.classList.add("needs_choice");
+      const hint = group.querySelector("[data-variant-hint]");
+      if (hint) hint.textContent = hint.dataset.chooseLabel;
+    });
+    if (missing.length) missing[0].querySelector("li[attribute-id]")?.focus();
+    return missing.length === 0;
+  };
 
   buttonPlus.addEventListener("click", () => {
     const quantity = parseInt(inputQuantity.value);
@@ -1482,8 +1507,9 @@ if(shopDetailsText) {
     const quantity = parseInt(inputQuantity.value);
 
     if (typeof productVariants !== "undefined" && productVariants && productVariants.length > 0) {
+      if (!flagMissingOptions()) return;
       if (!variantSelected) {
-        notyf.error("Please select product options before adding to cart!");
+        notyf.error("This combination is not available. Choose another option.");
         return;
       }
       if ((variantSelected.stock ?? 0) <= 0 || quantity <= 0) {
@@ -2114,7 +2140,7 @@ const drawWishlistPage = () => {
                 </td>
                 <td class="cart_page_quantity">
                   <div class="details_qty_input">
-                    <button class="minus">
+                    <button class="minus" type="button" aria-label="One fewer">
                       <i class="fas fa-minus" aria-hidden="true"></i>
                     </button>
                     <input
@@ -2123,8 +2149,9 @@ const drawWishlistPage = () => {
                       readonly=""
                       min="1"
                       max="${stock}"
+                      aria-label="Quantity"
                     />
-                    <button class="plus">
+                    <button class="plus" type="button" aria-label="One more">
                       <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
                   </div>
@@ -2904,6 +2931,13 @@ if(checkoutPage) {
 
   const collapseEl = checkoutPage.querySelector("#collapseThree");
   const collapse = new bootstrap.Collapse(collapseEl, { toggle: false });
+
+  // Saved addresses but none marked default: start on the new-address form rather than on nothing.
+  const inputNewAddress = checkoutPage.querySelector("#flexCheckDefault");
+  if (inputNewAddress && ![...listInputUserAddress].some((input) => input.checked)) {
+    inputNewAddress.checked = true;
+    collapse.show();
+  }
 
   listInputUserAddress.forEach(input => {
     input.addEventListener("change", () => {

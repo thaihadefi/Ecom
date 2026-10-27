@@ -1,8 +1,7 @@
 import { Router } from "express";
 import * as orderController from "../../controllers/client/order.controller";
 import * as orderValidate from "../../validates/client/order.validate";
-import { pageRateLimit, MINUTE } from "../../middlewares/rate-limit.middleware";
-import * as authMiddleware from "../../middlewares/client/auth.middleware";
+import { pageRateLimit, MINUTE, HOUR } from "../../middlewares/rate-limit.middleware";
 
 const router = Router();
 
@@ -23,4 +22,5 @@ export default router;
 
 export const orderApi = Router();
 
-orderApi.post('/', authMiddleware.loggedIn, orderValidate.createPost, orderController.createPost);
+// Guests may order too (the success page finds an order by code and phone); orders reserve stock, so they are rate limited.
+orderApi.post('/', pageRateLimit({ windowMs: 10 * MINUTE, max: 5 }, { windowMs: HOUR, max: 15 }), orderValidate.createPost, orderController.createPost);
