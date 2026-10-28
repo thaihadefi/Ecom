@@ -70,29 +70,29 @@ div(class="shop_details_text")
         |
         span(class="variant_selected" data-variant-selected)
       if (attribute.type == "color")
-        ul(class="details_variant_color" role="radiogroup" aria-labelledby=`variantTitle${attribute.id}`)
+        ul(class="details_variant_color" role="radiogroup" aria-labelledby=`variantTitle${attribute.id}` aria-describedby=`variantHint${attribute.id}`)
           each variant, index in attribute.variants
             li(
               style=`background: ${safeColor(variant)};`
               attribute-id=attribute.id
               variant=variant
               role="radio"
-              tabindex="0"
+              tabindex=(index === 0 ? "0" : "-1")
               aria-checked="false"
               title=(attribute.variantsLabel && attribute.variantsLabel[index] ? attribute.variantsLabel[index] : variant)
               aria-label=(attribute.variantsLabel && attribute.variantsLabel[index] ? attribute.variantsLabel[index] : variant)
               )
       else
-        ul(class="details_variant_size" role="radiogroup" aria-labelledby=`variantTitle${attribute.id}`)
+        ul(class="details_variant_size" role="radiogroup" aria-labelledby=`variantTitle${attribute.id}` aria-describedby=`variantHint${attribute.id}`)
           each variantLabel, index in (attribute.variantsLabel && attribute.variantsLabel.length ? attribute.variantsLabel : attribute.variants)
             li(
               attribute-id=attribute.id
               variant=attribute.variants[index]
               role="radio"
-              tabindex="0"
+              tabindex=(index === 0 ? "0" : "-1")
               aria-checked="false"
             ) #{variantLabel || attribute.variants[index]}
-      p(class="variant_hint" data-variant-hint data-choose-label=`Choose a ${String(attribute.name || "option").toLowerCase()}` aria-live="polite")
+      p(class="variant_hint" id=`variantHint${attribute.id}` data-variant-hint data-choose-label=`Choose a ${String(attribute.name || "option").toLowerCase()}` aria-live="polite")
   .d-flex.flex-wrap.align-items-center
     div(class="details_qty_input")
       button.minus(type="button" aria-label="Decrease quantity")

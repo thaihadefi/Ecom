@@ -2,9 +2,9 @@
 /**
  * Database Seed Script — `npm run db:seed`
  *
- * Creates the minimum data needed to start using a fresh Ecom instance:
+ * Creates the minimum data needed to start using a fresh OpenEcom instance:
  * 1. A "Super Admin" role with all permissions
- * 2. A super-admin account (admin@ecom.local / Admin@123), only when the database has no admin yet
+ * 2. A super-admin account (admin@openecom.local / Admin@123), only when the database has no admin yet
  * 3. Default site settings (general, storefront, payment, shipping placeholders)
  *
  * Safe to run multiple times: existing records are kept, and settings only gain the fields
@@ -30,7 +30,7 @@ import {
   ISettingGeneral
 } from "./interfaces/models/setting.interface";
 
-const SEED_ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL || "admin@ecom.local";
+const SEED_ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL || "admin@openecom.local";
 const SEED_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || "Admin@123";
 const SEED_ADMIN_NAME = process.env.SEED_ADMIN_NAME || "Administrator";
 
@@ -82,7 +82,7 @@ const seedAdmin = async (roleId: string) => {
 const seedSettings = async () => {
   // Field names must match interfaces/models/setting.interface.ts, or the app never reads them.
   const general: ISettingGeneral = {
-    websiteName: "Ecom Store",
+    websiteName: "OpenEcom",
     storeDescription: "Your one-stop destination for quality products delivered fast.",
     domainWebsite: "",
     logo: "",

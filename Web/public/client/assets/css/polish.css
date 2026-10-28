@@ -4710,7 +4710,11 @@ main#main-content > .page_breadcrumb + section { padding-top: 0 !important; }
    wider than its frame, so as a table the quantity, subtotal and remove controls scroll out of view. */
 @media (max-width: 1199.98px) {
     .cart_page .cart_table_area .table-responsive { overflow: visible; }
-    .cart_page .cart_table_area table:has([cart-table]) thead { display: none; }
+    /* Keep the column headers in the accessibility tree when rows become cards. */
+    .cart_page .cart_table_area table:has([cart-table]) thead {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0, 0, 0, 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+    }
     .cart_page [cart-table] tr[cart-item] {
         display: grid;
         grid-template-columns: 28px 88px minmax(0, 1fr) auto;
@@ -4744,6 +4748,9 @@ main#main-content > .page_breadcrumb + section { padding-top: 0 !important; }
     .cart_page [cart-table] .cart_page_details .title { display: block; overflow-wrap: anywhere; }
 }
 .cart_page_details .title, .cart_page_summary ul li .text a { text-transform: none !important; }
+.cart_select_all { margin: 16px; padding-left: 28px; }
+.cart_select_all label { cursor: pointer; }
+.cart_amount { margin: 0; font-size: 18px; font-weight: 400; font-variant-numeric: tabular-nums; }
 
 /* On the cart page the table already lists the items; the summary keeps only the totals. */
 .cart_page .cart_page_summary ul[cart-summary] { display: none !important; }

@@ -959,7 +959,33 @@ const eventCheckShipping = () => {
   })
 }
 
+// Requoting replaces the row controls. Restore the same control, or a neighbouring row after deletion,
+// only if the old control lost focus during replacement (never pull focus back from another field).
+const cartFocusRestorer = () => {
+  const focused = document.activeElement;
+  const row = focused?.closest("[cart-item]");
+  const scope = row?.closest("[cart-table], [mini-cart]");
+  const control = focused?.getAttribute("data-cart-control");
+  if (!row || !scope || !control) return () => {};
+  const productId = row.getAttribute("product-id");
+  const variant = row.getAttribute("variant");
+  const index = [...scope.querySelectorAll("[cart-item]")].indexOf(row);
+  return () => {
+    if (focused.isConnected || (document.activeElement !== document.body && document.activeElement !== focused)) return;
+    const rows = scope.isConnected ? [...scope.querySelectorAll("[cart-item]")] : [];
+    const replacement = rows.find(item => item.getAttribute("product-id") === productId && item.getAttribute("variant") === variant)
+      || rows[Math.min(index, rows.length - 1)];
+    const target = replacement?.querySelector(`[data-cart-control="${control}"]`)
+      || document.querySelector(".cart_page .store_empty_state a")
+      || scope.querySelector("[data-bs-dismiss=offcanvas]");
+    target?.focus({ preventScroll: true });
+  };
+};
+
+let cartRenderVersion = 0;
 const drawCart = () => {
+  const renderVersion = ++cartRenderVersion;
+  const restoreFocus = cartFocusRestorer();
   const cart = JSON.parse(localStorage.getItem("cart"));
   const userAddress = getUserAddress();
 
@@ -976,6 +1002,8 @@ const drawCart = () => {
     })
       .then(res => res.json())
       .then(data => {
+        // A slower quote must not replace a newer addition, quantity change or empty cart.
+        if (renderVersion !== cartRenderVersion) return;
         if(data.code == "error") {
           localStorage.setItem("cart", JSON.stringify([]));
         }
@@ -995,6 +1023,7 @@ const drawCart = () => {
             const { detail } = item;
             const { priceOld, priceNew, stock, image } = resolveItemPricing(item);
             const itemImage = image || (detail.images && detail.images[0]) || "";
+            const itemLabel = [detail.name, ...(item.variant || []).map(option => option.label || option.value)].filter(Boolean).join(", ");
             let htmlVariant = "";
             let htmlVariantSummary = "";
 
@@ -1042,7 +1071,7 @@ const drawCart = () => {
                   </span>
                   ${htmlVariant}
                 </div>
-                <a class="del_icon" href="javascript:;" button-remove-item>
+                <a class="del_icon" href="javascript:;" button-remove-item data-cart-control="remove" aria-label="Remove ${esc(itemLabel)}">
                   <i class="fas fa-times" aria-hidden="true"></i>
                 </a>
               </li>
@@ -1054,17 +1083,17 @@ const drawCart = () => {
                 product-id="${esc(item.productId)}"
                 ${item.variant ? `variant="${encodeURIComponent(JSON.stringify(item.variant))}"` : ''}
               >
-                <td class="cart_page_checkbox">
+                <td class="cart_page_checkbox" headers="cartColInclude">
                   <div class="form-check">
-                    <input class="form-check-input" value="" type="checkbox" aria-label="Include ${esc(detail.name)} in this order" ${item.checked && "checked"} />
+                    <input class="form-check-input" value="" type="checkbox" data-cart-control="include" aria-label="Include ${esc(itemLabel)} in this order" ${item.checked ? "checked" : ""} />
                   </div>
                 </td>
-                <td class="cart_page_img">
+                <td class="cart_page_img" headers="cartColImage">
                   <div class="img">
                     <img class="img-fluid w-100" alt="${esc(detail.name)}" src="${domainCDN}${esc(itemImage)}" />
                   </div>
                 </td>
-                <td class="cart_page_details">
+                <td class="cart_page_details" headers="cartColDetails">
                   <a class="title" href="/product/detail/${esc(detail.slug)}">${esc(detail.name)}</a>
                   <p>
                     ${formatMoney(priceNew)}
@@ -1072,12 +1101,12 @@ const drawCart = () => {
                   </p>
                   ${htmlVariant}
                 </td>
-                <td class="cart_page_price">
-                  <h3>${formatMoney(priceNew)}</h3>
+                <td class="cart_page_price" headers="cartColPrice">
+                  <p class="cart_amount">${formatMoney(priceNew)}</p>
                 </td>
-                <td class="cart_page_quantity">
+                <td class="cart_page_quantity" headers="cartColQuantity">
                   <div class="details_qty_input">
-                    <button class="minus" type="button" aria-label="One fewer">
+                    <button class="minus" type="button" data-cart-control="minus" aria-label="One fewer: ${esc(itemLabel)}">
                       <i class="fas fa-minus" aria-hidden="true"></i>
                     </button>
                     <input
@@ -1086,18 +1115,19 @@ const drawCart = () => {
                       readonly=""
                       min="1"
                       max="${stock}"
-                      aria-label="Quantity"
+                      data-cart-control="quantity"
+                      aria-label="Quantity: ${esc(itemLabel)}"
                     />
-                    <button class="plus" type="button" aria-label="One more">
+                    <button class="plus" type="button" data-cart-control="plus" aria-label="One more: ${esc(itemLabel)}">
                       <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
                   </div>
                 </td>
-                <td class="cart_page_total">
-                  <h3>${formatMoney((priceNew * item.quantity))}</h3>
+                <td class="cart_page_total" headers="cartColSubtotal">
+                  <p class="cart_amount">${formatMoney((priceNew * item.quantity))}</p>
                 </td>
-                <td class="cart_page_action">
-                  <a href="javascript:;" button-remove-item>
+                <td class="cart_page_action" headers="cartColAction">
+                  <a href="javascript:;" button-remove-item data-cart-control="remove" aria-label="Delete ${esc(itemLabel)}">
                     <i class="fas fa-times" aria-hidden="true"></i> Delete
                   </a>
                 </td>
@@ -1228,6 +1258,11 @@ const drawCart = () => {
           if(cartTable) {
             cartTable.innerHTML = htmlCartTable;
           }
+          const checkAll = document.querySelector("[input-cart-check-all]");
+          if (checkAll) {
+            checkAll.checked = data.cart.length > 0 && data.cart.every(item => item.checked);
+            checkAll.indeterminate = data.cart.some(item => item.checked) && !checkAll.checked;
+          }
 
           const cartSummary = document.querySelector("[cart-summary]");
           if(cartSummary) {
@@ -1288,6 +1323,7 @@ const drawCart = () => {
           eventQuantityItemInCart();
           eventCheckItemInCart();
           eventCheckShipping();
+          restoreFocus();
         }
       })
   } else {
@@ -1301,6 +1337,7 @@ const drawCart = () => {
       cartTableArea.innerHTML = emptyStateHTML("fa-shopping-bag", "Your cart is empty", "Browse the store and add something you like.", "Continue Shopping", "/product");
       cartTableArea.closest(".cart_page")?.classList.add("cart_page_empty");
     }
+    restoreFocus();
 
     const cartSummary = document.querySelector("[cart-summary]");
     if(cartSummary) {
@@ -1363,10 +1400,12 @@ if(shopDetailsText) {
       item.closest("ul").querySelectorAll("li").forEach(li => {
         li.classList.remove("active");
         li.setAttribute("aria-checked", "false");
+        li.tabIndex = -1;
       });
 
       item.classList.add("active");
       item.setAttribute("aria-checked", "true");
+      item.tabIndex = 0;
       const group = item.closest(".details_single_variant");
       const selectedName = group.querySelector("[data-variant-selected]");
       if (selectedName) selectedName.textContent = item.getAttribute("aria-label") || item.textContent.trim();
@@ -1457,12 +1496,19 @@ if(shopDetailsText) {
     })
   })
 
-  // Options are keyboard radios: Enter or Space picks the focused one.
+  // Each group is one Tab stop. Arrow keys select and wrap within it; Space/Enter select in place.
   listElementLiVariant.forEach(item => {
     item.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         item.click();
+      } else if (["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(event.key)) {
+        event.preventDefault();
+        const options = [...item.closest("[role=radiogroup]").querySelectorAll("[role=radio]")];
+        const direction = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1;
+        const next = options[(options.indexOf(item) + direction + options.length) % options.length];
+        next.focus();
+        next.click();
       }
     });
   });

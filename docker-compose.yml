@@ -1,3 +1,5 @@
+name: openecom
+
 # nginx (public reverse proxy) -> web -> filemanager (internal only). No MongoDB service:
 # DATABASE in Web/.env points at MongoDB Atlas, same as local dev.
 #
@@ -20,7 +22,7 @@ services:
     # Matches the app's own 10 s graceful-shutdown timeout, so open requests can finish on redeploy.
     stop_grace_period: 15s
     networks:
-      - ecom
+      - openecom
     volumes:
       - ./Web/public:/app/public
       - ./Web/views:/app/views
@@ -43,7 +45,7 @@ services:
       NODE_ENV: "production"
     restart: unless-stopped
     networks:
-      - ecom
+      - openecom
     volumes:
       - ./FileManager/media:/app/media
     healthcheck:
@@ -52,7 +54,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    # No ports: published; only web reaches it, over the ecom network.
+    # No ports: published; only web reaches it, over the openecom network.
 
   nginx:
     image: nginx:alpine
@@ -68,8 +70,8 @@ services:
       - ./nginx:/etc/nginx/conf.d:ro
     restart: unless-stopped
     networks:
-      - ecom
+      - openecom
 
 networks:
-  ecom:
+  openecom:
     driver: bridge

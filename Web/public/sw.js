@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'ecom-v3';
+const CACHE_VERSION = 'openecom-v1';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 
@@ -21,10 +21,11 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
+    // Retire caches from the former name as well as older OpenEcom versions.
     caches.keys().then((keys) => {
       return Promise.all(
         keys
-          .filter((key) => key.startsWith('ecom-') && key !== STATIC_CACHE && key !== PAGES_CACHE)
+          .filter((key) => (key.startsWith('openecom-') || key.startsWith('ecom-')) && key !== STATIC_CACHE && key !== PAGES_CACHE)
           .map((key) => caches.delete(key))
       );
     })

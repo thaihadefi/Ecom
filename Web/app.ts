@@ -100,7 +100,7 @@ app.use('/admin/assets/libs/tinymce', express.static(path.join(process.cwd(), 'n
 app.get('/manifest.webmanifest', async (_req, res) => {
   try {
     const [general, storefront] = await Promise.all([getGeneral(), loadStorefront()]);
-    const name = (general?.websiteName || '').trim() || 'Ecom Store';
+    const name = (general?.websiteName || '').trim() || 'OpenEcom';
     const iconUrl = general?.favicon
       ? `${mediaBase}${general.favicon}`
       : '/images/favicon.ico';

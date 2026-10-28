@@ -1,21 +1,19 @@
 div(class="cart_table_area")
+  .form-check.cart_select_all
+    input#cartSelectAll.form-check-input(type="checkbox" input-cart-check-all)
+    label.form-check-label(for="cartSelectAll") Select all products
   .table-responsive
     table.table
+      caption.visually-hidden Shopping cart
       thead
         tr
-          th(class="cart_page_checkbox")
-            .form-check
-              input.form-check-input(
-                value=""
-                type="checkbox"
-                aria-label="Select all products"
-                input-cart-check-all
-                )
-          th(class="cart_page_img") Image
-          th(class="cart_page_details") Details
-          th(class="cart_page_price") Unit Price
-          th(class="cart_page_quantity") Quantity
-          th(class="cart_page_total") Subtotal
-          th(class="cart_page_action") Action
+          th#cartColInclude.cart_page_checkbox(scope="col")
+            span.visually-hidden Include in order
+          th#cartColImage.cart_page_img(scope="col") Image
+          th#cartColDetails.cart_page_details(scope="col") Details
+          th#cartColPrice.cart_page_price(scope="col") Unit Price
+          th#cartColQuantity.cart_page_quantity(scope="col") Quantity
+          th#cartColSubtotal.cart_page_total(scope="col") Subtotal
+          th#cartColAction.cart_page_action(scope="col") Action
       tbody(cart-table)
 

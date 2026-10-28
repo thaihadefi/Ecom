@@ -10,7 +10,7 @@ import { absoluteUrl, plainText } from "./seo.helper";
 type JsonLd = Record<string, unknown>;
 
 export const storeName = (general: ISettingGeneral | undefined): string =>
-  (general?.websiteName || "").trim() || "Ecom Store";
+  (general?.websiteName || "").trim() || "OpenEcom";
 
 export const siteJsonLd = (general: ISettingGeneral | undefined, origin: string): JsonLd[] => {
   const name = storeName(general);

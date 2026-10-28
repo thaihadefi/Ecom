@@ -1,4 +1,4 @@
-# Ecom
+# OpenEcom
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Express](https://img.shields.io/badge/Express%205-000000?style=flat-square&logo=express)](https://expressjs.com/)
@@ -36,8 +36,8 @@ The baseline also includes live chat between customers and staff (with optional 
 ### 1. Configure
 
 ```bash
-git clone https://github.com/thaihadefi/Ecom.git
-cd Ecom
+git clone https://github.com/thaihadefi/openecom.git
+cd openecom
 cp Web/.env.example Web/.env
 cp FileManager/.env.example FileManager/.env
 ```
@@ -81,7 +81,7 @@ nginx serves the site at `http://localhost` (also on port 3000). The database is
 cd Web && yarn db:seed
 ```
 
-On an empty database this creates a **Super Admin** role and the first admin account, `admin@ecom.local` / `Admin@123` (change the password right after the first login, or choose the credentials up front with `SEED_ADMIN_EMAIL=... SEED_ADMIN_PASSWORD=... yarn db:seed`). It also writes the default settings.
+On an empty database this creates a **Super Admin** role and the first admin account, `admin@openecom.local` / `Admin@123` (change the password right after the first login, or choose the credentials up front with `SEED_ADMIN_EMAIL=... SEED_ADMIN_PASSWORD=... yarn db:seed`). It also writes the default settings.
 
 The seed is safe to run again, including on a store that is already live: it never creates the default admin when an admin account exists, and it only adds the settings fields a store is missing, without changing any value already saved. Run it after updating the code so new settings get their defaults.
 
@@ -265,10 +265,10 @@ Search engines and AI assistants read the store from the same data the pages sho
 
 ## API documentation
 
-- Swagger UI: [ecom-api-docs.vercel.app](https://ecom-api-docs.vercel.app), or `http://localhost:3000/api-docs/` while the app is running (use this one to try requests, since it can send the login cookies).
+- Swagger UI: [openecom-api-docs.vercel.app](https://openecom-api-docs.vercel.app), or `http://localhost:3000/api-docs/` while the app is running (use this one to try requests, since it can send the login cookies).
 - JSON endpoints live under `/api` (customers) and `/admin/api` (staff). They accept the login cookies or `Authorization: Bearer <accessToken>` from the login endpoints. Errors return `{ "code": "error", "message": "..." }` with the matching HTTP status.
 - FileManager accepts `Authorization: Bearer <FILE_MANAGER_SECRET>`.
-- The spec lives in [thaihadefi/ecom-api-docs](https://github.com/thaihadefi/ecom-api-docs), whose `yarn sync-web` refreshes the copy in `Web/public/api-docs`.
+- The spec lives in [thaihadefi/openecom-api-docs](https://github.com/thaihadefi/openecom-api-docs), whose `yarn sync-web` refreshes the copy in `Web/public/api-docs`.
 
 ## Deployment and security notes
 
@@ -290,4 +290,4 @@ Each service defines its scripts in its own `package.json`; run them with `yarn 
 
 ## License
 
-[MIT](LICENSE) © Ecom Team
+[MIT](LICENSE) © OpenEcom Team

@@ -37,7 +37,7 @@ html(lang=storefront.language)
     //- Head metadata: a page's saved SEO (admin) wins, then what the controller passes
     //- (pageDescription, pageImage, ogType, jsonLd, markdownPath), then Settings > General.
     -
-      const brandName = (settingGeneral && settingGeneral.websiteName) ? settingGeneral.websiteName : "Ecom Store"
+      const brandName = (settingGeneral && settingGeneral.websiteName) ? settingGeneral.websiteName : "OpenEcom"
       const seoData = seo || {}
       const seoOg = seoData.og || {}
       const seoRobots = seoData.robots || {}
@@ -83,7 +83,7 @@ html(lang=storefront.language)
     meta(name="theme-color" content=safeColor(storefront.primaryColor))
     meta(name="apple-mobile-web-app-capable" content="yes")
     meta(name="apple-mobile-web-app-status-bar-style" content="default")
-    meta(name="apple-mobile-web-app-title" content=`${settingGeneral && settingGeneral.websiteName ? settingGeneral.websiteName : 'Ecom Store'}`)
+    meta(name="apple-mobile-web-app-title" content=`${settingGeneral && settingGeneral.websiteName ? settingGeneral.websiteName : 'OpenEcom'}`)
     link(
       rel="apple-touch-icon"
       href=`${settingGeneral && settingGeneral.favicon ? domainCDN + settingGeneral.favicon : '/images/favicon.ico'}`
